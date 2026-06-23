@@ -146,3 +146,6 @@ vite.config.ts.timestamp-*
 
 # Local PDF question-import drafts (review before publishing, never committed)
 imports/
+
+.DS_Store
+.mcp.json
