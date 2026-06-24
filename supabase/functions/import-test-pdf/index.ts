@@ -201,6 +201,33 @@ function withTimeout<T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T> {
   return fn(controller.signal).finally(() => clearTimeout(timeoutId));
 }
 
+// Runs `fn` over every item like Promise.allSettled, but never more than
+// `limit` calls in flight at once. Firing all page/question calls at the same
+// instant spikes both request rate and token throughput against the
+// Anthropic API and reliably trips rate limits -- this keeps the burst small
+// while still running mostly in parallel.
+async function runWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = new Array(items.length);
+  let nextIndex = 0;
+  async function worker() {
+    while (true) {
+      const i = nextIndex++;
+      if (i >= items.length) return;
+      try {
+        results[i] = { status: "fulfilled", value: await fn(items[i], i) };
+      } catch (reason) {
+        results[i] = { status: "rejected", reason };
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return results;
+}
+
 type SupabaseClient = ReturnType<typeof createClient>;
 
 async function markFailed(db: SupabaseClient, batchId: string, message: string) {
@@ -247,7 +274,14 @@ async function extractBoundariesForPage(
           {
             role: "user",
             content: [
-              { type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf_base64 } },
+              {
+                type: "document",
+                source: { type: "base64", media_type: "application/pdf", data: pdf_base64 },
+                // Same PDF bytes are sent on every one of the (up to) 13 per-page
+                // calls -- caching it means only the first call pays full price/rate
+                // cost for those ~30k input tokens, the rest are cheap cache reads.
+                cache_control: { type: "ephemeral" },
+              },
               {
                 type: "text",
                 text:
@@ -280,7 +314,11 @@ async function solveQuestion(
   // Only re-attach the PDF for questions that genuinely need the diagram --
   // keeps every other solve call cheap and fast.
   if (q.needs_image) {
-    content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf_base64 } });
+    content.push({
+      type: "document",
+      source: { type: "base64", media_type: "application/pdf", data: pdf_base64 },
+      cache_control: { type: "ephemeral" },
+    });
   }
   content.push({
     type: "text",
@@ -345,8 +383,13 @@ async function runExtraction(
   const pageCount = countPdfPages(pdf_base64);
   const pageNumbers = Array.from({ length: pageCount }, (_, i) => i + 1);
 
-  const pageResults = await Promise.allSettled(
-    pageNumbers.map((pageNumber) => extractBoundariesForPage(pdf_base64, pageNumber, pageCount)),
+  // Concurrency-limited rather than all-at-once: every call resends the same
+  // ~30k-token PDF, so firing all pages simultaneously spikes request rate and
+  // token throughput enough to trip Anthropic rate limits on most of them.
+  const pageResults = await runWithConcurrency(
+    pageNumbers,
+    4,
+    (pageNumber) => extractBoundariesForPage(pdf_base64, pageNumber, pageCount),
   );
 
   const boundaries: QuestionBoundary[] = [];
@@ -379,8 +422,7 @@ async function runExtraction(
 
   const answerKeyMap = answer_key ? parseAnswerKey(answer_key) : new Map<number, string>();
 
-  const results = await Promise.allSettled(
-    boundaries.map(async (q) => {
+  const results = await runWithConcurrency(boundaries, 6, async (q) => {
       let extracted_answer = "";
       let explanation = "[Automatic solving failed -- please solve manually.]";
       let solveError: string | null = null;
@@ -444,8 +486,7 @@ async function runExtraction(
       const { error: insertErr } = await db.from("draft_questions").insert(row);
       if (insertErr) throw new Error(`Failed to insert question ${q.original_question_number}: ${insertErr.message}`);
       return { verification_status, hadError: !!solveError };
-    }),
-  );
+  });
 
   const inserted = results.filter((r) => r.status === "fulfilled").length;
   const needsAttention = results.some(
@@ -460,8 +501,15 @@ async function runExtraction(
   await db
     .from("import_batches")
     .update({
-      status: needsAttention ? "needs_attention" : "completed",
+      status: pageErrors.length > 0 ? "needs_attention" : needsAttention ? "needs_attention" : "completed",
       questions_extracted: inserted,
+      // Page-level failures (e.g. rate limits) don't fail the whole batch --
+      // whatever pages succeeded still show up live -- but they must stay
+      // visible instead of silently vanishing, since they mean some questions
+      // are simply missing from this import.
+      error_message: pageErrors.length > 0
+        ? `${pageErrors.length} of ${pageCount} page(s) failed to extract and are missing from this import: ${pageErrors.join(" | ")}`
+        : null,
       finished_at: new Date().toISOString(),
     })
     .eq("id", batchId);
