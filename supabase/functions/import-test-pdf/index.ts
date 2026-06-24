@@ -148,14 +148,11 @@ async function streamToolCall(
   let stopReason = "end_turn";
   let parseFailures = 0;
   const eventTypesSeen: string[] = [];
-  let rawSample = "";
 
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
-    const chunkText = decoder.decode(value, { stream: true });
-    if (rawSample.length < 500) rawSample += chunkText;
-    buffer += chunkText;
+    buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split("\n");
     buffer = lines.pop() ?? "";
 
@@ -170,7 +167,9 @@ async function streamToolCall(
         parseFailures++;
         continue;
       }
-      if (evt.type && eventTypesSeen.length < 20) eventTypesSeen.push(evt.type);
+      if (evt.type && eventTypesSeen.length < 20) {
+        eventTypesSeen.push(evt.delta?.type ? `${evt.type}:${evt.delta.type}` : evt.type);
+      }
       if (evt.type === "content_block_delta" && evt.delta?.type === "input_json_delta") {
         partialJson += evt.delta.partial_json ?? "";
       } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
@@ -182,7 +181,7 @@ async function streamToolCall(
   if (!partialJson) {
     throw new Error(
       `[${label}] Claude did not stream any tool input. stop_reason=${stopReason}, parseFailures=${parseFailures}, ` +
-        `eventTypes=${JSON.stringify(eventTypesSeen)}, rawSample=${JSON.stringify(rawSample.slice(0, 500))}`,
+        `partialJsonLen=${partialJson.length}, eventTypes=${JSON.stringify(eventTypesSeen)}`,
     );
   }
 
@@ -211,12 +210,36 @@ async function markFailed(db: SupabaseClient, batchId: string, message: string) 
     .eq("id", batchId);
 }
 
-async function extractBoundaries(pdf_base64: string): Promise<QuestionBoundary[]> {
+// Cheap, no-Claude-call estimate of the PDF's real page count, by counting
+// "/Type /Page" leaf-object declarations in the raw PDF structure. Drives the
+// per-page chunking below -- a 60-question test can span 8+ dense pages, far
+// too much to transcribe reliably (or within any output-token budget) in a
+// single call.
+function countPdfPages(pdf_base64: string): number {
+  try {
+    const raw = atob(pdf_base64);
+    const matches = raw.match(/\/Type\s*\/Page(?!s)/g);
+    return matches && matches.length > 0 ? matches.length : 1;
+  } catch {
+    return 1;
+  }
+}
+
+// Transcribes only the questions on one specific page. Splitting by page
+// (rather than one call for the whole document) keeps every call's output
+// small regardless of how many questions the overall test has, and lets
+// non-content pages (cover, instructions, blank filler, answer key, worked
+// solutions) cheaply return zero questions instead of derailing the batch.
+async function extractBoundariesForPage(
+  pdf_base64: string,
+  pageNumber: number,
+  pageCount: number,
+): Promise<QuestionBoundary[]> {
   const { stopReason, toolInput } = await withTimeout((signal) =>
     streamToolCall(
       {
         model: ANTHROPIC_MODEL,
-        max_tokens: 4096,
+        max_tokens: 6000,
         stream: true,
         tools: [BOUNDARIES_TOOL],
         tool_choice: { type: "tool", name: "extract_question_boundaries" },
@@ -228,23 +251,25 @@ async function extractBoundaries(pdf_base64: string): Promise<QuestionBoundary[]
               {
                 type: "text",
                 text:
-                  "Transcribe every multiple-choice question from this math competition test page exactly as printed. " +
-                  "Do not solve them yet. Preserve LaTeX-worthy math notation using \\(...\\) inline math. " +
-                  "Set needs_image:true only when a diagram is essential to solving the question, not just decorative.",
+                  `This PDF document has ${pageCount} pages total. Look ONLY at page ${pageNumber} ` +
+                  `(page 1 is the very first page of the document). Transcribe every multiple-choice math ` +
+                  `question whose number label and answer choices appear on page ${pageNumber}, exactly as printed. ` +
+                  `Do not solve them yet. Preserve LaTeX-worthy math notation using \\(...\\) inline math. ` +
+                  `Set needs_image:true only when a diagram is essential to solving the question, not just decorative. ` +
+                  `If page ${pageNumber} has no multiple-choice math questions on it (e.g. it is a cover page, ` +
+                  `instructions, a blank/filler page, an answer key, or worked solutions), return an empty questions array.`,
               },
             ],
           },
         ],
       },
       signal,
-      "boundaries",
+      `boundaries-p${pageNumber}`,
     )
   );
 
-  if (stopReason === "refusal") throw new Error("Claude declined to process this PDF (refusal)");
-  const questions = (toolInput.questions as QuestionBoundary[] | undefined) ?? [];
-  if (questions.length === 0) throw new Error("No questions found on this page");
-  return questions;
+  if (stopReason === "refusal") throw new Error(`Claude declined to process page ${pageNumber} (refusal)`);
+  return (toolInput.questions as QuestionBoundary[] | undefined) ?? [];
 }
 
 async function solveQuestion(
@@ -290,10 +315,11 @@ async function solveQuestion(
 }
 
 // Runs after the kickoff response has already been sent to the browser (see
-// EdgeRuntime.waitUntil below). Phase A transcribes the page; phase B solves
-// each question independently and in parallel, inserting each draft_questions
-// row as soon as it's ready so the review UI can show partial results live
-// instead of waiting on the slowest question to finish.
+// EdgeRuntime.waitUntil below). Phase A transcribes every page in parallel
+// (one small call per page); phase B solves each question independently and
+// in parallel, inserting each draft_questions row as soon as it's ready so
+// the review UI can show partial results live instead of waiting on the
+// slowest question to finish.
 async function runExtraction(
   db: SupabaseClient,
   batchId: string,
@@ -316,16 +342,36 @@ async function runExtraction(
     // Non-fatal -- proceed with extraction regardless.
   }
 
-  let boundaries: QuestionBoundary[];
-  try {
-    boundaries = await extractBoundaries(pdf_base64);
-  } catch (err) {
-    const message = err instanceof Error && err.name === "AbortError"
-      ? `Claude did not finish transcribing this page within ${CALL_TIMEOUT_MS / 1000}s.`
-      : err instanceof Error
-        ? err.message
-        : String(err);
-    await markFailed(db, batchId, message);
+  const pageCount = countPdfPages(pdf_base64);
+  const pageNumbers = Array.from({ length: pageCount }, (_, i) => i + 1);
+
+  const pageResults = await Promise.allSettled(
+    pageNumbers.map((pageNumber) => extractBoundariesForPage(pdf_base64, pageNumber, pageCount)),
+  );
+
+  const boundaries: QuestionBoundary[] = [];
+  const pageErrors: string[] = [];
+  pageResults.forEach((r, idx) => {
+    if (r.status === "fulfilled") {
+      boundaries.push(...r.value);
+    } else {
+      const reason = r.reason instanceof Error && r.reason.name === "AbortError"
+        ? `timed out after ${CALL_TIMEOUT_MS / 1000}s`
+        : r.reason instanceof Error
+          ? r.reason.message
+          : String(r.reason);
+      pageErrors.push(`page ${idx + 1}: ${reason}`);
+    }
+  });
+
+  if (boundaries.length === 0) {
+    await markFailed(
+      db,
+      batchId,
+      pageErrors.length > 0
+        ? `No questions extracted from any page. Per-page errors: ${pageErrors.join(" | ")}`
+        : "No multiple-choice questions found anywhere in this PDF.",
+    );
     return;
   }
 
