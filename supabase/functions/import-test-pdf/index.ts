@@ -124,8 +124,6 @@ async function streamToolCall(
   signal: AbortSignal,
   label: string,
 ): Promise<{ stopReason: string; toolInput: Record<string, unknown> }> {
-  const t0 = Date.now();
-  console.log(`[${label}] sending request`);
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     signal,
@@ -136,31 +134,28 @@ async function streamToolCall(
     },
     body: JSON.stringify(body),
   });
-  console.log(`[${label}] got response headers after ${Date.now() - t0}ms, status=${resp.status}`);
 
   if (!resp.ok) {
     const errText = await resp.text();
-    throw new Error(`Claude API error ${resp.status}: ${errText}`);
+    throw new Error(`[${label}] Claude API error ${resp.status}: ${errText}`);
   }
-  if (!resp.body) throw new Error("Claude API returned no response body for the streamed request");
+  if (!resp.body) throw new Error(`[${label}] Claude API returned no response body for the streamed request`);
 
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   let partialJson = "";
   let stopReason = "end_turn";
-  let chunkCount = 0;
-  let firstChunkAt = -1;
+  let parseFailures = 0;
+  const eventTypesSeen: string[] = [];
+  let rawSample = "";
 
   while (true) {
     const { value, done } = await reader.read();
     if (done) break;
-    chunkCount++;
-    if (firstChunkAt === -1) {
-      firstChunkAt = Date.now() - t0;
-      console.log(`[${label}] first chunk after ${firstChunkAt}ms`);
-    }
-    buffer += decoder.decode(value, { stream: true });
+    const chunkText = decoder.decode(value, { stream: true });
+    if (rawSample.length < 500) rawSample += chunkText;
+    buffer += chunkText;
     const lines = buffer.split("\n");
     buffer = lines.pop() ?? "";
 
@@ -168,12 +163,14 @@ async function streamToolCall(
       if (!line.startsWith("data: ")) continue;
       const dataStr = line.slice(6).trim();
       if (!dataStr) continue;
-      let evt: { type?: string; delta?: { type?: string; partial_json?: string; stop_reason?: string } };
+      let evt: { type?: string; delta?: { type?: string; partial_json?: string; stop_reason?: string }; content_block?: { type?: string } };
       try {
         evt = JSON.parse(dataStr);
       } catch {
+        parseFailures++;
         continue;
       }
+      if (evt.type && eventTypesSeen.length < 20) eventTypesSeen.push(evt.type);
       if (evt.type === "content_block_delta" && evt.delta?.type === "input_json_delta") {
         partialJson += evt.delta.partial_json ?? "";
       } else if (evt.type === "message_delta" && evt.delta?.stop_reason) {
@@ -181,9 +178,13 @@ async function streamToolCall(
       }
     }
   }
-  console.log(`[${label}] stream done after ${Date.now() - t0}ms, ${chunkCount} chunks, ${partialJson.length} json chars`);
 
-  if (!partialJson) throw new Error("Claude did not stream any tool input");
+  if (!partialJson) {
+    throw new Error(
+      `[${label}] Claude did not stream any tool input. stop_reason=${stopReason}, parseFailures=${parseFailures}, ` +
+        `eventTypes=${JSON.stringify(eventTypesSeen)}, rawSample=${JSON.stringify(rawSample.slice(0, 500))}`,
+    );
+  }
 
   let toolInput: Record<string, unknown>;
   try {
