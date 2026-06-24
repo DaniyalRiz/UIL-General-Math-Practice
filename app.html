@@ -2433,6 +2433,9 @@ function ReviewImportsPanel({ authUser }) {
   const [pdfAnswerKey, setPdfAnswerKey] = useState('');
   const [pdfImporting, setPdfImporting] = useState(false);
   const [pdfImportMessage, setPdfImportMessage] = useState('');
+  const pdfPollRef = useRef(null);
+
+  useEffect(() => () => clearInterval(pdfPollRef.current), []);
 
   const blankDraftRow = () => ({
     title: '', topic: 'Algebra 1 & 2', difficulty: 'Easy', source: '',
@@ -2521,13 +2524,57 @@ function ReviewImportsPanel({ authUser }) {
     setDraftRows(prev => [...prev, ...(data || []).map(draftQuestionRowToLocal)]);
   };
 
+  // Polls import_batches until the background extraction (kicked off by the
+  // Edge Function via EdgeRuntime.waitUntil) reaches a terminal status, instead
+  // of holding one long request open — that's what was timing out before.
+  const pollImportBatch = (batchId) => {
+    clearInterval(pdfPollRef.current);
+    pdfPollRef.current = setInterval(async () => {
+      // Cheap, idempotent safety net: self-heals any batch that got orphaned by
+      // a hard process kill instead of a normal caught error.
+      _supabase.rpc('reap_stale_import_batches').catch(() => {});
+
+      const { data, error } = await _supabase
+        .from('import_batches')
+        .select('status, error_message, questions_extracted')
+        .eq('id', batchId)
+        .single();
+
+      if (error) {
+        clearInterval(pdfPollRef.current);
+        setPdfImporting(false);
+        setPdfImportMessage('Lost track of the import job: ' + error.message);
+        return;
+      }
+      if (data.status === 'queued' || data.status === 'processing') {
+        setPdfImportMessage(`Status: ${data.status}… this page updates automatically.`);
+        return;
+      }
+
+      clearInterval(pdfPollRef.current);
+      setPdfImporting(false);
+
+      if (data.status === 'failed') {
+        setPdfImportMessage('Extraction failed: ' + (data.error_message || 'Unknown error.'));
+        return;
+      }
+
+      loadDraftsFromBatch(batchId);
+      setPdfImportMessage(
+        `Extracted ${data.questions_extracted} question(s)` +
+        (data.status === 'needs_attention' ? ' — some answer key mismatches found, check the verification badges below.' : ' — all answers matched the key.')
+      );
+    }, 4000);
+  };
+
   const extractFromPdf = async () => {
     if (!pdfFile) { setPdfImportMessage('Pick a PDF file first.'); return; }
     if (pdfFile.type !== 'application/pdf') { setPdfImportMessage('That file is not a PDF.'); return; }
     if (pdfFile.size > 15 * 1024 * 1024) { setPdfImportMessage('PDF is over 15 MB — split it into smaller page ranges first.'); return; }
 
+    clearInterval(pdfPollRef.current);
     setPdfImporting(true);
-    setPdfImportMessage('Uploading to Claude for extraction — this can take 30–60 seconds…');
+    setPdfImportMessage('Queuing import job…');
     try {
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -2546,15 +2593,11 @@ function ReviewImportsPanel({ authUser }) {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      await loadDraftsFromBatch(data.batch_id);
-      setPdfImportMessage(
-        `Extracted ${data.questions_extracted} question(s)` +
-        (data.mismatches ? ` — ${data.mismatches} answer mismatch(es), check the verification badges below.` : ' — all answers matched the key.')
-      );
+      setPdfImportMessage('Queued — processing in the background, this page updates automatically…');
+      pollImportBatch(data.batch_id);
     } catch (e) {
-      setPdfImportMessage('Extraction failed: ' + (e.message || String(e)));
-    } finally {
       setPdfImporting(false);
+      setPdfImportMessage('Extraction failed: ' + (e.message || String(e)));
     }
   };
 

@@ -9,6 +9,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const ANTHROPIC_MODEL = "claude-sonnet-4-6";
+const CLAUDE_TIMEOUT_MS = 90_000;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -98,65 +99,50 @@ function choiceLetter(choiceText: string): string | null {
   return m ? m[1].toUpperCase() : null;
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+type SupabaseClient = ReturnType<typeof createClient>;
 
-  if (!ANTHROPIC_API_KEY) {
-    return json({ error: "ANTHROPIC_API_KEY is not configured for this project" }, 500);
-  }
-
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json({ error: "Missing Authorization header" }, 401);
-
-  // Verify the caller is an admin using THEIR OWN jwt — never trust a client-claimed role.
-  const callerClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  });
-  const { data: userData, error: userErr } = await callerClient.auth.getUser();
-  if (userErr || !userData?.user) return json({ error: "Invalid session" }, 401);
-
-  const { data: isAdmin, error: adminErr } = await callerClient.rpc("is_admin");
-  if (adminErr || !isAdmin) return json({ error: "Admin access required" }, 403);
-
-  let payload: {
-    pdf_base64?: string;
-    source_label?: string;
-    original_test?: string;
-    answer_key?: string;
-  };
-  try {
-    payload = await req.json();
-  } catch {
-    return json({ error: "Invalid JSON body" }, 400);
-  }
-
-  const { pdf_base64, source_label, original_test, answer_key } = payload;
-  if (!pdf_base64) return json({ error: "pdf_base64 is required" }, 400);
-
-  // Service role for the actual writes — RLS on these tables is admin-only anyway,
-  // but we've already verified admin status above against the caller's own session.
-  const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-  const { data: batch, error: batchErr } = await db
+async function markFailed(db: SupabaseClient, batchId: string, message: string) {
+  await db
     .from("import_batches")
-    .insert({
-      created_by: userData.user.id,
-      source_label: source_label ?? null,
-      status: "processing",
-      started_at: new Date().toISOString(),
-      answer_key_found: !!answer_key,
-    })
-    .select()
-    .single();
-  if (batchErr || !batch) return json({ error: `Failed to create import batch: ${batchErr?.message}` }, 500);
+    .update({ status: "failed", error_message: message, finished_at: new Date().toISOString() })
+    .eq("id", batchId);
+}
+
+// Runs after the kickoff response has already been sent to the browser (see
+// EdgeRuntime.waitUntil below). Any failure here — including a Claude timeout —
+// must end in a 'failed' row with a real error_message; never leave it hanging.
+async function runExtraction(
+  db: SupabaseClient,
+  batchId: string,
+  pdf_base64: string,
+  source_label: string | null,
+  original_test: string | null,
+  answer_key: string | null,
+) {
+  await db.from("import_batches").update({ status: "processing" }).eq("id", batchId);
+
+  // Best-effort audit copy in the bucket provisioned for this in Phase 1 — not
+  // required for extraction (pdf_base64 is already in memory) so a failure here
+  // must never block or fail the batch.
+  try {
+    const bytes = Uint8Array.from(atob(pdf_base64), (c) => c.charCodeAt(0));
+    const path = `${batchId}.pdf`;
+    await db.storage.from("test-pdfs").upload(path, bytes, { contentType: "application/pdf", upsert: true });
+    await db.from("import_batches").update({ source_pdf_path: path }).eq("id", batchId);
+  } catch {
+    // Non-fatal — proceed with extraction regardless.
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
 
   try {
     const claudeResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
+      signal: controller.signal,
       headers: {
         "content-type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
+        "x-api-key": ANTHROPIC_API_KEY!,
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
@@ -226,7 +212,7 @@ Deno.serve(async (req: Request) => {
       const matchedChoice = q.choices.find((c) => choiceLetter(c) === (keyLetter ?? extractedLetter));
 
       return {
-        batch_id: batch.id,
+        batch_id: batchId,
         title: q.title,
         topic: q.topic,
         difficulty: q.difficulty,
@@ -261,23 +247,82 @@ Deno.serve(async (req: Request) => {
         questions_extracted: rows.length,
         finished_at: new Date().toISOString(),
       })
-      .eq("id", batch.id);
-
-    return json({
-      batch_id: batch.id,
-      questions_extracted: rows.length,
-      mismatches: rows.filter((r) => r.verification_status === "mismatch").length,
-      status: needsAttention ? "needs_attention" : "completed",
-    });
+      .eq("id", batchId);
   } catch (err) {
-    await db
-      .from("import_batches")
-      .update({
-        status: "failed",
-        error_message: err instanceof Error ? err.message : String(err),
-        finished_at: new Date().toISOString(),
-      })
-      .eq("id", batch.id);
-    return json({ error: err instanceof Error ? err.message : String(err), batch_id: batch.id }, 500);
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    const message = isTimeout
+      ? `Claude did not respond within ${CLAUDE_TIMEOUT_MS / 1000}s and the request was aborted. Try a page with fewer questions, or retry — long worked solutions on a dense page can exceed this budget.`
+      : err instanceof Error
+        ? err.message
+        : String(err);
+    await markFailed(db, batchId, message);
+  } finally {
+    clearTimeout(timeoutId);
   }
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  if (!ANTHROPIC_API_KEY) {
+    return json({ error: "ANTHROPIC_API_KEY is not configured for this project" }, 500);
+  }
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return json({ error: "Missing Authorization header" }, 401);
+
+  // Verify the caller is an admin using THEIR OWN jwt — never trust a client-claimed role.
+  const callerClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: userData, error: userErr } = await callerClient.auth.getUser();
+  if (userErr || !userData?.user) return json({ error: "Invalid session" }, 401);
+
+  const { data: isAdmin, error: adminErr } = await callerClient.rpc("is_admin");
+  if (adminErr || !isAdmin) return json({ error: "Admin access required" }, 403);
+
+  let payload: {
+    pdf_base64?: string;
+    source_label?: string;
+    original_test?: string;
+    answer_key?: string;
+  };
+  try {
+    payload = await req.json();
+  } catch {
+    return json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const { pdf_base64, source_label, original_test, answer_key } = payload;
+  if (!pdf_base64) return json({ error: "pdf_base64 is required" }, 400);
+
+  // Service role for the actual writes — RLS on these tables is admin-only anyway,
+  // but we've already verified admin status above against the caller's own session.
+  const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  const { data: batch, error: batchErr } = await db
+    .from("import_batches")
+    .insert({
+      created_by: userData.user.id,
+      source_label: source_label ?? null,
+      status: "queued",
+      started_at: new Date().toISOString(),
+      answer_key_found: !!answer_key,
+    })
+    .select()
+    .single();
+  if (batchErr || !batch) return json({ error: `Failed to create import batch: ${batchErr?.message}` }, 500);
+
+  // Respond immediately — the browser polls import_batches for status instead of
+  // holding this request open. Extraction keeps running in the background via
+  // EdgeRuntime.waitUntil, which is the documented way to do work after the
+  // response has been sent without the isolate being torn down early.
+  // @ts-ignore -- EdgeRuntime is a Supabase Edge Functions global, typed by the
+  // jsr:@supabase/functions-js/edge-runtime.d.ts import at the top of this file.
+  EdgeRuntime.waitUntil(
+    runExtraction(db, batch.id, pdf_base64, source_label ?? null, original_test ?? null, answer_key ?? null),
+  );
+
+  return json({ batch_id: batch.id, status: "queued" }, 202);
 });
