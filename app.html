@@ -188,7 +188,7 @@ function Dropdown({ label, value, options, onChange }) {
 }
 
 // ── Problem list (row layout) ────────────────────────────────────────────────
-function ProblemRow({ q, n, status, onOpen }) {
+function ProblemRow({ q, n, onOpen }) {
   return (
     <button onClick={onOpen}
       className="group w-full grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] items-center gap-3 px-4 py-3 text-left
@@ -196,8 +196,6 @@ function ProblemRow({ q, n, status, onOpen }) {
                  hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors">
       <div className="flex items-center gap-2">
         <span className="text-xs font-mono text-slate-400 dark:text-slate-600 w-6 text-right">{n}</span>
-        {status === "correct" && <span className="text-emerald-500 text-sm">●</span>}
-        {status === "wrong" && <span className="text-rose-500 text-sm">●</span>}
       </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
@@ -4009,7 +4007,7 @@ function App() {
                 <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
               </div>
               {recommendedVisible.map((q,i) => (
-                <ProblemRow key={q.id} q={q} n={i+1} status={statusFor(q)}
+                <ProblemRow key={q.id} q={q} n={i+1}
                   onOpen={()=>openProblem(filtered.findIndex(x=>x.id===q.id))} />
               ))}
             </div>
@@ -4038,7 +4036,7 @@ function App() {
                 <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
               </div>
               {questions.filter(q=>bookmarks.includes(q.id)).map((q,i) => (
-                <ProblemRow key={q.id} q={q} n={i+1} status={statusFor(q)}
+                <ProblemRow key={q.id} q={q} n={i+1}
                   onOpen={()=>{ const idx=filtered.findIndex(x=>x.id===q.id); if(idx===-1){setTopic("All Topics");setDiff("All Difficulties");setSearch(""); setTimeout(()=>openProblem(questions.findIndex(x=>x.id===q.id)),50);} else openProblem(idx); }} />
               ))}
             </div>
@@ -4075,7 +4073,7 @@ function App() {
             </div>
           ) : pageItems.map((q, i) => {
             const globalIdx = (pageClamped-1)*PAGE_SIZE + i;
-            return <ProblemRow key={q.id} q={q} n={globalIdx+1} status={statusFor(q)} onOpen={()=>openProblem(globalIdx)} />;
+            return <ProblemRow key={q.id} q={q} n={globalIdx+1} onOpen={()=>openProblem(globalIdx)} />;
           })}
         </div>
 
