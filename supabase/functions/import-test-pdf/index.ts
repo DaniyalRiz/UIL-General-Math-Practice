@@ -1,17 +1,20 @@
-// Admin-only: extracts questions from a UIL/TMSCA test PDF via Claude and
-// writes them to draft_questions for human review. Never touches `questions`
-// and never sets review_status to anything but 'pending'.
+// Admin-only: Step 1 of the PDF import pipeline. Transcribes every question
+// on a UIL/TMSCA test PDF into JSON (no solving) and persists it durably on
+// the import_batches row (status -> 'transcribed'). Step 2 (solve-pdf-questions)
+// reads that JSON back out of the database to generate answers/explanations,
+// so the two steps are independently resumable -- if solving fails or needs a
+// retry, the PDF never has to be re-read (and re-rate-limited) again.
+// Never touches `questions` and never sets review_status to anything but 'pending'.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { encodeBase64 } from "jsr:@std/encoding/base64";
+import { PDFDocument } from "npm:pdf-lib@1.17.1";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const ANTHROPIC_MODEL = "claude-sonnet-4-6";
-// TEMPORARY diagnostic value -- raised so we can see how long each call
-// actually takes (via the timing logs in streamToolCall) instead of getting
-// cut off again. Will be tuned back down once we have real numbers.
 const CALL_TIMEOUT_MS = 140_000;
 
 const CORS_HEADERS = {
@@ -27,8 +30,8 @@ function json(body: unknown, status = 200) {
   });
 }
 
-// Phase A: transcribe every question on the page -- no solving, so this stays
-// fast no matter how many questions are on the page.
+// Transcription tool -- no solving, so this stays fast no matter how many
+// questions are on the page.
 const BOUNDARIES_TOOL = {
   name: "extract_question_boundaries",
   description: "Transcribe every multiple-choice question from this math competition test page, without solving them.",
@@ -68,23 +71,7 @@ const BOUNDARIES_TOOL = {
   },
 };
 
-// Phase B: solve exactly one already-transcribed question.
-const SOLVE_TOOL = {
-  name: "solve_question",
-  description: "Solve this single math competition question and show the full worked solution.",
-  strict: true,
-  input_schema: {
-    type: "object",
-    properties: {
-      extracted_answer: { type: "string", description: "The correct choice, exactly matching one entry in choices" },
-      explanation: { type: "string", description: "Full worked solution in LaTeX" },
-    },
-    required: ["extracted_answer", "explanation"],
-    additionalProperties: false,
-  },
-};
-
-type QuestionBoundary = {
+type ClaudeQuestionBoundary = {
   original_question_number: number;
   title: string;
   topic: string;
@@ -96,25 +83,10 @@ type QuestionBoundary = {
   image_alt: string;
 };
 
-function parseAnswerKey(raw: string): Map<number, string> {
-  const map = new Map<number, string>();
-  // Accepts "1. C" / "1) C" / "1:C" / bare comma-separated list "C, C, D, ..."
-  const numbered = [...raw.matchAll(/(\d+)[).:]\s*([A-E])\b/gi)];
-  if (numbered.length > 0) {
-    for (const m of numbered) map.set(parseInt(m[1], 10), m[2].toUpperCase());
-    return map;
-  }
-  const bare = raw.match(/[A-E]/gi);
-  if (bare) {
-    bare.forEach((letter, idx) => map.set(idx + 1, letter.toUpperCase()));
-  }
-  return map;
-}
-
-function choiceLetter(choiceText: string): string | null {
-  const m = choiceText.match(/^\(?([A-E])\)?/i);
-  return m ? m[1].toUpperCase() : null;
-}
+// _pageIndex is set by our own code (which page-PDF this came from), never by
+// Claude -- step 2 uses it to re-attach just that one page for needs_image
+// questions instead of the whole document.
+type QuestionBoundary = ClaudeQuestionBoundary & { _pageIndex: number };
 
 // Streams a Messages API tool-forced response and returns the assembled tool
 // input, instead of waiting for one blocking JSON reply. Raw SSE parsing (no
@@ -202,10 +174,10 @@ function withTimeout<T>(fn: (signal: AbortSignal) => Promise<T>): Promise<T> {
 }
 
 // Runs `fn` over every item like Promise.allSettled, but never more than
-// `limit` calls in flight at once. Firing all page/question calls at the same
-// instant spikes both request rate and token throughput against the
-// Anthropic API and reliably trips rate limits -- this keeps the burst small
-// while still running mostly in parallel.
+// `limit` calls in flight at once. Firing all page calls at the same instant
+// spikes both request rate and token throughput against the Anthropic API and
+// reliably trips rate limits -- this keeps the burst small while still
+// running mostly in parallel.
 async function runWithConcurrency<T, R>(
   items: T[],
   limit: number,
@@ -237,30 +209,30 @@ async function markFailed(db: SupabaseClient, batchId: string, message: string) 
     .eq("id", batchId);
 }
 
-// Cheap, no-Claude-call estimate of the PDF's real page count, by counting
-// "/Type /Page" leaf-object declarations in the raw PDF structure. Drives the
-// per-page chunking below -- a 60-question test can span 8+ dense pages, far
-// too much to transcribe reliably (or within any output-token budget) in a
-// single call.
-function countPdfPages(pdf_base64: string): number {
-  try {
-    const raw = atob(pdf_base64);
-    const matches = raw.match(/\/Type\s*\/Page(?!s)/g);
-    return matches && matches.length > 0 ? matches.length : 1;
-  } catch {
-    return 1;
+// Physically splits the PDF into one minimal single-page PDF per page (vector
+// copy via pdf-lib, no rasterization). The account's rate limit is 30,000
+// input tokens/minute, and the whole multi-page document alone can already be
+// ~30k+ tokens, so sending the full PDF on every per-page call was guaranteed
+// to trip the limit. Splitting first means each call's input is roughly
+// 1/pageCount the size, comfortably leaving room for several calls per minute.
+async function splitPdfIntoPages(pdf_base64: string): Promise<string[]> {
+  const bytes = Uint8Array.from(atob(pdf_base64), (c) => c.charCodeAt(0));
+  const srcDoc = await PDFDocument.load(bytes);
+  const pageCount = srcDoc.getPageCount();
+  const pagePdfs: string[] = [];
+  for (let i = 0; i < pageCount; i++) {
+    const newDoc = await PDFDocument.create();
+    const [copiedPage] = await newDoc.copyPages(srcDoc, [i]);
+    newDoc.addPage(copiedPage);
+    pagePdfs.push(encodeBase64(await newDoc.save()));
   }
+  return pagePdfs;
 }
 
-// Transcribes only the questions on one specific page. Splitting by page
-// (rather than one call for the whole document) keeps every call's output
-// small regardless of how many questions the overall test has, and lets
-// non-content pages (cover, instructions, blank filler, answer key, worked
-// solutions) cheaply return zero questions instead of derailing the batch.
+// Transcribes only the questions on one already-isolated single page.
 async function extractBoundariesForPage(
-  pdf_base64: string,
-  pageNumber: number,
-  pageCount: number,
+  pagePdfBase64: string,
+  pageIndex: number,
 ): Promise<QuestionBoundary[]> {
   const { stopReason, toolInput } = await withTimeout((signal) =>
     streamToolCall(
@@ -274,122 +246,66 @@ async function extractBoundariesForPage(
           {
             role: "user",
             content: [
-              {
-                type: "document",
-                source: { type: "base64", media_type: "application/pdf", data: pdf_base64 },
-                // Same PDF bytes are sent on every one of the (up to) 13 per-page
-                // calls -- caching it means only the first call pays full price/rate
-                // cost for those ~30k input tokens, the rest are cheap cache reads.
-                cache_control: { type: "ephemeral" },
-              },
+              { type: "document", source: { type: "base64", media_type: "application/pdf", data: pagePdfBase64 } },
               {
                 type: "text",
                 text:
-                  `This PDF document has ${pageCount} pages total. Look ONLY at page ${pageNumber} ` +
-                  `(page 1 is the very first page of the document). Transcribe every multiple-choice math ` +
-                  `question whose number label and answer choices appear on page ${pageNumber}, exactly as printed. ` +
-                  `Do not solve them yet. Preserve LaTeX-worthy math notation using \\(...\\) inline math. ` +
-                  `Set needs_image:true only when a diagram is essential to solving the question, not just decorative. ` +
-                  `If page ${pageNumber} has no multiple-choice math questions on it (e.g. it is a cover page, ` +
-                  `instructions, a blank/filler page, an answer key, or worked solutions), return an empty questions array.`,
+                  "Transcribe every multiple-choice math question on this page exactly as printed. Do not solve them " +
+                  "yet. Preserve LaTeX-worthy math notation using \\(...\\) inline math. Set needs_image:true only " +
+                  "when a diagram is essential to solving the question, not just decorative. If this page has no " +
+                  "multiple-choice math questions on it (e.g. it is a cover page, instructions, a blank/filler page, " +
+                  "an answer key, or worked solutions), return an empty questions array.",
               },
             ],
           },
         ],
       },
       signal,
-      `boundaries-p${pageNumber}`,
+      `boundaries-p${pageIndex + 1}`,
     )
   );
 
-  if (stopReason === "refusal") throw new Error(`Claude declined to process page ${pageNumber} (refusal)`);
-  return (toolInput.questions as QuestionBoundary[] | undefined) ?? [];
-}
-
-async function solveQuestion(
-  pdf_base64: string,
-  q: QuestionBoundary,
-): Promise<{ extracted_answer: string; explanation: string }> {
-  const content: unknown[] = [];
-  // Only re-attach the PDF for questions that genuinely need the diagram --
-  // keeps every other solve call cheap and fast.
-  if (q.needs_image) {
-    content.push({
-      type: "document",
-      source: { type: "base64", media_type: "application/pdf", data: pdf_base64 },
-      cache_control: { type: "ephemeral" },
-    });
-  }
-  content.push({
-    type: "text",
-    text:
-      `Solve this math competition question and show your real work.\n\n` +
-      `Question ${q.original_question_number}: ${q.question}\n\n` +
-      `Choices:\n${q.choices.join("\n")}\n\n` +
-      (q.needs_image ? "The PDF page is attached above because this question depends on a diagram -- look at it carefully.\n" : "") +
-      `Set extracted_answer to exactly one of the choices above, and explanation to the full worked solution in LaTeX.`,
-  });
-
-  const { stopReason, toolInput } = await withTimeout((signal) =>
-    streamToolCall(
-      {
-        model: ANTHROPIC_MODEL,
-        max_tokens: 4096,
-        stream: true,
-        tools: [SOLVE_TOOL],
-        tool_choice: { type: "tool", name: "solve_question" },
-        messages: [{ role: "user", content }],
-      },
-      signal,
-      `solve#${q.original_question_number}`,
-    )
-  );
-
-  if (stopReason === "refusal") throw new Error("Claude declined to solve this question (refusal)");
-  const extracted_answer = toolInput.extracted_answer as string | undefined;
-  const explanation = toolInput.explanation as string | undefined;
-  if (!extracted_answer || !explanation) throw new Error("Claude did not return a complete solution");
-  return { extracted_answer, explanation };
+  if (stopReason === "refusal") throw new Error(`Claude declined to process page ${pageIndex + 1} (refusal)`);
+  const raw = (toolInput.questions as ClaudeQuestionBoundary[] | undefined) ?? [];
+  return raw.map((q) => ({ ...q, _pageIndex: pageIndex }));
 }
 
 // Runs after the kickoff response has already been sent to the browser (see
-// EdgeRuntime.waitUntil below). Phase A transcribes every page in parallel
-// (one small call per page); phase B solves each question independently and
-// in parallel, inserting each draft_questions row as soon as it's ready so
-// the review UI can show partial results live instead of waiting on the
-// slowest question to finish.
-async function runExtraction(
-  db: SupabaseClient,
-  batchId: string,
-  pdf_base64: string,
-  source_label: string | null,
-  original_test: string | null,
-  answer_key: string | null,
-) {
+// EdgeRuntime.waitUntil below). Splits the PDF into pages, transcribes each
+// page in parallel (concurrency-limited), and persists the combined JSON
+// directly on the batch row -- this is "the JSON file": durable, inspectable,
+// and exactly what step 2 (solve-pdf-questions) reads to generate answers.
+async function runTranscription(db: SupabaseClient, batchId: string, pdf_base64: string) {
   await db.from("import_batches").update({ status: "processing" }).eq("id", batchId);
 
-  // Best-effort audit copy in the bucket provisioned for this in Phase 1 -- not
-  // required for extraction (pdf_base64 is already in memory) so a failure
-  // here must never block or fail the batch.
+  // Best-effort audit copy -- step 2 re-downloads this to recover per-page
+  // PDFs for needs_image questions, so it's not purely cosmetic anymore, but
+  // a failure here still must not block transcription itself.
   try {
     const bytes = Uint8Array.from(atob(pdf_base64), (c) => c.charCodeAt(0));
     const path = `${batchId}.pdf`;
     await db.storage.from("test-pdfs").upload(path, bytes, { contentType: "application/pdf", upsert: true });
     await db.from("import_batches").update({ source_pdf_path: path }).eq("id", batchId);
   } catch {
-    // Non-fatal -- proceed with extraction regardless.
+    // Non-fatal -- proceed with transcription regardless.
   }
 
-  const pageCount = countPdfPages(pdf_base64);
-  const pageNumbers = Array.from({ length: pageCount }, (_, i) => i + 1);
+  let pagePdfs: string[];
+  try {
+    pagePdfs = await splitPdfIntoPages(pdf_base64);
+  } catch {
+    // pdf-lib couldn't parse this file (e.g. encrypted/corrupted) -- fall back
+    // to treating it as one page. Works fine for small PDFs, may still hit the
+    // rate limit on a large one, but that's strictly better than hard-failing.
+    pagePdfs = [pdf_base64];
+  }
+  const pageCount = pagePdfs.length;
+  const pageIndexes = Array.from({ length: pageCount }, (_, i) => i);
 
-  // Concurrency-limited rather than all-at-once: every call resends the same
-  // ~30k-token PDF, so firing all pages simultaneously spikes request rate and
-  // token throughput enough to trip Anthropic rate limits on most of them.
   const pageResults = await runWithConcurrency(
-    pageNumbers,
+    pageIndexes,
     4,
-    (pageNumber) => extractBoundariesForPage(pdf_base64, pageNumber, pageCount),
+    (pageIndex) => extractBoundariesForPage(pagePdfs[pageIndex], pageIndex),
   );
 
   const boundaries: QuestionBoundary[] = [];
@@ -412,105 +328,21 @@ async function runExtraction(
       db,
       batchId,
       pageErrors.length > 0
-        ? `No questions extracted from any page. Per-page errors: ${pageErrors.join(" | ")}`
+        ? `No questions transcribed from any page. Per-page errors: ${pageErrors.join(" | ")}`
         : "No multiple-choice questions found anywhere in this PDF.",
     );
-    return;
-  }
-
-  await db.from("import_batches").update({ questions_total: boundaries.length }).eq("id", batchId);
-
-  const answerKeyMap = answer_key ? parseAnswerKey(answer_key) : new Map<number, string>();
-
-  const results = await runWithConcurrency(boundaries, 6, async (q) => {
-      let extracted_answer = "";
-      let explanation = "[Automatic solving failed -- please solve manually.]";
-      let solveError: string | null = null;
-      try {
-        const solved = await solveQuestion(pdf_base64, q);
-        extracted_answer = solved.extracted_answer;
-        explanation = solved.explanation;
-      } catch (err) {
-        solveError = err instanceof Error && err.name === "AbortError"
-          ? `Claude did not finish solving this question within ${CALL_TIMEOUT_MS / 1000}s.`
-          : err instanceof Error
-            ? err.message
-            : String(err);
-      }
-
-      const extractedLetter = choiceLetter(extracted_answer) ?? choiceLetter(q.choices[0] ?? "");
-      const keyLetter = answerKeyMap.get(q.original_question_number);
-      let verification_status: "match" | "mismatch" | "unverified" | "no_answer_key" = "unverified";
-      let verification_notes: string | null = solveError ? `Solving failed: ${solveError}` : null;
-      if (solveError) {
-        verification_status = "unverified";
-      } else if (!answer_key) {
-        verification_status = "no_answer_key";
-      } else if (!keyLetter) {
-        verification_status = "unverified";
-        verification_notes = "Answer key did not include this question number";
-      } else if (extractedLetter && extractedLetter === keyLetter) {
-        verification_status = "match";
-      } else {
-        verification_status = "mismatch";
-        verification_notes = `Claude solved (${extractedLetter ?? "?"}), answer key says (${keyLetter})`;
-      }
-
-      const matchedChoice = q.choices.find((c) => choiceLetter(c) === (keyLetter ?? extractedLetter));
-
-      const row = {
-        batch_id: batchId,
-        title: q.title,
-        topic: q.topic,
-        difficulty: q.difficulty,
-        source: source_label ?? null,
-        question: q.question,
-        choices: q.choices,
-        tags: q.tags ?? [],
-        extracted_answer,
-        claude_solved_answer: extracted_answer,
-        answer: matchedChoice ?? extracted_answer,
-        explanation,
-        needs_image: q.needs_image,
-        image_alt: q.needs_image ? q.image_alt : null,
-        verification_status,
-        verification_notes,
-        original_test: original_test ?? null,
-        original_question_number: q.original_question_number,
-        source_reference: source_label ? `${source_label} #${q.original_question_number}` : null,
-        review_status: "pending",
-      };
-
-      // Insert immediately -- this is what makes results show up live in the
-      // review UI instead of waiting for every question to finish.
-      const { error: insertErr } = await db.from("draft_questions").insert(row);
-      if (insertErr) throw new Error(`Failed to insert question ${q.original_question_number}: ${insertErr.message}`);
-      return { verification_status, hadError: !!solveError };
-  });
-
-  const inserted = results.filter((r) => r.status === "fulfilled").length;
-  const needsAttention = results.some(
-    (r) => r.status === "rejected" || (r.status === "fulfilled" && (r.value.verification_status === "mismatch" || r.value.hadError)),
-  );
-
-  if (inserted === 0) {
-    await markFailed(db, batchId, "All questions on this page failed to solve -- check individual question errors and retry.");
     return;
   }
 
   await db
     .from("import_batches")
     .update({
-      status: pageErrors.length > 0 ? "needs_attention" : needsAttention ? "needs_attention" : "completed",
-      questions_extracted: inserted,
-      // Page-level failures (e.g. rate limits) don't fail the whole batch --
-      // whatever pages succeeded still show up live -- but they must stay
-      // visible instead of silently vanishing, since they mean some questions
-      // are simply missing from this import.
+      status: "transcribed",
+      boundaries_json: boundaries,
+      questions_total: boundaries.length,
       error_message: pageErrors.length > 0
-        ? `${pageErrors.length} of ${pageCount} page(s) failed to extract and are missing from this import: ${pageErrors.join(" | ")}`
+        ? `${pageErrors.length} of ${pageCount} page(s) failed to transcribe and are missing from this import: ${pageErrors.join(" | ")}`
         : null,
-      finished_at: new Date().toISOString(),
     })
     .eq("id", batchId);
 }
@@ -560,6 +392,8 @@ Deno.serve(async (req: Request) => {
     .insert({
       created_by: userData.user.id,
       source_label: source_label ?? null,
+      original_test: original_test ?? null,
+      answer_key: answer_key ?? null,
       status: "queued",
       started_at: new Date().toISOString(),
       answer_key_found: !!answer_key,
@@ -568,16 +402,14 @@ Deno.serve(async (req: Request) => {
     .single();
   if (batchErr || !batch) return json({ error: `Failed to create import batch: ${batchErr?.message}` }, 500);
 
-  // Respond immediately -- the browser polls import_batches/draft_questions
-  // for progress instead of holding this request open. Extraction keeps
-  // running in the background via EdgeRuntime.waitUntil, which is the
-  // documented way to do work after the response has been sent without the
-  // isolate being torn down early.
+  // Respond immediately -- the browser polls import_batches for progress
+  // instead of holding this request open. Transcription keeps running in the
+  // background via EdgeRuntime.waitUntil, which is the documented way to do
+  // work after the response has been sent without the isolate being torn
+  // down early.
   // @ts-ignore -- EdgeRuntime is a Supabase Edge Functions global, typed by the
   // jsr:@supabase/functions-js/edge-runtime.d.ts import at the top of this file.
-  EdgeRuntime.waitUntil(
-    runExtraction(db, batch.id, pdf_base64, source_label ?? null, original_test ?? null, answer_key ?? null),
-  );
+  EdgeRuntime.waitUntil(runTranscription(db, batch.id, pdf_base64));
 
   return json({ batch_id: batch.id, status: "queued" }, 202);
 });

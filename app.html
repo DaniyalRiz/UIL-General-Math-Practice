@@ -2433,6 +2433,9 @@ function ReviewImportsPanel({ authUser }) {
   const [pdfAnswerKey, setPdfAnswerKey] = useState('');
   const [pdfImporting, setPdfImporting] = useState(false);
   const [pdfImportMessage, setPdfImportMessage] = useState('');
+  // Set once step 1 (transcription) finishes -- non-null means there's a
+  // batch sitting in 'transcribed' status waiting for "Generate Answers".
+  const [pdfTranscribedBatchId, setPdfTranscribedBatchId] = useState(null);
   const pdfPollRef = useRef(null);
 
   useEffect(() => () => clearInterval(pdfPollRef.current), []);
@@ -2515,12 +2518,13 @@ function ReviewImportsPanel({ authUser }) {
     _publishError: '',
   });
 
-  // Polls import_batches AND draft_questions until the background extraction
-  // (kicked off by the Edge Function via EdgeRuntime.waitUntil, which now
-  // solves each question independently and inserts it the moment it's ready)
-  // reaches a terminal status. Newly-inserted rows are merged in on every
-  // tick — not just at the end — so questions appear live as each one lands,
-  // instead of the page looking frozen until everything finishes.
+  // Polls import_batches AND draft_questions until the current step (either
+  // step 1 transcription or step 2 solving, kicked off by their respective
+  // Edge Functions via EdgeRuntime.waitUntil) reaches a stopping point.
+  // 'transcribed' is a deliberate pause, not a terminal status -- it means
+  // step 1 finished and the JSON is saved on the batch row, waiting for the
+  // admin to trigger step 2. Newly-inserted draft rows are merged in on every
+  // tick during solving, so questions appear live as each one lands.
   const pollImportBatch = (batchId) => {
     clearInterval(pdfPollRef.current);
     const seenIds = new Set();
@@ -2550,7 +2554,7 @@ function ReviewImportsPanel({ authUser }) {
       }
 
       if (batch.status === 'queued' || batch.status === 'processing') {
-        const progress = batch.questions_total ? ` (${seenIds.size} of ${batch.questions_total} extracted so far)` : '';
+        const progress = batch.questions_total ? ` (${seenIds.size} of ${batch.questions_total} done so far)` : '';
         setPdfImportMessage(`Status: ${batch.status}…${progress} this page updates automatically.`);
         return;
       }
@@ -2559,12 +2563,22 @@ function ReviewImportsPanel({ authUser }) {
       setPdfImporting(false);
 
       if (batch.status === 'failed') {
-        setPdfImportMessage('Extraction failed: ' + (batch.error_message || 'Unknown error.'));
+        setPdfImportMessage('Failed: ' + (batch.error_message || 'Unknown error.'));
+        return;
+      }
+
+      if (batch.status === 'transcribed') {
+        setPdfTranscribedBatchId(batchId);
+        setPdfImportMessage(
+          `Transcribed ${batch.questions_total ?? '?'} question(s) into JSON.` +
+          (batch.error_message ? ' Note: ' + batch.error_message : '') +
+          ' Click "Generate Answers" below to solve them.'
+        );
         return;
       }
 
       setPdfImportMessage(
-        `Extracted ${batch.questions_extracted ?? seenIds.size} question(s)` +
+        `Solved ${batch.questions_extracted ?? seenIds.size} question(s)` +
         (batch.status === 'needs_attention' ? ' — some need review (answer mismatch or a solve failure), check the badges below.' : ' — all answers matched the key.')
       );
     }, 4000);
@@ -2576,8 +2590,9 @@ function ReviewImportsPanel({ authUser }) {
     if (pdfFile.size > 15 * 1024 * 1024) { setPdfImportMessage('PDF is over 15 MB — split it into smaller page ranges first.'); return; }
 
     clearInterval(pdfPollRef.current);
+    setPdfTranscribedBatchId(null);
     setPdfImporting(true);
-    setPdfImportMessage('Queuing import job…');
+    setPdfImportMessage('Queuing transcription job…');
     try {
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -2596,11 +2611,32 @@ function ReviewImportsPanel({ authUser }) {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setPdfImportMessage('Queued — processing in the background, this page updates automatically…');
+      setPdfImportMessage('Queued — transcribing to JSON in the background, this page updates automatically…');
       pollImportBatch(data.batch_id);
     } catch (e) {
       setPdfImporting(false);
-      setPdfImportMessage('Extraction failed: ' + (e.message || String(e)));
+      setPdfImportMessage('Transcription failed: ' + (e.message || String(e)));
+    }
+  };
+
+  // Step 2: takes the JSON already saved on the batch row (by step 1) and
+  // solves every question from it -- no PDF re-upload needed.
+  const generateAnswers = async () => {
+    const batchId = pdfTranscribedBatchId;
+    if (!batchId) return;
+    setPdfTranscribedBatchId(null);
+    setPdfImporting(true);
+    setPdfImportMessage('Queuing answer generation…');
+    try {
+      const { data, error } = await _supabase.functions.invoke('solve-pdf-questions', { body: { batch_id: batchId } });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setPdfImportMessage('Queued — solving questions in the background, this page updates automatically…');
+      pollImportBatch(batchId);
+    } catch (e) {
+      setPdfImporting(false);
+      setPdfTranscribedBatchId(batchId);
+      setPdfImportMessage('Failed to start answer generation: ' + (e.message || String(e)));
     }
   };
 
@@ -2775,13 +2811,19 @@ function ReviewImportsPanel({ authUser }) {
               placeholder="Answer key (optional), e.g. 1.C 2.C 3.D 4.E or just C, C, D, E"
               className="w-full px-3 py-2 rounded-xl border bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-sm resize-none sm:col-span-2" />
           </div>
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex items-center gap-3 flex-wrap">
             <button onClick={extractFromPdf} disabled={pdfImporting || !pdfFile}
               className="px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white">
-              {pdfImporting ? 'Extracting…' : 'Extract Questions'}
+              {pdfImporting ? 'Working…' : 'Step 1: Transcribe to JSON'}
             </button>
+            {pdfTranscribedBatchId && (
+              <button onClick={generateAnswers} disabled={pdfImporting}
+                className="px-4 py-2 rounded-lg text-sm font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white">
+                Step 2: Generate Answers
+              </button>
+            )}
             {pdfImportMessage && (
-              <p className={`text-sm ${pdfImportMessage.startsWith('Extraction failed') ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{pdfImportMessage}</p>
+              <p className={`text-sm ${/failed/i.test(pdfImportMessage) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{pdfImportMessage}</p>
             )}
           </div>
           <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
