@@ -46,7 +46,7 @@ function json(body: unknown, status = 200) {
 
 const BOUNDARIES_TOOL = {
   name: "extract_question_boundaries",
-  description: "Transcribe every multiple-choice question from this math competition test page, without solving them.",
+  description: "Transcribe every multiple-choice question from this math competition test page, without solving them, and flag if this page is an answer key.",
   strict: true,
   input_schema: {
     type: "object",
@@ -77,8 +77,14 @@ const BOUNDARIES_TOOL = {
           additionalProperties: false,
         },
       },
+      answer_key_text: {
+        type: ["string", "null"],
+        description:
+          "If this page is an answer key (a list of question numbers with their correct letter, often near the end " +
+          "of the test, e.g. '1. C  2. D  3. A ...'), the raw text of that list exactly as printed. Null otherwise.",
+      },
     },
-    required: ["questions"],
+    required: ["questions", "answer_key_text"],
     additionalProperties: false,
   },
 };
@@ -194,7 +200,7 @@ async function markFailed(db: SupabaseClient, batchId: string, message: string) 
 async function extractBoundariesForPage(
   pagePdfBase64: string,
   pageIndex: number,
-): Promise<QuestionBoundary[]> {
+): Promise<{ questions: QuestionBoundary[]; answerKeyText: string | null }> {
   const { stopReason, toolInput } = await withTimeout((signal) =>
     streamToolCall(
       {
@@ -215,7 +221,10 @@ async function extractBoundariesForPage(
                   "yet. Preserve LaTeX-worthy math notation using \\(...\\) inline math. Set needs_image:true only " +
                   "when a diagram is essential to solving the question, not just decorative. If this page has no " +
                   "multiple-choice math questions on it (e.g. it is a cover page, instructions, a blank/filler page, " +
-                  "an answer key, or worked solutions), return an empty questions array.",
+                  "or worked solutions), return an empty questions array. If this page IS an answer key -- a list of " +
+                  "question numbers with their correct letter, typically near the end of the test -- set " +
+                  "answer_key_text to that list's raw text exactly as printed (questions array still empty for this " +
+                  "page); this is important, the answer key must not be discarded. Otherwise set answer_key_text to null.",
               },
             ],
           },
@@ -228,7 +237,8 @@ async function extractBoundariesForPage(
 
   if (stopReason === "refusal") throw new Error(`Claude declined to process page ${pageIndex + 1} (refusal)`);
   const raw = (toolInput.questions as ClaudeQuestionBoundary[] | undefined) ?? [];
-  return raw.map((q) => ({ ...q, _pageIndex: pageIndex }));
+  const answerKeyText = (toolInput.answer_key_text as string | null | undefined) ?? null;
+  return { questions: raw.map((q) => ({ ...q, _pageIndex: pageIndex })), answerKeyText };
 }
 
 // Re-downloads the original PDF (or uses the freshly-uploaded bytes on the
@@ -261,9 +271,12 @@ async function processNextPage(
   const pagePdfBase64 = encodeBase64(await newDoc.save());
 
   let newQuestions: QuestionBoundary[] = [];
+  let detectedAnswerKey: string | null = null;
   let pageError: string | null = null;
   try {
-    newQuestions = await extractBoundariesForPage(pagePdfBase64, pageIndex);
+    const result = await extractBoundariesForPage(pagePdfBase64, pageIndex);
+    newQuestions = result.questions;
+    detectedAnswerKey = result.answerKeyText;
   } catch (err) {
     pageError = err instanceof Error && err.name === "AbortError"
       ? `page ${pageIndex + 1}: timed out after ${CALL_TIMEOUT_MS / 1000}s`
@@ -272,12 +285,18 @@ async function processNextPage(
 
   const { data: current } = await db
     .from("import_batches")
-    .select("boundaries_json, error_message")
+    .select("boundaries_json, error_message, answer_key")
     .eq("id", batchId)
     .single();
   const boundaries = [...((current?.boundaries_json ?? []) as QuestionBoundary[]), ...newQuestions];
   const priorError = (current?.error_message as string | null) ?? null;
   const combinedError = pageError ? (priorError ? `${priorError} | ${pageError}` : pageError) : priorError;
+
+  // A key typed in manually by the admin always wins -- this only fills the
+  // gap when the test's own printed answer key would otherwise be discarded
+  // (transcription ignores answer-key pages, so step 2 never saw it before).
+  const existingAnswerKey = (current?.answer_key as string | null) ?? null;
+  const answerKey = existingAnswerKey || detectedAnswerKey;
 
   const nextPageIndex = pageIndex + 1;
   const isDone = nextPageIndex >= pageCount;
@@ -296,6 +315,8 @@ async function processNextPage(
       next_page_index: nextPageIndex,
       questions_total: boundaries.length,
       error_message: combinedError,
+      answer_key: answerKey,
+      answer_key_found: !!answerKey,
       updated_at: new Date().toISOString(),
     })
     .eq("id", batchId);
@@ -307,6 +328,7 @@ async function processNextPage(
     next_page_index: nextPageIndex,
     questions_so_far: boundaries.length,
     error_message: combinedError,
+    answer_key_found: !!answerKey,
   };
 }
 

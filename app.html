@@ -2577,6 +2577,7 @@ function ReviewImportsPanel({ authUser }) {
         setPdfTranscribedBatchId(batchId);
         setPdfImportMessage(
           `Transcribed ${data.questions_so_far ?? '?'} question(s) into JSON.` +
+          (data.answer_key_found ? ' Answer key detected in the PDF — answers will be checked against it.' : '') +
           (data.error_message ? ' Note: ' + data.error_message : '') +
           ' Click "Generate Answers" below to solve them.'
         );
@@ -2640,7 +2641,11 @@ function ReviewImportsPanel({ authUser }) {
       if (data.status === 'transcribed') {
         setPdfImporting(false);
         setPdfTranscribedBatchId(data.batch_id);
-        setPdfImportMessage(`Transcribed ${data.questions_so_far ?? '?'} question(s) into JSON. Click "Generate Answers" below to solve them.`);
+        setPdfImportMessage(
+          `Transcribed ${data.questions_so_far ?? '?'} question(s) into JSON.` +
+          (data.answer_key_found ? ' Answer key detected in the PDF — answers will be checked against it.' : '') +
+          ' Click "Generate Answers" below to solve them.'
+        );
         return;
       }
       if (data.status === 'failed') {
