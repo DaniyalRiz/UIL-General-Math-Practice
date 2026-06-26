@@ -43,13 +43,13 @@ function json(body: unknown, status = 200) {
 
 const SOLVE_TOOL = {
   name: "solve_question",
-  description: "Solve this single math competition question and show the full worked solution.",
+  description: "Solve this single math competition question and give a brief worked solution.",
   strict: true,
   input_schema: {
     type: "object",
     properties: {
       extracted_answer: { type: "string", description: "The correct choice, exactly matching one entry in choices" },
-      explanation: { type: "string", description: "Full worked solution in LaTeX" },
+      explanation: { type: "string", description: "Concise worked solution in LaTeX, at most 2-3 sentences -- the key steps and final answer only, not a full essay" },
     },
     required: ["extracted_answer", "explanation"],
     additionalProperties: false,
@@ -240,7 +240,8 @@ async function solveQuestion(
       `Question ${q.original_question_number}: ${q.question}\n\n` +
       `Choices:\n${q.choices.join("\n")}\n\n` +
       (q.needs_image && pagePdfs[q._pageIndex] ? "The PDF page is attached above because this question depends on a diagram -- look at it carefully.\n" : "") +
-      `Set extracted_answer to exactly one of the choices above, and explanation to the full worked solution in LaTeX.`,
+      `Set extracted_answer to exactly one of the choices above, and explanation to a brief worked solution in LaTeX -- ` +
+      `at most 2-3 sentences covering the key steps and final answer, not a full essay.`,
   });
 
   const { stopReason, toolInput } = await withTimeout((signal) =>

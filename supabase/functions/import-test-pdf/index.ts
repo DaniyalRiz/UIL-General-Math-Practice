@@ -6,15 +6,17 @@
 // independently resumable.
 //
 // One page per call, synchronously (no EdgeRuntime.waitUntil) -- a single
-// page's PDF can already use most of the account's 30,000-input-tokens/
+// page's PDF can already use most of a Sonnet-tier 30,000-input-tokens/
 // minute budget (confirmed empirically: splitting the PDF into one-page
 // files did NOT shrink the actual Claude-billed size as much as expected,
 // since pdf-lib re-embeds each page's full font/resource set into every
-// single-page copy). Sending pages back-to-back -- even one at a time with
-// no delay -- still trips the limit, and waiting out the limit inside one
-// invocation would exceed the platform's own wall-clock cap. So the browser
-// drives this forward: it calls this function once per page with a safe
-// delay in between, using next_page_index/pages_total from each response to
+// single-page copy). Transcription runs on Haiku specifically because
+// Anthropic's per-minute rate limit is scoped per model -- Haiku gets its
+// own separate, much larger budget, so it sidesteps the Sonnet bottleneck
+// entirely rather than just pacing around it. Solving (step 2) stays on
+// Sonnet, since that's actual math reasoning, not mechanical transcription.
+// The browser still drives this forward with a delay between calls as a
+// safety margin, using next_page_index/pages_total from each response to
 // know when to stop. Never touches `questions` and never sets
 // review_status to anything but 'pending'.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -26,7 +28,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-const ANTHROPIC_MODEL = "claude-sonnet-4-6";
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 const CALL_TIMEOUT_MS = 100_000;
 
 const CORS_HEADERS = {
