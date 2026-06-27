@@ -234,9 +234,14 @@ async function solveQuestion(
   // Only re-attach the page for questions that genuinely need the diagram --
   // keeps every other solve call cheap and fast.
   if (q.needs_image && pagePdfs[q._pageIndex]) {
+    // Cached -- the same page gets re-sent byte-for-byte on every automatic
+    // mismatch retry (and possibly for other questions sharing the page), so
+    // without this every retry pays full input-token price for an identical
+    // attachment. Cache hits cost roughly a tenth as much as a fresh send.
     content.push({
       type: "document",
       source: { type: "base64", media_type: "application/pdf", data: pagePdfs[q._pageIndex] },
+      cache_control: { type: "ephemeral" },
     });
   }
   content.push({
@@ -349,7 +354,7 @@ async function solveOnce(
 // can't loop forever burning API calls. Only a mismatch is retried: a solve
 // failure, a missing key, or an already-correct match has nothing to gain
 // from hammering the API again.
-const MAX_SOLVE_ATTEMPTS = 5;
+const MAX_SOLVE_ATTEMPTS = 2;
 async function solveAndBuildFields(
   q: QuestionBoundary,
   pagePdfs: string[],
