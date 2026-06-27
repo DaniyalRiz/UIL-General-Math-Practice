@@ -2715,8 +2715,17 @@ function ReviewImportsPanel({ authUser }) {
       );
       pdfPollRef.current = setTimeout(() => continueTranscription(batchId), PACED_CALL_DELAY_MS);
     } catch (e) {
+      const message = e.message || String(e);
+      // The background cron tick claimed this batch first -- not a real
+      // failure, just a lease race. Keep polling instead of giving up; the
+      // batch is still progressing on the cron's own schedule regardless.
+      if (message.includes('currently being processed by another request')) {
+        setPdfImportMessage('Background queue is working on this batch right now… checking again shortly.');
+        pdfPollRef.current = setTimeout(() => continueTranscription(batchId), PACED_CALL_DELAY_MS);
+        return;
+      }
       setPdfImporting(false);
-      setPdfImportMessage('Transcription failed: ' + (e.message || String(e)));
+      setPdfImportMessage('Transcription failed: ' + message);
     }
   };
 
@@ -2878,8 +2887,16 @@ function ReviewImportsPanel({ authUser }) {
       );
       pdfPollRef.current = setTimeout(() => continueSolving(batchId), delay);
     } catch (e) {
+      const message = e.message || String(e);
+      // Same lease race as continueTranscription -- the cron tick got there
+      // first, not a real failure. Keep polling.
+      if (message.includes('currently being processed by another request')) {
+        setPdfImportMessage('Background queue is working on this batch right now… checking again shortly.');
+        pdfPollRef.current = setTimeout(() => continueSolving(batchId), PACED_CALL_DELAY_MS);
+        return;
+      }
       setPdfImporting(false);
-      setPdfImportMessage('Failed to generate answers: ' + (e.message || String(e)));
+      setPdfImportMessage('Failed to generate answers: ' + message);
     }
   };
 
@@ -3542,6 +3559,39 @@ function AdminQuestionManager({ authUser }) {
       });
   }, [adminPanelTab]);
 
+  // Notification badge for import batches the background queue has finished
+  // (completed/needs_attention) that nobody has opened Review Imports for
+  // yet. Polled so it stays current even if this dashboard tab is left open
+  // while the cron-driven pipeline finishes work in the background.
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
+  const refreshPendingReviewCount = () => {
+    if (!authUser) return;
+    _supabase
+      .from('import_batches')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['completed', 'needs_attention'])
+      .is('notified_at', null)
+      .then(({ count }) => setPendingReviewCount(count || 0));
+  };
+  useEffect(() => {
+    refreshPendingReviewCount();
+    const interval = setInterval(refreshPendingReviewCount, 30000);
+    return () => clearInterval(interval);
+  }, [authUser]);
+
+  const openReviewImports = () => {
+    setAdminPanelTab('reviewImports');
+    if (pendingReviewCount > 0) {
+      setPendingReviewCount(0);
+      _supabase
+        .from('import_batches')
+        .update({ notified_at: new Date().toISOString() })
+        .in('status', ['completed', 'needs_attention'])
+        .is('notified_at', null)
+        .then(() => {});
+    }
+  };
+
   const normalizeQuestionForForm = (q) => {
     const choices = Array.isArray(q.choices) ? [...q.choices] : [];
     while (choices.length < 5) choices.push(`(${String.fromCharCode(65 + choices.length)}) `);
@@ -3723,9 +3773,14 @@ function AdminQuestionManager({ authUser }) {
             className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='editQuestions' ? 'bg-violet-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
             Edit Questions
           </button>
-          <button onClick={()=>setAdminPanelTab('reviewImports')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='reviewImports' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+          <button onClick={openReviewImports}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold inline-flex items-center gap-1.5 ${adminPanelTab==='reviewImports' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
             Review Imports
+            {pendingReviewCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-rose-500 text-white text-[11px] font-bold">
+                {pendingReviewCount}
+              </span>
+            )}
           </button>
           <button onClick={()=>setAdminPanelTab('bugReports')}
             className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='bugReports' ? 'bg-rose-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
