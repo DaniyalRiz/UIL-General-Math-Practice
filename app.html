@@ -2815,6 +2815,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
 
     clearTimeout(pdfPollRef.current);
     setPdfTranscribedBatchId(null);
+    setSelectedReviewBatchId(null);
     setPdfImporting(true);
     setPdfImportMessage('Uploading PDF and transcribing page 1…');
     // Self-heal any batch abandoned mid-run (e.g. the admin closed this tab
@@ -3066,6 +3067,11 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
   // just that batch notified (never the whole list at once), and tells the
   // parent dashboard to refresh its badge count immediately rather than
   // waiting for its own 30s poll.
+  // Tracks which list entry is currently loaded below, so it can stay
+  // visible in its list (instead of vanishing the moment it's clicked) with
+  // a highlight showing which one is on screen right now.
+  const [selectedReviewBatchId, setSelectedReviewBatchId] = useState(null);
+
   const loadBatchForReview = async (batchId) => {
     const { data: batch } = await _supabase.from('import_batches').select('*').eq('id', batchId).single();
     if (!batch) return;
@@ -3076,8 +3082,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     setActiveBatchId(null);
     setResumeBannerInfo(null);
     setPdfImportMessage(`Loaded ${drafts ? drafts.length : 0} question(s) from "${batch.source_label || batch.original_test || batchId}" for review.`);
-    setPastBatches(prev => prev.filter(b => b.id !== batchId));
-    setAllBatches(prev => prev.filter(b => b.id !== batchId));
+    setSelectedReviewBatchId(batchId);
     await _supabase.from('import_batches').update({ notified_at: new Date().toISOString() }).eq('id', batchId);
     if (onBatchReviewed) onBatchReviewed();
   };
@@ -3090,6 +3095,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     await _supabase.from('import_batches').delete().eq('id', batchId);
     setPastBatches(prev => prev.filter(b => b.id !== batchId));
     setAllBatches(prev => prev.filter(b => b.id !== batchId));
+    if (selectedReviewBatchId === batchId) setSelectedReviewBatchId(null);
     if (onBatchReviewed) onBatchReviewed();
   };
 
@@ -3403,7 +3409,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
             </p>
             <div className="space-y-2">
               {pastBatches.map(b => (
-                <div key={b.id} className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2">
+                <div key={b.id} className={`flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border px-3 py-2 ${b.id === selectedReviewBatchId ? 'border-blue-500 ring-2 ring-blue-400/50' : 'border-slate-200 dark:border-slate-700'}`}>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
                     <p className="text-xs text-slate-400 dark:text-slate-500">
@@ -3439,7 +3445,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
               </p>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {allBatches.map(b => (
-                  <div key={b.id} className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2">
+                  <div key={b.id} className={`flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border px-3 py-2 ${b.id === selectedReviewBatchId ? 'border-blue-500 ring-2 ring-blue-400/50' : 'border-slate-200 dark:border-slate-700'}`}>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
                       <p className="text-xs text-slate-400 dark:text-slate-500">
