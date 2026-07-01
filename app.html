@@ -73,6 +73,18 @@ const fmtTime = ms => {
   return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
 };
 
+const SOURCE_TYPES = ['All Types', 'TMSCA', 'District', 'Region', 'State'];
+
+const getSourceType = (source) => {
+  if (!source) return '';
+  const s = source.toLowerCase();
+  if (s.includes('tmsca')) return 'TMSCA';
+  if (s.includes('district')) return 'District';
+  if (s.includes('region')) return 'Region';
+  if (s.includes('state')) return 'State';
+  return '';
+};
+
 const sourceDisplay = (q) => {
   if (!q) return "";
   const source = q.source || q.original_test || "";
@@ -1449,7 +1461,25 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
   const [filterTopic,   setFilterTopic]   = useState('All Topics');
   const [filterDiff,    setFilterDiff]    = useState('All Difficulties');
   const [filterDate,    setFilterDate]    = useState('Most Recent');
+  const [filterSource,  setFilterSource]  = useState('All Sources');
+  const [filterType,    setFilterType]    = useState('All Types');
   const [search, setSearch]               = useState('');
+
+  const questionSourceMap = useMemo(() => {
+    const map = {};
+    allQuestions.forEach(q => { map[q.id] = q.source || ''; });
+    return map;
+  }, [allQuestions]);
+
+  const historyUniqueSources = useMemo(() => {
+    const srcs = new Set(
+      rows
+        .filter(r => filterType === 'All Types' || getSourceType(questionSourceMap[r.question_id] || '') === filterType)
+        .map(r => questionSourceMap[r.question_id] || '')
+        .filter(Boolean)
+    );
+    return ['All Sources', ...[...srcs].sort()];
+  }, [rows, questionSourceMap, filterType]);
 
   useEffect(() => {
     if (!authUser) { setLoading(false); return; }
@@ -1527,6 +1557,8 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
       } else if (r.topic !== filterTopic) return false;
     }
     if (filterDiff  !== 'All Difficulties' && r.difficulty !== filterDiff) return false;
+    if (filterType !== 'All Types' && getSourceType(questionSourceMap[r.question_id] || '') !== filterType) return false;
+    if (filterSource !== 'All Sources' && (questionSourceMap[r.question_id] || '') !== filterSource) return false;
     if (filterDate === 'Today') {
       if (new Date(r.created_at).toDateString() !== now.toDateString()) return false;
     } else if (filterDate === 'Last 7 Days') {
@@ -1542,7 +1574,8 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
         (r.question_title || '').toLowerCase().includes(s) ||
         (r.question_text  || '').toLowerCase().includes(s) ||
         (r.topic          || '').toLowerCase().includes(s) ||
-        (r.tags           || []).some(t => t.toLowerCase().includes(s))
+        (r.tags           || []).some(t => t.toLowerCase().includes(s)) ||
+        (questionSourceMap[r.question_id] || '').toLowerCase().includes(s)
       );
     }
     return true;
@@ -1679,6 +1712,10 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
           options={['All Topics','Column 1','Column 2','Column 3','Algebra 1 & 2','Geometry','Precalculus','AP Calculus','AP Statistics']} />
         <Dropdown label="Difficulty" value={filterDiff} onChange={setFilterDiff}
           options={['All Difficulties','Easy','Medium','Hard']} />
+        <Dropdown label="Type" value={filterType} onChange={v=>{setFilterType(v); setFilterSource('All Sources');}}
+          options={SOURCE_TYPES} />
+        <Dropdown label="Source" value={filterSource} onChange={setFilterSource}
+          options={historyUniqueSources} />
         <Dropdown label="Date" value={filterDate} onChange={setFilterDate}
           options={['Most Recent','Oldest First','Today','Last 7 Days','Last 30 Days']} />
       </div>
@@ -1707,6 +1744,9 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     {row.question_title || plainText(row.question_text) || 'Question #' + row.question_id}
                   </p>
+                  {questionSourceMap[row.question_id] && (
+                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{questionSourceMap[row.question_id]}</p>
+                  )}
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 md:hidden">
                     {row.topic} · {row.difficulty} · {new Date(row.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
                   </p>
@@ -3516,6 +3556,139 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     }
   };
 
+  const publishAll = async () => {
+    const toPublish = draftRows.filter(r => r._status !== 'published');
+    if (!toPublish.length) {
+      setPublishMessage('No questions to publish.');
+      return;
+    }
+
+    const errors = [];
+    toPublish.forEach(r => {
+      if (!r.question.trim()) errors.push(`"${r.title || 'Untitled'}": missing question text.`);
+      const filledChoices = r.choices.filter(c => c && c.trim());
+      if (filledChoices.length < 2) errors.push(`"${r.title || 'Untitled'}": needs at least 2 choices.`);
+      if (!r.answer.trim()) errors.push(`"${r.title || 'Untitled'}": missing correct answer.`);
+      if (!r.topic) errors.push(`"${r.title || 'Untitled'}": missing topic.`);
+    });
+    if (errors.length) {
+      setPublishMessage('Fix these before publishing: ' + errors.join(' '));
+      return;
+    }
+
+    setPublishing(true);
+    setPublishMessage('');
+
+    const { data: idRows } = await _supabase
+      .from('questions')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+    let nextId = idRows && idRows.length > 0 ? idRows[0].id + 1 : 1;
+
+    const rowsToUpsert = [];
+    const idByKey = {};
+    for (const r of toPublish) {
+      const id = nextId++;
+      idByKey[r._key] = id;
+
+      let imageUrl = r.image || null;
+      let imageAlt = r.image_alt || null;
+      const matchedImage = r.image_pending_filename ? imageMap[r.image_pending_filename] : null;
+      if (matchedImage) {
+        if (!ALLOWED_IMAGE_TYPES.includes(matchedImage.file.type)) {
+          setPublishing(false);
+          setPublishMessage(`"${r.title || 'Untitled'}": attached image must be PNG, JPEG, WEBP, or GIF.`);
+          return;
+        }
+        if (matchedImage.file.size > MAX_IMAGE_BYTES) {
+          setPublishing(false);
+          setPublishMessage(`"${r.title || 'Untitled'}": attached image is over 5 MB.`);
+          return;
+        }
+        const resizedImage = await resizeImageForUpload(matchedImage.file);
+        if (resizedImage.size > MAX_IMAGE_BYTES) {
+          setPublishing(false);
+          setPublishMessage(`"${r.title || 'Untitled'}": attached image is still too large after resizing.`);
+          return;
+        }
+        const ext = (resizedImage.name.split('.').pop() || 'png').toLowerCase();
+        const path = `${id}/question-${id}-${Date.now()}.${ext}`;
+        const { error: uploadErr } = await uploadWithSessionRetry('question-images', path, resizedImage,
+          { upsert: true, contentType: resizedImage.type });
+        if (uploadErr) {
+          setPublishing(false);
+          setPublishMessage(`"${r.title || 'Untitled'}": image upload failed — ${uploadErr.message}`);
+          return;
+        }
+        const { data: pub } = _supabase.storage.from('question-images').getPublicUrl(path);
+        imageUrl = pub.publicUrl;
+        imageAlt = imageAlt || (r.title ? `Image for ${r.title}` : `Image for question ${id}`);
+      }
+
+      rowsToUpsert.push({
+        id,
+        title: r.title || null,
+        topic: r.topic,
+        difficulty: r.difficulty,
+        source: r.source || null,
+        question: r.question,
+        choices: r.choices.filter(Boolean),
+        answer: r.answer,
+        explanation: r.explanation || null,
+        tags: r.tags,
+        date_added: new Date().toISOString().slice(0, 10),
+        original_test: r.original_test || r.source || null,
+        original_question_number: r.original_question_number ? Number(r.original_question_number) : null,
+        source_reference: r.source_reference || null,
+        image: imageUrl,
+        image_alt: imageAlt,
+      });
+    }
+
+    const { error } = await _supabase.from('questions').upsert(rowsToUpsert, { onConflict: 'id' });
+    setPublishing(false);
+
+    if (error) {
+      setPublishMessage('Publish failed — nothing was saved: ' + error.message);
+      return;
+    }
+
+    const publishedDraftIds = toPublish.filter(r => r._draftId).map(r => r._draftId);
+    if (publishedDraftIds.length) {
+      await _supabase.from('draft_questions').update({ review_status: 'published' }).in('id', publishedDraftIds);
+    }
+
+    setDraftRows(prev => prev.map(r =>
+      idByKey[r._key] != null ? { ...r, _status: 'published', id: idByKey[r._key] } : r
+    ));
+    setPublishMessage(`Published ${rowsToUpsert.length} question(s).`);
+
+    const manualRows = toPublish.filter(r => !r._draftId);
+    if (manualRows.length) {
+      const label = manualRows[0].original_test || manualRows[0].source || 'Manual import';
+      const now = new Date().toISOString();
+      await _supabase.from('import_batches').insert({
+        source_label: label,
+        original_test: label,
+        status: 'completed',
+        questions_extracted: manualRows.length,
+        started_at: now,
+        finished_at: now,
+        notified_at: now,
+        created_by: authUser?.id || null,
+      });
+      if (showAllBatches) {
+        _supabase
+          .from('import_batches')
+          .select('id, source_label, original_test, status, started_at, questions_extracted, source_pdf_path')
+          .in('status', ['completed', 'needs_attention'])
+          .order('started_at', { ascending: false })
+          .then(({ data }) => setAllBatches(data || []));
+      }
+    }
+  };
+
   const isAdmin = authUser && ADMIN_EMAILS.includes(authUser.email || '');
   if (!isAdmin) {
     return (
@@ -3698,6 +3871,10 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
             <button onClick={publishApproved} disabled={publishing || counts.approved === 0}
               className="px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white">
               {publishing ? 'Publishing…' : `Publish Approved (${counts.approved})`}
+            </button>
+            <button onClick={publishAll} disabled={publishing || draftRows.filter(r => r._status !== 'published').length === 0}
+              className="px-4 py-2 rounded-lg text-sm font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white">
+              {publishing ? 'Publishing…' : `Publish All (${draftRows.filter(r => r._status !== 'published').length})`}
             </button>
           </div>
         )}
@@ -4771,6 +4948,8 @@ function App() {
   const [recommendedMode, setRecommendedMode] = useState(false);
   const [recStatus, setRecStatus] = useState("All");
   const [recSort, setRecSort] = useState("Most Recent");
+  const [typeFilter, setTypeFilter] = useState("All Types");
+  const [sourceFilter, setSourceFilter] = useState("All Sources");
 
   // Rebuild per-question stats from the `attempts` table on login. Answers can only be
   // submitted while signed in, so server history is authoritative — this keeps the list's
@@ -4960,12 +5139,14 @@ function App() {
       } else if (q.topic !== topic) return false;
     }
     if (diff !== "All Difficulties" && q.difficulty !== diff) return false;
+    if (typeFilter !== "All Types" && getSourceType(q.source || '') !== typeFilter) return false;
+    if (sourceFilter !== "All Sources" && (q.source || "") !== sourceFilter) return false;
     if (search.trim()) {
       const s = search.toLowerCase();
       return q.question.toLowerCase().includes(s) || q.tags.some(t=>t.includes(s)) || q.topic.toLowerCase().includes(s) || (q.source||"").toLowerCase().includes(s);
     }
     return true;
-  }), [questions, topic, diff, search, recommendedMode, recommendedIds]);
+  }), [questions, topic, diff, search, typeFilter, sourceFilter, recommendedMode, recommendedIds]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageClamped = Math.min(page, totalPages);
@@ -4989,6 +5170,9 @@ function App() {
   };
 
 
+  // Reset specific source when type changes so stale selections don't persist
+  useEffect(() => { setSourceFilter("All Sources"); setPage(1); }, [typeFilter]);
+
   const counts = useMemo(()=>{
     const t={}, d={};
     TOPICS.forEach(x=> {
@@ -5002,8 +5186,15 @@ function App() {
     return {t,d};
   },[questions]);
 
-;
-
+  const uniqueSources = useMemo(() => {
+    const srcs = new Set(
+      questions
+        .filter(q => typeFilter === 'All Types' || getSourceType(q.source || '') === typeFilter)
+        .map(q => q.source || '')
+        .filter(Boolean)
+    );
+    return ['All Sources', ...[...srcs].sort()];
+  }, [questions, typeFilter]);
 
   const onFilter = (setter,val)=>{ setter(val); setPage(1); };
 
@@ -5079,10 +5270,12 @@ function App() {
               </a>
               <button onClick={()=>{ 
                   navigateTab('problems');
-                  setView('list'); 
+                  setView('list');
                   setRecommendedMode(false);
                   setTopic("All Topics");
                   setDiff("All Difficulties");
+                  setTypeFilter("All Types");
+                  setSourceFilter("All Sources");
                   setSearch("");
                   setPage(1);
                 }}
@@ -5195,6 +5388,8 @@ function App() {
             <Dropdown label="Status" value={recStatus} options={["All","Unattempted","Correct","Missed"]} onChange={v=>{setRecStatus(v); setPage(1);}} />
             <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
             <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
+            <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
+            <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
             <Dropdown label="Sort" value={recSort} options={["Most Recent","Oldest","Title","Hardest"]} onChange={v=>{setRecSort(v); setPage(1);}} />
           </div>
 
@@ -5261,6 +5456,8 @@ function App() {
           </div>
           <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
           <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
+          <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
+          <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
         </div>
 
         {/* TABLE */}

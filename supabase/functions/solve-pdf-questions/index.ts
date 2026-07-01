@@ -26,7 +26,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const ANTHROPIC_MODEL = "claude-sonnet-4-6";
-const CALL_TIMEOUT_MS = 100_000;
+const CALL_TIMEOUT_MS = 120_000;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -261,14 +261,24 @@ async function solveQuestion(
       `instead of chaining it into one long line.`,
   });
 
+  // Adaptive thinking gives Claude real scratch space to work these out
+  // step by step instead of jumping straight to a forced tool call -- these
+  // are genuinely hard competition problems (calculus, hypothesis testing,
+  // parametric geometry), and forcing an immediate structured answer with
+  // no room to reason is the actual cause of most answer-key mismatches,
+  // not a flaw in how mismatches are detected. Thinking requires tool_choice
+  // "auto" (a forced tool choice leaves no room for a thinking block first);
+  // streamToolCall already ignores any delta type other than input_json_delta,
+  // so thinking content is safely skipped without any parser changes.
   const { stopReason, toolInput } = await withTimeout((signal) =>
     streamToolCall(
       {
         model: ANTHROPIC_MODEL,
-        max_tokens: 4096,
+        max_tokens: 10000,
+        thinking: { type: "adaptive" },
         stream: true,
         tools: [SOLVE_TOOL],
-        tool_choice: { type: "tool", name: "solve_question" },
+        tool_choice: { type: "auto" },
         messages: [{ role: "user", content }],
       },
       signal,
@@ -364,7 +374,7 @@ async function solveOnce(
 // can't loop forever burning API calls. Only a mismatch is retried: a solve
 // failure, a missing key, or an already-correct match has nothing to gain
 // from hammering the API again.
-const MAX_SOLVE_ATTEMPTS = 2;
+const MAX_SOLVE_ATTEMPTS = 3;
 async function solveAndBuildFields(
   q: QuestionBoundary,
   pagePdfs: string[],
