@@ -1017,16 +1017,16 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
 
             {/* ── explanation (post-answer) ── */}
             {answered && (
-              <div className={`mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border
+              <div className={`mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border flex flex-col
                 ${isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30"
                             : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30"}`}>
-                <p className={`font-bold text-base mb-4 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
+                <div className={`font-bold text-base mb-3 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
                   {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{` · Time: ${timer.fmt}`}
-                </p>
-                <div className="overflow-x-auto">
-                  <p className="text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-loose break-words min-w-0">
+                </div>
+                <div className="mt-1 text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed whitespace-normal break-words">
+                  <div className="overflow-x-auto max-w-full">
                     <MathText text={explanationText || ""} />
-                  </p>
+                  </div>
                 </div>
               </div>
             )}
