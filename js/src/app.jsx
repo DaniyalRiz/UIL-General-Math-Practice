@@ -947,5 +947,14 @@ function App() {
   );
 }
 
-document.getElementById("root").dataset.loaded = "1";
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+function mountApp() {
+  const root = document.getElementById("root");
+  if (!root) return;
+  root.dataset.loaded = "1";
+  ReactDOM.createRoot(root).render(<App />);
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", mountApp);
+} else {
+  mountApp();
+}
