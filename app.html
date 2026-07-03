@@ -19,6 +19,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/constants.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/built/hooks.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -41,187 +45,6 @@
 
 
 <script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef, useMemo } = React;
-
-const TOPICS = ["All Topics","Column 1","Column 2","Column 3","Algebra 1 & 2","Geometry","Precalculus","AP Calculus","AP Statistics"];
-
-const getColumnCategory = (q) => {
-  const topic = typeof q === 'string' ? q : q.topic;
-  if (topic === "Algebra 1 & 2" || topic === "Geometry") return "Column 1";
-  if (topic === "Precalculus") return "Column 2";
-  if (topic === "AP Calculus" || topic === "AP Statistics") return "Column 3";
-  return null;
-};
-
-const DIFFICULTIES = ["All Difficulties","Easy","Medium","Hard"];
-const PAGE_SIZE = 15;
-
-// difficulty pill colors (light + dark)
-const DIFF_PILL = {
-  Easy:   "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
-  Medium: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
-  Hard:   "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400",
-};
-const TOPIC_DOT = {
-  "Algebra 1 & 2":"bg-violet-500","Geometry":"bg-sky-500","Precalculus":"bg-emerald-500",
-  "AP Calculus":"bg-amber-500","AP Statistics":"bg-rose-500",
-};
-const TOPIC_BAR = TOPIC_DOT;
-
-const fmtTime = ms => {
-  const s = Math.round(ms/1000);
-  return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
-};
-
-const SOURCE_TYPES = ['All Types', 'TMSCA', 'Invitationals', 'District', 'Region', 'State'];
-
-const getSourceType = (source) => {
-  if (!source) return '';
-  const s = source.toLowerCase();
-  if (s.includes('tmsca') || s.includes('hsma')) return 'TMSCA';
-  if (s.includes('invitational')) return 'Invitationals';
-  if (s.includes('district')) return 'District';
-  if (s.includes('region')) return 'Region';
-  if (s.includes('state')) return 'State';
-  return '';
-};
-
-const sourceDisplay = (q) => {
-  if (!q) return "";
-  const source = q.source || q.original_test || "";
-  const problemNumber =
-    q.original_question_number ||
-    q.answer_key_source?.problem_number ||
-    q.problem_number ||
-    null;
-  return source && problemNumber ? `${source} • Problem ${problemNumber}` : source;
-};
-
-// Strip \(...\) and \[...\] delimiters for plain-text row previews
-const plainText = (s) => String(s||"")
-  .replace(/\\\[([\s\S]*?)\\\]/g, (_,m)=>m.trim())
-  .replace(/\\\(([\s\S]*?)\\\)/g, (_,m)=>m.trim())
-  .replace(/\s+/g," ").trim();
-
-// Single-letter avatar fallback when no profile picture is set
-const initialsFor = (user) => {
-  const name = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'U';
-  return name.trim().charAt(0).toUpperCase();
-};
-
-// Deterministic background color for the initials fallback -- same user always gets the
-// same color, picked from the existing topic/difficulty accent palette (no new hues).
-const AVATAR_COLORS = [
-  { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400' },
-  { bg: 'bg-violet-100 dark:bg-violet-500/20', text: 'text-violet-700 dark:text-violet-400' },
-  { bg: 'bg-sky-100 dark:bg-sky-500/20', text: 'text-sky-700 dark:text-sky-400' },
-  { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-400' },
-  { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-400' },
-  { bg: 'bg-rose-100 dark:bg-rose-500/20', text: 'text-rose-700 dark:text-rose-400' },
-];
-const avatarColorFor = (user) => {
-  const key = String(user?.id || user?.email || 'u');
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-};
-
-// ── Math rendering ────────────────────────────────────────────────────────────
-// Renders text containing LaTeX. Use $...$ for inline math and $$...$$ for display.
-// Falls back to plain text if KaTeX hasn't loaded.
-function MathText({ text, className }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (!window.katex) { el.textContent = text; return; }
-    // Split on \[...\] (display) and \(...\) (inline). Money uses a plain $, which
-    // we leave untouched so it never collides with math.
-    const parts = String(text).split(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g);
-    el.innerHTML = "";
-    parts.forEach(part => {
-      if (!part) return;
-      const display = part.startsWith("\\[") && part.endsWith("\\]");
-      const inline = part.startsWith("\\(") && part.endsWith("\\)");
-      if (display || inline) {
-        const tex = part.slice(2, part.length - 2);
-        const span = document.createElement("span");
-        try {
-          window.katex.render(tex, span, { displayMode: display, throwOnError: false });
-        } catch(e) { span.textContent = tex; }
-        el.appendChild(span);
-      } else {
-        el.appendChild(document.createTextNode(part));
-      }
-    });
-  }, [text]);
-  return <span ref={ref} className={className}>{text}</span>;
-}
-
-// ── localStorage hook (JSON-backed, survives refresh on this device) ──────────
-function useLocalStorage(key, initial) {
-  const [value, setValue] = useState(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : initial;
-    } catch(e) { return initial; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch(e){}
-  }, [key, value]);
-  return [value, setValue];
-}
-
-// ── Theme hook (persists to localStorage) ────────────────────────────────────
-function useTheme() {
-  const [dark, setDark] = useState(() => {
-    try {
-      const saved = localStorage.getItem("uilmath-theme");
-      if (saved) return saved === "dark";
-      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    } catch(e) { return false; }
-  });
-  useEffect(() => {
-    const root = document.documentElement;
-    if (dark) root.classList.add("dark"); else root.classList.remove("dark");
-    try { localStorage.setItem("uilmath-theme", dark ? "dark" : "light"); } catch(e){}
-  }, [dark]);
-  return [dark, () => setDark(d => !d)];
-}
-
-function useTimer() {
-  const [elapsed, setElapsed] = useState(0);
-  const ref = useRef(null);
-  const start = () => { if (!ref.current) ref.current = setInterval(() => setElapsed(e => e + 1), 1000); };
-  const stop  = () => { clearInterval(ref.current); ref.current = null; };
-  const reset = () => { stop(); setElapsed(0); };
-  useEffect(() => () => clearInterval(ref.current), []);
-  return { elapsed, fmt: `${String(Math.floor(elapsed/60)).padStart(2,"0")}:${String(elapsed%60).padStart(2,"0")}`, start, stop, reset };
-}
-
-function DiffPill({ d }) {
-  return <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${DIFF_PILL[d]||""}`}>{d}</span>;
-}
-
-// ── Icons ────────────────────────────────────────────────────────────────────
-const SunIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>);
-const MoonIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>);
-
-// ── Filter dropdown ──────────────────────────────────────────────────────────
-function Dropdown({ label, value, options, onChange }) {
-  return (
-    <div className="relative">
-      <select value={value} onChange={e=>onChange(e.target.value)}
-        className="appearance-none pl-3 pr-9 py-2 rounded-lg text-sm font-medium border
-                   bg-white border-slate-200 text-slate-700
-                   dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▾</span>
-    </div>
-  );
-}
 
 // ── Problem list (row layout) ────────────────────────────────────────────────
 function ProblemRow({ q, n, onOpen }) {
@@ -255,27 +78,6 @@ function ProblemRow({ q, n, onOpen }) {
 // ── Single problem modal/view ────────────────────────────────────────────────
 // ── SimilarProblem: self-contained mini-quiz for AI-generated problems ────────
 // ── Similar question recommender ─────────────────────────────────────────────
-function getSimilarQuestions(current, allQuestions, answeredIds = []) {
-  const others = allQuestions.filter(q => q.id !== current.id);
-  const scored = others.map(q => {
-    let score = 0;
-    // Tag overlap (highest weight — same pattern)
-    const sharedTags = (current.tags || []).filter(t => (q.tags || []).includes(t));
-    score += sharedTags.length * 10;
-    // Same topic
-    if (q.topic === current.topic) score += 4;
-    // Same difficulty
-    if (q.difficulty === current.difficulty) score += 2;
-    // Penalise already-answered questions (prefer unseen)
-    if (answeredIds.includes(q.id)) score -= 5;
-    return { q, score, sharedTags };
-  });
-  // Sort by score desc, then shuffle ties so it's not always the same 3
-  scored.sort((a, b) => b.score - a.score || Math.random() - 0.5);
-  return scored.slice(0, 3).map(s => ({ ...s.q, sharedTags: s.sharedTags }));
-}
-
-
 function ReportIssueModal({ q, authUser, onClose }) {
   const ISSUE_TYPES = ['Wrong answer','Wrong explanation','Typo','Image missing','Formatting issue','Other'];
   const [issueType, setIssueType] = useState('Wrong answer');
@@ -1083,24 +885,6 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
 
 
 
-function csvEscape(value) {
-  const s = String(value ?? '');
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
-function downloadCsv(filename, rows) {
-  const csv = rows.map(row => row.map(csvEscape).join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // ANALYTICS TAB
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1862,10 +1646,6 @@ function HistoryDetailModal({ row, q, onClose }) {
 }
 
 
-const ADMIN_EMAILS = ['daniyalrizvi10@gmail.com'];
-
-
-
 function AdminUserActivity({ authUser }) {
   const [loading, setLoading] = useState(true);
   const [attempts, setAttempts] = useState([]);
@@ -2522,14 +2302,6 @@ function AdminBugReports({ authUser }) {
     </div>
   );
 }
-
-const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
-const MAX_IMAGE_DIMENSION = 1280; // longest side, in px, after resize
-
-const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
-const MAX_AVATAR_DIMENSION = 320; // avatars only ever render small
 
 // Downscale an image to a sane max dimension before upload. Question diagrams only ever
 // display at a few hundred px wide in the UI, so admin-uploaded screenshots/photos (which
@@ -5491,26 +5263,6 @@ function App() {
       )}
     </div>
   );
-}
-
-// ─── SUPABASE CONFIG ───────────────────────────────────────────────────
-// Replace with your own values from supabase.com → Project Settings → API
-const SUPABASE_URL = 'https://vhodgagwcxoooqnmfpbo.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_SXqKKIMvbNZJFq9OzM0uHA_3FGZf84v';
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ─── STATS HELPERS ──────────────────────────────────────────────────────
-async function updateUserStatsOnly(user) {
-  if (!user) return;
-  try {
-    await _supabase.from('user_stats').upsert({
-      user_id: user.id,
-      last_seen: new Date().toISOString(),
-      streak_updated: new Date().toDateString(),
-    }, { onConflict: 'user_id' });
-  } catch(e) {
-    console.warn('user_stats update exception:', e.message);
-  }
 }
 
 document.getElementById("root").dataset.loaded = "1";

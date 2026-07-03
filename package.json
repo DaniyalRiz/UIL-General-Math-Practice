@@ -1,0 +1,27 @@
+{
+  "name": "uil-math-practice-website",
+  "version": "1.0.0",
+  "description": "A practice platform for UIL General Mathematics competitors with topic filtering, timed practice, instant feedback, and performance analytics.",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel js/src --out-dir js/built --extensions '.jsx,.js'",
+    "watch": "babel js/src --out-dir js/built --extensions '.jsx,.js' --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DaniyalRiz/UIL-General-Math-Practice-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/DaniyalRiz/UIL-General-Math-Practice-/issues"
+  },
+  "homepage": "https://github.com/DaniyalRiz/UIL-General-Math-Practice-#readme",
+  "devDependencies": {
+    "@babel/cli": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
+    "@babel/preset-react": "^8.0.1"
+  }
+}
