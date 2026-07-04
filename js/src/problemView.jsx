@@ -483,30 +483,30 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
 
             {/* ── explanation (post-answer) ── */}
             {answered && (
-              <div className={`mx-4 sm:mx-6 mb-5 rounded-xl border overflow-hidden
+              <div className={`mx-4 sm:mx-6 mb-5 rounded-xl p-5 sm:p-6 border flex flex-col
                 ${isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30"
                             : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30"}`}>
-                {/* Verdict row */}
-                <div className={`flex items-center justify-between px-5 py-3.5 border-b
-                  ${isCorrect ? "border-emerald-200 dark:border-emerald-500/30" : "border-rose-200 dark:border-rose-500/30"}`}>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className={`text-base font-black ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
-                      {isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                {/* Verdict line */}
+                <div className="flex items-center justify-between gap-3 flex-wrap mb-3 pb-3 border-b border-inherit">
+                  <span className={`text-base font-black ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
+                    {isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                  </span>
+                  {!isCorrect && correctAnswer && (
+                    <span className="text-sm text-slate-600 dark:text-slate-300">
+                      Answer: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{correctAnswer}</span>
                     </span>
-                    {!isCorrect && correctAnswer && (
-                      <span className="text-sm text-slate-600 dark:text-slate-300">
-                        Correct answer: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{correctAnswer}</span>
-                      </span>
-                    )}
-                  </div>
-                  <span className={`text-xs font-mono font-bold tabular-nums shrink-0 ml-3 ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
+                  )}
+                  <span className={`text-xs font-mono font-bold tabular-nums ml-auto ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
                     {timer.fmt}
                   </span>
                 </div>
-                {/* Explanation body */}
-                <div className="px-5 py-5 text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed max-w-3xl">
+                {/* Explanation */}
+                <div className="text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed">
                   <div className="overflow-x-auto">
-                    <MathText text={explanationText || ""} />
+                    {explanationText
+                      ? <MathText text={explanationText} />
+                      : <span className="text-slate-400 dark:text-slate-500 italic">No explanation available for this question.</span>
+                    }
                   </div>
                 </div>
               </div>
