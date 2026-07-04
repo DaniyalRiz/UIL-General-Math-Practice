@@ -104,17 +104,28 @@ function LeaderboardPage({ authUser }) {
         </p>
       </div>
 
-      {/* Filters + my rank */}
-      <div className="flex flex-wrap items-center gap-2 mb-5">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <Dropdown value={dayFilter}   options={LB_DAY_OPTIONS}   onChange={setDayFilter}   />
         <Dropdown value={topicFilter} options={LB_TOPIC_OPTIONS} onChange={setTopicFilter} />
         <Dropdown value={diffFilter}  options={LB_DIFF_OPTIONS}  onChange={setDiffFilter}  />
-        {myEntry && (
-          <span className="ml-auto text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
-            Your rank: <span className="font-bold text-slate-700 dark:text-slate-200">#{myEntry.rank}</span>
-          </span>
-        )}
       </div>
+
+      {/* My rank badge */}
+      {myEntry && (
+        <div className="mb-5 flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-4 py-3">
+          <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-blue-600 dark:bg-blue-500 text-white shrink-0">
+            <span className="text-xs font-semibold leading-none opacity-80">RANK</span>
+            <span className="text-xl font-black leading-tight">#{myEntry.rank}</span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">Your current rank</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+              Score {myEntry.score} &middot; {myEntry.correct_count} correct &middot; {myEntry.topic_count}/{LB_TOTAL_TOPICS} topics
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* States */}
       {loading ? (

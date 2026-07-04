@@ -127,7 +127,7 @@ function LeaderboardPage(_ref3) {
   }, /*#__PURE__*/React.createElement("span", {
     className: "font-medium text-slate-600 dark:text-slate-300"
   }, "Score"), " = difficulty-weighted correct answers \xD7 topic variety. Each question counts once. Easy = 1 pt, Medium = 2 pts, Hard = 3 pts. The variety multiplier ranges from 0.6\xD7 (1 topic) to 1.0\xD7 (all 5 topics) \u2014 so with equal difficulty performance, a well-rounded practitioner ranks higher. Requires at least 5 correct answers to appear.")), /*#__PURE__*/React.createElement("div", {
-    className: "flex flex-wrap items-center gap-2 mb-5"
+    className: "flex flex-wrap items-center gap-2 mb-3"
   }, /*#__PURE__*/React.createElement(Dropdown, {
     value: dayFilter,
     options: LB_DAY_OPTIONS,
@@ -140,11 +140,19 @@ function LeaderboardPage(_ref3) {
     value: diffFilter,
     options: LB_DIFF_OPTIONS,
     onChange: setDiffFilter
-  }), myEntry && /*#__PURE__*/React.createElement("span", {
-    className: "ml-auto text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1"
-  }, "Your rank: ", /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-slate-700 dark:text-slate-200"
-  }, "#", myEntry.rank))), loading ? /*#__PURE__*/React.createElement("div", {
+  })), myEntry && /*#__PURE__*/React.createElement("div", {
+    className: "mb-5 flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-4 py-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-blue-600 dark:bg-blue-500 text-white shrink-0"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-semibold leading-none opacity-80"
+  }, "RANK"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xl font-black leading-tight"
+  }, "#", myEntry.rank)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-semibold text-blue-800 dark:text-blue-200"
+  }, "Your current rank"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-blue-600 dark:text-blue-400 mt-0.5"
+  }, "Score ", myEntry.score, " \xB7 ", myEntry.correct_count, " correct \xB7 ", myEntry.topic_count, "/", LB_TOTAL_TOPICS, " topics"))), loading ? /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-24"
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"
