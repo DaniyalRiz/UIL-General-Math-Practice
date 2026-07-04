@@ -1268,8 +1268,12 @@ function App() {
   }, /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-1 sm:gap-4"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar flex-1"
-  }, /*#__PURE__*/React.createElement("img", {
+    className: "relative flex-1 min-w-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white/90 dark:from-slate-900/90 to-transparent sm:hidden"
+  }), /*#__PURE__*/React.createElement("img", {
     src: "./assets/logo-icon.svg",
     alt: "UIL Math Practice",
     className: "hidden lg:block h-7 w-auto flex-shrink-0 mr-1"
@@ -1306,12 +1310,17 @@ function App() {
       return navigateTab('leaderboard');
     },
     className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'leaderboard' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
-  }, "Leaderboard"), authUser && ADMIN_EMAILS.includes(authUser.email || '') && /*#__PURE__*/React.createElement("button", {
+  }, "Leaderboard"), authUser && /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return navigateTab('mastery');
+    },
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                    ".concat(tab === 'mastery' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+  }, "Mastery"), authUser && ADMIN_EMAILS.includes(authUser.email || '') && /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return navigateTab('admin');
     },
     className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                    ".concat(tab === 'admin' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
-  }, "Admin"))), /*#__PURE__*/React.createElement("div", {
+  }, "Admin")))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1 sm:gap-2 flex-shrink-0"
   }, authUser ? /*#__PURE__*/React.createElement(ProfileMenu, {
     authUser: authUser,
