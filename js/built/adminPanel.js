@@ -1050,30 +1050,45 @@ function AdminBugReports(_ref13) {
     _useState32 = _slicedToArray(_useState31, 2),
     reports = _useState32[0],
     setReports = _useState32[1];
-  var _useState33 = useState(true),
+  var _useState33 = useState([]),
     _useState34 = _slicedToArray(_useState33, 2),
-    loading = _useState34[0],
-    setLoading = _useState34[1];
-  var _useState35 = useState(''),
+    questionReports = _useState34[0],
+    setQuestionReports = _useState34[1];
+  var _useState35 = useState([]),
     _useState36 = _slicedToArray(_useState35, 2),
-    error = _useState36[0],
-    setError = _useState36[1];
+    questions = _useState36[0],
+    setQuestions = _useState36[1];
+  var _useState37 = useState(true),
+    _useState38 = _slicedToArray(_useState37, 2),
+    loading = _useState38[0],
+    setLoading = _useState38[1];
+  var _useState39 = useState(''),
+    _useState40 = _slicedToArray(_useState39, 2),
+    error = _useState40[0],
+    setError = _useState40[1];
   var isAdmin = authUser && ADMIN_EMAILS.includes(authUser.email || '');
   useEffect(function () {
     if (!isAdmin) return;
     setLoading(true);
-    _supabase.from('bug_reports').select('*').order('created_at', {
+    Promise.all([_supabase.from('bug_reports').select('*').order('created_at', {
       ascending: false
-    }).limit(500).then(function (_ref14) {
-      var data = _ref14.data,
-        error = _ref14.error;
-      if (error) setError(error.message);
-      setReports(data || []);
+    }).limit(500), _supabase.from('question_reports').select('*').order('created_at', {
+      ascending: false
+    }).limit(500), _supabase.from('public_questions').select('id,title,topic,difficulty').limit(5000)]).then(function (_ref14) {
+      var _b$error, _r$error3, _q$error3;
+      var _ref15 = _slicedToArray(_ref14, 3),
+        b = _ref15[0],
+        r = _ref15[1],
+        q = _ref15[2];
+      if (b.error || r.error || q.error) setError(((_b$error = b.error) === null || _b$error === void 0 ? void 0 : _b$error.message) || ((_r$error3 = r.error) === null || _r$error3 === void 0 ? void 0 : _r$error3.message) || ((_q$error3 = q.error) === null || _q$error3 === void 0 ? void 0 : _q$error3.message));
+      setReports(b.data || []);
+      setQuestionReports(r.data || []);
+      setQuestions(q.data || []);
       setLoading(false);
     });
   }, [isAdmin]);
-  var updateStatus = /*#__PURE__*/function () {
-    var _updateStatus2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8(reportId, status) {
+  var updateBugStatus = /*#__PURE__*/function () {
+    var _updateBugStatus = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8(reportId, status) {
       var _yield$_supabase$from5, error;
       return _regenerator().w(function (_context8) {
         while (1) switch (_context8.n) {
@@ -1104,13 +1119,13 @@ function AdminBugReports(_ref13) {
         }
       }, _callee8);
     }));
-    function updateStatus(_x7, _x8) {
-      return _updateStatus2.apply(this, arguments);
+    function updateBugStatus(_x7, _x8) {
+      return _updateBugStatus.apply(this, arguments);
     }
-    return updateStatus;
+    return updateBugStatus;
   }();
-  var deleteReport = /*#__PURE__*/function () {
-    var _deleteReport3 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9(reportId) {
+  var deleteBugReport = /*#__PURE__*/function () {
+    var _deleteBugReport = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9(reportId) {
       var _yield$_supabase$from6, error;
       return _regenerator().w(function (_context9) {
         while (1) switch (_context9.n) {
@@ -1143,10 +1158,86 @@ function AdminBugReports(_ref13) {
         }
       }, _callee9);
     }));
-    function deleteReport(_x9) {
-      return _deleteReport3.apply(this, arguments);
+    function deleteBugReport(_x9) {
+      return _deleteBugReport.apply(this, arguments);
     }
-    return deleteReport;
+    return deleteBugReport;
+  }();
+  var updateQuestionReportStatus = /*#__PURE__*/function () {
+    var _updateQuestionReportStatus = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0(reportId, status) {
+      var _yield$_supabase$from7, error;
+      return _regenerator().w(function (_context0) {
+        while (1) switch (_context0.n) {
+          case 0:
+            _context0.n = 1;
+            return _supabase.from('question_reports').update({
+              status: status
+            }).eq('id', reportId);
+          case 1:
+            _yield$_supabase$from7 = _context0.v;
+            error = _yield$_supabase$from7.error;
+            if (!error) {
+              _context0.n = 2;
+              break;
+            }
+            alert(error.message);
+            return _context0.a(2);
+          case 2:
+            setQuestionReports(function (prev) {
+              return prev.map(function (r) {
+                return r.id === reportId ? _objectSpread(_objectSpread({}, r), {}, {
+                  status: status
+                }) : r;
+              });
+            });
+          case 3:
+            return _context0.a(2);
+        }
+      }, _callee0);
+    }));
+    function updateQuestionReportStatus(_x0, _x1) {
+      return _updateQuestionReportStatus.apply(this, arguments);
+    }
+    return updateQuestionReportStatus;
+  }();
+  var deleteQuestionReport = /*#__PURE__*/function () {
+    var _deleteQuestionReport = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1(reportId) {
+      var _yield$_supabase$from8, error;
+      return _regenerator().w(function (_context1) {
+        while (1) switch (_context1.n) {
+          case 0:
+            if (confirm('Delete this report?')) {
+              _context1.n = 1;
+              break;
+            }
+            return _context1.a(2);
+          case 1:
+            _context1.n = 2;
+            return _supabase.from('question_reports').delete().eq('id', reportId);
+          case 2:
+            _yield$_supabase$from8 = _context1.v;
+            error = _yield$_supabase$from8.error;
+            if (!error) {
+              _context1.n = 3;
+              break;
+            }
+            alert(error.message);
+            return _context1.a(2);
+          case 3:
+            setQuestionReports(function (prev) {
+              return prev.filter(function (r) {
+                return r.id !== reportId;
+              });
+            });
+          case 4:
+            return _context1.a(2);
+        }
+      }, _callee1);
+    }));
+    function deleteQuestionReport(_x10) {
+      return _deleteQuestionReport.apply(this, arguments);
+    }
+    return deleteQuestionReport;
   }();
   if (!isAdmin) return null;
   if (loading) return /*#__PURE__*/React.createElement("div", {
@@ -1160,7 +1251,33 @@ function AdminBugReports(_ref13) {
   var openCount = reports.filter(function (r) {
     return r.status === 'open';
   }).length;
+  var qrOpenCount = questionReports.filter(function (r) {
+    return r.status === 'open';
+  }).length;
+  var qMap = {};
+  questions.forEach(function (q) {
+    return qMap[q.id] = q;
+  });
+  var StatusSelect = function StatusSelect(_ref16) {
+    var value = _ref16.value,
+      onChange = _ref16.onChange;
+    return /*#__PURE__*/React.createElement("select", {
+      value: value || 'open',
+      onChange: onChange,
+      className: "px-2 py-1.5 rounded-lg text-xs font-semibold border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200"
+    }, /*#__PURE__*/React.createElement("option", {
+      value: "open"
+    }, "open"), /*#__PURE__*/React.createElement("option", {
+      value: "reviewing"
+    }, "reviewing"), /*#__PURE__*/React.createElement("option", {
+      value: "resolved"
+    }, "resolved"), /*#__PURE__*/React.createElement("option", {
+      value: "dismissed"
+    }, "dismissed"));
+  };
   return /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
   }, /*#__PURE__*/React.createElement("div", {
     className: "px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3"
@@ -1203,34 +1320,87 @@ function AdminBugReports(_ref13) {
       className: "text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap"
     }, r.description))), /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-2 shrink-0"
-    }, /*#__PURE__*/React.createElement("select", {
-      value: r.status || 'open',
+    }, /*#__PURE__*/React.createElement(StatusSelect, {
+      value: r.status,
       onChange: function onChange(e) {
-        return updateStatus(r.id, e.target.value);
-      },
-      className: "px-2 py-1.5 rounded-lg text-xs font-semibold border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200"
-    }, /*#__PURE__*/React.createElement("option", {
-      value: "open"
-    }, "open"), /*#__PURE__*/React.createElement("option", {
-      value: "reviewing"
-    }, "reviewing"), /*#__PURE__*/React.createElement("option", {
-      value: "resolved"
-    }, "resolved"), /*#__PURE__*/React.createElement("option", {
-      value: "dismissed"
-    }, "dismissed")), /*#__PURE__*/React.createElement("button", {
+        return updateBugStatus(r.id, e.target.value);
+      }
+    }), /*#__PURE__*/React.createElement("button", {
       onClick: function onClick() {
-        return deleteReport(r.id);
+        return deleteBugReport(r.id);
       },
       className: "px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10"
     }, "Delete"))));
-  })));
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "font-bold text-lg text-slate-800 dark:text-slate-100"
+  }, "Question Issue Reports"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 dark:text-slate-500"
+  }, questionReports.length, " total \xB7 ", /*#__PURE__*/React.createElement("span", {
+    className: "text-rose-600 dark:text-rose-400 font-semibold"
+  }, qrOpenCount, " open"))), qrOpenCount > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold"
+  }, qrOpenCount, " need review")), questionReports.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "py-16 text-center"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-slate-700 dark:text-slate-300"
+  }, "No issue reports"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1"
+  }, "Reports submitted by users will appear here.")) : /*#__PURE__*/React.createElement("div", {
+    className: "divide-y divide-slate-100 dark:divide-slate-800"
+  }, questionReports.map(function (r) {
+    var q = qMap[r.question_id] || {
+      id: r.question_id,
+      title: 'Question #' + r.question_id
+    };
+    var statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
+    return /*#__PURE__*/React.createElement("div", {
+      key: r.id,
+      className: "px-5 py-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-wrap items-start justify-between gap-3"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "min-w-0 flex-1"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2 flex-wrap mb-1"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-xs font-bold uppercase tracking-wider ".concat(statusColor)
+    }, r.status || 'open'), /*#__PURE__*/React.createElement("span", {
+      className: "text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full"
+    }, r.issue_type), /*#__PURE__*/React.createElement("span", {
+      className: "text-xs text-slate-400 dark:text-slate-500"
+    }, new Date(r.created_at).toLocaleString())), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm font-bold text-slate-800 dark:text-slate-100 mb-1"
+    }, q.title || 'Question #' + r.question_id), q.topic && /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-slate-400 dark:text-slate-500 mb-2"
+    }, q.topic, " \xB7 ", q.difficulty), r.details && /*#__PURE__*/React.createElement("div", {
+      className: "mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+    }, /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap"
+    }, r.details))), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2 shrink-0"
+    }, /*#__PURE__*/React.createElement(StatusSelect, {
+      value: r.status,
+      onChange: function onChange(e) {
+        return updateQuestionReportStatus(r.id, e.target.value);
+      }
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return deleteQuestionReport(r.id);
+      },
+      className: "px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10"
+    }, "Delete"))));
+  }))));
 }
 
 // Downscale an image to a sane max dimension before upload. Question diagrams only ever
 // display at a few hundred px wide in the UI, so admin-uploaded screenshots/photos (which
 // can easily be several thousand px and multiple MB) get shrunk client-side, never upscaled.
 // GIFs are passed through untouched — canvas would flatten an animated GIF to one frame.
-function resizeImageForUpload(_x0) {
+function resizeImageForUpload(_x11) {
   return _resizeImageForUpload.apply(this, arguments);
 } // Uploads via a raw fetch with a freshly-read access token instead of going through
 // _supabase.storage -- the SDK's storage sub-client is created lazily on first access and
@@ -1239,11 +1409,11 @@ function resizeImageForUpload(_x0) {
 // load), and never re-reads the session again afterward. Reading the token directly here
 // every call sidesteps that entirely instead of trusting the cached client.
 function _resizeImageForUpload() {
-  _resizeImageForUpload = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee25(file) {
-    var _ref27,
-      _ref27$maxDim,
+  _resizeImageForUpload = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee27(file) {
+    var _ref29,
+      _ref29$maxDim,
       maxDim,
-      _ref27$jpegQuality,
+      _ref29$jpegQuality,
       jpegQuality,
       bitmap,
       scale,
@@ -1254,29 +1424,29 @@ function _resizeImageForUpload() {
       blob,
       ext,
       newName,
-      _args25 = arguments,
+      _args27 = arguments,
       _t21;
-    return _regenerator().w(function (_context25) {
-      while (1) switch (_context25.p = _context25.n) {
+    return _regenerator().w(function (_context27) {
+      while (1) switch (_context27.p = _context27.n) {
         case 0:
-          _ref27 = _args25.length > 1 && _args25[1] !== undefined ? _args25[1] : {}, _ref27$maxDim = _ref27.maxDim, maxDim = _ref27$maxDim === void 0 ? MAX_IMAGE_DIMENSION : _ref27$maxDim, _ref27$jpegQuality = _ref27.jpegQuality, jpegQuality = _ref27$jpegQuality === void 0 ? 0.85 : _ref27$jpegQuality;
+          _ref29 = _args27.length > 1 && _args27[1] !== undefined ? _args27[1] : {}, _ref29$maxDim = _ref29.maxDim, maxDim = _ref29$maxDim === void 0 ? MAX_IMAGE_DIMENSION : _ref29$maxDim, _ref29$jpegQuality = _ref29.jpegQuality, jpegQuality = _ref29$jpegQuality === void 0 ? 0.85 : _ref29$jpegQuality;
           if (!(file.type === 'image/gif')) {
-            _context25.n = 1;
+            _context27.n = 1;
             break;
           }
-          return _context25.a(2, file);
+          return _context27.a(2, file);
         case 1:
-          _context25.p = 1;
-          _context25.n = 2;
+          _context27.p = 1;
+          _context27.n = 2;
           return createImageBitmap(file);
         case 2:
-          bitmap = _context25.v;
-          _context25.n = 4;
+          bitmap = _context27.v;
+          _context27.n = 4;
           break;
         case 3:
-          _context25.p = 3;
-          _t21 = _context25.v;
-          return _context25.a(2, file);
+          _context27.p = 3;
+          _t21 = _context27.v;
+          return _context27.a(2, file);
         case 4:
           scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
           width = Math.round(bitmap.width * scale);
@@ -1289,49 +1459,49 @@ function _resizeImageForUpload() {
           // PNG stays PNG (crisp lines + transparency for diagrams); everything else re-encodes
           // as JPEG at a controlled quality to keep file size down.
           outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-          _context25.n = 5;
+          _context27.n = 5;
           return new Promise(function (resolve) {
             return canvas.toBlob(resolve, outputType, outputType === 'image/jpeg' ? jpegQuality : undefined);
           });
         case 5:
-          blob = _context25.v;
+          blob = _context27.v;
           if (blob) {
-            _context25.n = 6;
+            _context27.n = 6;
             break;
           }
-          return _context25.a(2, file);
+          return _context27.a(2, file);
         case 6:
           ext = outputType === 'image/png' ? 'png' : 'jpg';
           newName = file.name.replace(/\.[^.]+$/, '') + "-resized.".concat(ext);
-          return _context25.a(2, new File([blob], newName, {
+          return _context27.a(2, new File([blob], newName, {
             type: outputType
           }));
       }
-    }, _callee25, null, [[1, 3]]);
+    }, _callee27, null, [[1, 3]]);
   }));
   return _resizeImageForUpload.apply(this, arguments);
 }
-function uploadWithSessionRetry(_x1, _x10, _x11, _x12) {
+function uploadWithSessionRetry(_x12, _x13, _x14, _x15) {
   return _uploadWithSessionRetry.apply(this, arguments);
 } // Avatars are always a small square photo, never need transparency or crisp vector lines,
 // so unlike resizeImageForUpload above this always crops to a centered square and re-encodes
 // as JPEG -- gives a small, predictable file size regardless of the source image's shape.
 function _uploadWithSessionRetry() {
-  _uploadWithSessionRetry = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee26(bucket, path, file, options) {
+  _uploadWithSessionRetry = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee28(bucket, path, file, options) {
     var _yield$_supabase$auth, session, headers, res, body;
-    return _regenerator().w(function (_context26) {
-      while (1) switch (_context26.n) {
+    return _regenerator().w(function (_context28) {
+      while (1) switch (_context28.n) {
         case 0:
-          _context26.n = 1;
+          _context28.n = 1;
           return _supabase.auth.getSession();
         case 1:
-          _yield$_supabase$auth = _context26.v;
+          _yield$_supabase$auth = _context28.v;
           session = _yield$_supabase$auth.data.session;
           if (session) {
-            _context26.n = 2;
+            _context28.n = 2;
             break;
           }
-          return _context26.a(2, {
+          return _context28.a(2, {
             error: {
               message: 'Not signed in.'
             }
@@ -1343,39 +1513,39 @@ function _uploadWithSessionRetry() {
             'Content-Type': (options === null || options === void 0 ? void 0 : options.contentType) || file.type || 'application/octet-stream'
           };
           if (options !== null && options !== void 0 && options.upsert) headers['x-upsert'] = 'true';
-          _context26.n = 3;
+          _context28.n = 3;
           return fetch("".concat(SUPABASE_URL, "/storage/v1/object/").concat(bucket, "/").concat(path), {
             method: 'POST',
             headers: headers,
             body: file
           });
         case 3:
-          res = _context26.v;
+          res = _context28.v;
           if (!res.ok) {
-            _context26.n = 4;
+            _context28.n = 4;
             break;
           }
-          return _context26.a(2, {
+          return _context28.a(2, {
             error: null
           });
         case 4:
-          _context26.n = 5;
+          _context28.n = 5;
           return res.json().catch(function () {
             return {};
           });
         case 5:
-          body = _context26.v;
-          return _context26.a(2, {
+          body = _context28.v;
+          return _context28.a(2, {
             error: {
               message: body.message || body.error || "Upload failed (".concat(res.status, ")")
             }
           });
       }
-    }, _callee26);
+    }, _callee28);
   }));
   return _uploadWithSessionRetry.apply(this, arguments);
 }
-function cropAndResizeAvatar(_x13) {
+function cropAndResizeAvatar(_x16) {
   return _cropAndResizeAvatar.apply(this, arguments);
 } // supabase-js's FunctionsHttpError.message is always the hardcoded string
 // "Edge Function returned a non-2xx status code" -- it never contains the
@@ -1383,7 +1553,7 @@ function cropAndResizeAvatar(_x13) {
 // The real body lives on error.context (the raw Response), which has to be
 // read and parsed separately to get anything useful to show or branch on.
 function _cropAndResizeAvatar() {
-  _cropAndResizeAvatar = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee27(file) {
+  _cropAndResizeAvatar = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee29(file) {
     var maxDim,
       bitmap,
       side,
@@ -1392,23 +1562,23 @@ function _cropAndResizeAvatar() {
       outSide,
       canvas,
       blob,
-      _args27 = arguments,
+      _args29 = arguments,
       _t22;
-    return _regenerator().w(function (_context27) {
-      while (1) switch (_context27.p = _context27.n) {
+    return _regenerator().w(function (_context29) {
+      while (1) switch (_context29.p = _context29.n) {
         case 0:
-          maxDim = _args27.length > 1 && _args27[1] !== undefined ? _args27[1] : MAX_AVATAR_DIMENSION;
-          _context27.p = 1;
-          _context27.n = 2;
+          maxDim = _args29.length > 1 && _args29[1] !== undefined ? _args29[1] : MAX_AVATAR_DIMENSION;
+          _context29.p = 1;
+          _context29.n = 2;
           return createImageBitmap(file);
         case 2:
-          bitmap = _context27.v;
-          _context27.n = 4;
+          bitmap = _context29.v;
+          _context29.n = 4;
           break;
         case 3:
-          _context27.p = 3;
-          _t22 = _context27.v;
-          return _context27.a(2, file);
+          _context29.p = 3;
+          _t22 = _context29.v;
+          return _context29.a(2, file);
         case 4:
           side = Math.min(bitmap.width, bitmap.height);
           sx = (bitmap.width - side) / 2;
@@ -1418,130 +1588,130 @@ function _cropAndResizeAvatar() {
           canvas.width = outSide;
           canvas.height = outSide;
           canvas.getContext('2d').drawImage(bitmap, sx, sy, side, side, 0, 0, outSide, outSide);
-          _context27.n = 5;
+          _context29.n = 5;
           return new Promise(function (resolve) {
             return canvas.toBlob(resolve, 'image/jpeg', 0.85);
           });
         case 5:
-          blob = _context27.v;
+          blob = _context29.v;
           if (blob) {
-            _context27.n = 6;
+            _context29.n = 6;
             break;
           }
-          return _context27.a(2, file);
+          return _context29.a(2, file);
         case 6:
-          return _context27.a(2, new File([blob], 'avatar.jpg', {
+          return _context29.a(2, new File([blob], 'avatar.jpg', {
             type: 'image/jpeg'
           }));
       }
-    }, _callee27, null, [[1, 3]]);
+    }, _callee29, null, [[1, 3]]);
   }));
   return _cropAndResizeAvatar.apply(this, arguments);
 }
-function edgeFunctionErrorMessage(_x14) {
+function edgeFunctionErrorMessage(_x17) {
   return _edgeFunctionErrorMessage.apply(this, arguments);
 } // ── Review Imports: load a locally-extracted draft JSON (questions pulled from a
 // PDF by Claude in a separate session), preview each with real LaTeX, edit/approve/
 // reject per question, then publish only the approved ones in one batched write.
 // Nothing here ever touches Supabase until "Publish Approved" is clicked.
 function _edgeFunctionErrorMessage() {
-  _edgeFunctionErrorMessage = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee28(error) {
+  _edgeFunctionErrorMessage = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee30(error) {
     var body, _t23;
-    return _regenerator().w(function (_context28) {
-      while (1) switch (_context28.p = _context28.n) {
+    return _regenerator().w(function (_context30) {
+      while (1) switch (_context30.p = _context30.n) {
         case 0:
           if (!(error !== null && error !== void 0 && error.context && typeof error.context.json === 'function')) {
-            _context28.n = 5;
+            _context30.n = 5;
             break;
           }
-          _context28.p = 1;
-          _context28.n = 2;
+          _context30.p = 1;
+          _context30.n = 2;
           return error.context.clone().json();
         case 2:
-          body = _context28.v;
+          body = _context30.v;
           if (!(body !== null && body !== void 0 && body.error)) {
-            _context28.n = 3;
+            _context30.n = 3;
             break;
           }
-          return _context28.a(2, body.error);
+          return _context30.a(2, body.error);
         case 3:
-          _context28.n = 5;
+          _context30.n = 5;
           break;
         case 4:
-          _context28.p = 4;
-          _t23 = _context28.v;
+          _context30.p = 4;
+          _t23 = _context30.v;
         case 5:
-          return _context28.a(2, (error === null || error === void 0 ? void 0 : error.message) || String(error));
+          return _context30.a(2, (error === null || error === void 0 ? void 0 : error.message) || String(error));
       }
-    }, _callee28, null, [[1, 4]]);
+    }, _callee30, null, [[1, 4]]);
   }));
   return _edgeFunctionErrorMessage.apply(this, arguments);
 }
-function ReviewImportsPanel(_ref15) {
-  var authUser = _ref15.authUser,
-    onBatchReviewed = _ref15.onBatchReviewed;
-  var _useState37 = useState([]),
-    _useState38 = _slicedToArray(_useState37, 2),
-    draftRows = _useState38[0],
-    setDraftRows = _useState38[1];
-  var _useState39 = useState(''),
-    _useState40 = _slicedToArray(_useState39, 2),
-    parseError = _useState40[0],
-    setParseError = _useState40[1];
-  var _useState41 = useState({}),
+function ReviewImportsPanel(_ref17) {
+  var authUser = _ref17.authUser,
+    onBatchReviewed = _ref17.onBatchReviewed;
+  var _useState41 = useState([]),
     _useState42 = _slicedToArray(_useState41, 2),
-    imageMap = _useState42[0],
-    setImageMap = _useState42[1]; // filename -> { file, url }
-  var _useState43 = useState(false),
+    draftRows = _useState42[0],
+    setDraftRows = _useState42[1];
+  var _useState43 = useState(''),
     _useState44 = _slicedToArray(_useState43, 2),
-    publishing = _useState44[0],
-    setPublishing = _useState44[1];
-  var _useState45 = useState(''),
+    parseError = _useState44[0],
+    setParseError = _useState44[1];
+  var _useState45 = useState({}),
     _useState46 = _slicedToArray(_useState45, 2),
-    publishMessage = _useState46[0],
-    setPublishMessage = _useState46[1];
+    imageMap = _useState46[0],
+    setImageMap = _useState46[1]; // filename -> { file, url }
   var _useState47 = useState(false),
     _useState48 = _slicedToArray(_useState47, 2),
-    verifying = _useState48[0],
-    setVerifying = _useState48[1];
+    publishing = _useState48[0],
+    setPublishing = _useState48[1];
   var _useState49 = useState(''),
     _useState50 = _slicedToArray(_useState49, 2),
-    verifyMessage = _useState50[0],
-    setVerifyMessage = _useState50[1];
-  var _useState51 = useState(null),
+    publishMessage = _useState50[0],
+    setPublishMessage = _useState50[1];
+  var _useState51 = useState(false),
     _useState52 = _slicedToArray(_useState51, 2),
-    pdfFile = _useState52[0],
-    setPdfFile = _useState52[1];
+    verifying = _useState52[0],
+    setVerifying = _useState52[1];
   var _useState53 = useState(''),
     _useState54 = _slicedToArray(_useState53, 2),
-    pdfOriginalTest = _useState54[0],
-    setPdfOriginalTest = _useState54[1];
-  var _useState55 = useState(''),
+    verifyMessage = _useState54[0],
+    setVerifyMessage = _useState54[1];
+  var _useState55 = useState(null),
     _useState56 = _slicedToArray(_useState55, 2),
-    pdfAnswerKey = _useState56[0],
-    setPdfAnswerKey = _useState56[1];
-  var _useState57 = useState(false),
+    pdfFile = _useState56[0],
+    setPdfFile = _useState56[1];
+  var _useState57 = useState(''),
     _useState58 = _slicedToArray(_useState57, 2),
-    answerKeyExtracting = _useState58[0],
-    setAnswerKeyExtracting = _useState58[1];
+    pdfOriginalTest = _useState58[0],
+    setPdfOriginalTest = _useState58[1];
   var _useState59 = useState(''),
     _useState60 = _slicedToArray(_useState59, 2),
-    answerKeyExtractMsg = _useState60[0],
-    setAnswerKeyExtractMsg = _useState60[1];
+    pdfAnswerKey = _useState60[0],
+    setPdfAnswerKey = _useState60[1];
   var _useState61 = useState(false),
     _useState62 = _slicedToArray(_useState61, 2),
-    pdfImporting = _useState62[0],
-    setPdfImporting = _useState62[1];
+    answerKeyExtracting = _useState62[0],
+    setAnswerKeyExtracting = _useState62[1];
   var _useState63 = useState(''),
     _useState64 = _slicedToArray(_useState63, 2),
-    pdfImportMessage = _useState64[0],
-    setPdfImportMessage = _useState64[1];
+    answerKeyExtractMsg = _useState64[0],
+    setAnswerKeyExtractMsg = _useState64[1];
+  var _useState65 = useState(false),
+    _useState66 = _slicedToArray(_useState65, 2),
+    pdfImporting = _useState66[0],
+    setPdfImporting = _useState66[1];
+  var _useState67 = useState(''),
+    _useState68 = _slicedToArray(_useState67, 2),
+    pdfImportMessage = _useState68[0],
+    setPdfImportMessage = _useState68[1];
   // Set once step 1 (transcription) finishes -- non-null means there's a
   // batch sitting in 'transcribed' status waiting for "Generate Answers".
-  var _useState65 = useState(null),
-    _useState66 = _slicedToArray(_useState65, 2),
-    pdfTranscribedBatchId = _useState66[0],
-    setPdfTranscribedBatchId = _useState66[1];
+  var _useState69 = useState(null),
+    _useState70 = _slicedToArray(_useState69, 2),
+    pdfTranscribedBatchId = _useState70[0],
+    setPdfTranscribedBatchId = _useState70[1];
   var pdfPollRef = useRef(null);
 
   // Mirrors localStorage so a reload can find an in-progress batch again --
@@ -1549,10 +1719,10 @@ function ReviewImportsPanel(_ref15) {
   // failed/cancelled), set any time one is actively transcribing/solving or
   // sitting in 'transcribed' waiting for "Generate Answers".
   var ACTIVE_BATCH_KEY = 'active_import_batch_id';
-  var _useState67 = useState(null),
-    _useState68 = _slicedToArray(_useState67, 2),
-    activeBatchId = _useState68[0],
-    setActiveBatchIdState = _useState68[1];
+  var _useState71 = useState(null),
+    _useState72 = _slicedToArray(_useState71, 2),
+    activeBatchId = _useState72[0],
+    setActiveBatchIdState = _useState72[1];
   var setActiveBatchId = function setActiveBatchId(id) {
     setActiveBatchIdState(id);
     try {
@@ -1563,10 +1733,10 @@ function ReviewImportsPanel(_ref15) {
   // "Resume active import" banner. Distinct from activeBatchId so a fresh
   // import the admin just started in this same load doesn't also show a
   // redundant "resume" banner on top of its own inline progress message.
-  var _useState69 = useState(null),
-    _useState70 = _slicedToArray(_useState69, 2),
-    resumeBannerInfo = _useState70[0],
-    setResumeBannerInfo = _useState70[1];
+  var _useState73 = useState(null),
+    _useState74 = _slicedToArray(_useState73, 2),
+    resumeBannerInfo = _useState74[0],
+    setResumeBannerInfo = _useState74[1];
   useEffect(function () {
     return function () {
       return clearTimeout(pdfPollRef.current);
@@ -1664,31 +1834,31 @@ function ReviewImportsPanel(_ref15) {
   // transcribe+solve PDF pipeline. Writes verification_status/verification_notes onto
   // draftRows, which the existing match/mismatch badges already know how to render.
   var verifyDraftRows = /*#__PURE__*/function () {
-    var _verifyDraftRows = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0() {
+    var _verifyDraftRows = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10() {
       var candidates, payloadByKey, _iterator, _step, r, entry, matchedImage, allEntries, allResults, i, chunk, _yield$_supabase$func, data, error, resultByKey, matchCount, mismatchCount, unverifiedCount, _t, _t2, _t3, _t4;
-      return _regenerator().w(function (_context0) {
-        while (1) switch (_context0.p = _context0.n) {
+      return _regenerator().w(function (_context10) {
+        while (1) switch (_context10.p = _context10.n) {
           case 0:
             candidates = draftRows.filter(function (r) {
               return r._status !== 'published' && r.question.trim() && r.answer.trim();
             });
             if (candidates.length) {
-              _context0.n = 1;
+              _context10.n = 1;
               break;
             }
             setVerifyMessage('Nothing to verify -- load questions with a question and answer first.');
-            return _context0.a(2);
+            return _context10.a(2);
           case 1:
             setVerifying(true);
             setVerifyMessage('Verifying…');
-            _context0.p = 2;
+            _context10.p = 2;
             payloadByKey = {};
             _iterator = _createForOfIteratorHelper(candidates);
-            _context0.p = 3;
+            _context10.p = 3;
             _iterator.s();
           case 4:
             if ((_step = _iterator.n()).done) {
-              _context0.n = 8;
+              _context10.n = 8;
               break;
             }
             r = _step.value;
@@ -1700,63 +1870,63 @@ function ReviewImportsPanel(_ref15) {
             };
             matchedImage = r.image_pending_filename ? imageMap[r.image_pending_filename] : null;
             if (!matchedImage) {
-              _context0.n = 6;
+              _context10.n = 6;
               break;
             }
-            _context0.n = 5;
+            _context10.n = 5;
             return fileToBase64(matchedImage.file);
           case 5:
-            entry.image_base64 = _context0.v;
+            entry.image_base64 = _context10.v;
             entry.image_media_type = matchedImage.file.type;
           case 6:
             payloadByKey[r._key] = entry;
           case 7:
-            _context0.n = 4;
+            _context10.n = 4;
             break;
           case 8:
-            _context0.n = 10;
+            _context10.n = 10;
             break;
           case 9:
-            _context0.p = 9;
-            _t = _context0.v;
+            _context10.p = 9;
+            _t = _context10.v;
             _iterator.e(_t);
           case 10:
-            _context0.p = 10;
+            _context10.p = 10;
             _iterator.f();
-            return _context0.f(10);
+            return _context10.f(10);
           case 11:
             allEntries = Object.values(payloadByKey);
             allResults = [];
             i = 0;
           case 12:
             if (!(i < allEntries.length)) {
-              _context0.n = 18;
+              _context10.n = 18;
               break;
             }
             chunk = allEntries.slice(i, i + VERIFY_BATCH_SIZE);
-            _context0.n = 13;
+            _context10.n = 13;
             return _supabase.functions.invoke('verify-draft-questions', {
               body: {
                 questions: chunk
               }
             });
           case 13:
-            _yield$_supabase$func = _context0.v;
+            _yield$_supabase$func = _context10.v;
             data = _yield$_supabase$func.data;
             error = _yield$_supabase$func.error;
             if (!error) {
-              _context0.n = 15;
+              _context10.n = 15;
               break;
             }
             _t2 = Error;
-            _context0.n = 14;
+            _context10.n = 14;
             return edgeFunctionErrorMessage(error);
           case 14:
-            _t3 = _context0.v;
+            _t3 = _context10.v;
             throw new _t2(_t3);
           case 15:
             if (!(data !== null && data !== void 0 && data.error)) {
-              _context0.n = 16;
+              _context10.n = 16;
               break;
             }
             throw new Error(data.error);
@@ -1764,7 +1934,7 @@ function ReviewImportsPanel(_ref15) {
             allResults.push.apply(allResults, _toConsumableArray(data.results || []));
           case 17:
             i += VERIFY_BATCH_SIZE;
-            _context0.n = 12;
+            _context10.n = 12;
             break;
           case 18:
             resultByKey = {};
@@ -1791,20 +1961,20 @@ function ReviewImportsPanel(_ref15) {
               return r.verification_status === 'unverified';
             }).length;
             setVerifyMessage("Verified ".concat(allResults.length, " question(s): ").concat(matchCount, " match, ").concat(mismatchCount, " mismatch, ").concat(unverifiedCount, " unverified."));
-            _context0.n = 20;
+            _context10.n = 20;
             break;
           case 19:
-            _context0.p = 19;
-            _t4 = _context0.v;
+            _context10.p = 19;
+            _t4 = _context10.v;
             setVerifyMessage('Verification failed: ' + (_t4.message || String(_t4)));
           case 20:
-            _context0.p = 20;
+            _context10.p = 20;
             setVerifying(false);
-            return _context0.f(20);
+            return _context10.f(20);
           case 21:
-            return _context0.a(2);
+            return _context10.a(2);
         }
-      }, _callee0, null, [[3, 9, 10, 11], [2, 19, 20, 21]]);
+      }, _callee10, null, [[3, 9, 10, 11], [2, 19, 20, 21]]);
     }));
     function verifyDraftRows() {
       return _verifyDraftRows.apply(this, arguments);
@@ -1849,135 +2019,135 @@ function ReviewImportsPanel(_ref15) {
   // until the response says there's nothing left to do.
   var PACED_CALL_DELAY_MS = 65000;
   var _continueTranscription = /*#__PURE__*/function () {
-    var _continueTranscription2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1(batchId) {
-      var _data$questions_so_fa2, _yield$_supabase$func2, data, error, _data$questions_so_fa, message, _yield$_supabase$from7, fresh, _yield$_supabase$from8, drafts, _t5, _t6, _t7;
-      return _regenerator().w(function (_context1) {
-        while (1) switch (_context1.p = _context1.n) {
+    var _continueTranscription2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11(batchId) {
+      var _data$questions_so_fa2, _yield$_supabase$func2, data, error, _data$questions_so_fa, message, _yield$_supabase$from9, fresh, _yield$_supabase$from0, drafts, _t5, _t6, _t7;
+      return _regenerator().w(function (_context11) {
+        while (1) switch (_context11.p = _context11.n) {
           case 0:
-            _context1.p = 0;
-            _context1.n = 1;
+            _context11.p = 0;
+            _context11.n = 1;
             return _supabase.functions.invoke('import-test-pdf', {
               body: {
                 batch_id: batchId
               }
             });
           case 1:
-            _yield$_supabase$func2 = _context1.v;
+            _yield$_supabase$func2 = _context11.v;
             data = _yield$_supabase$func2.data;
             error = _yield$_supabase$func2.error;
             if (!error) {
-              _context1.n = 3;
+              _context11.n = 3;
               break;
             }
             _t5 = Error;
-            _context1.n = 2;
+            _context11.n = 2;
             return edgeFunctionErrorMessage(error);
           case 2:
-            _t6 = _context1.v;
+            _t6 = _context11.v;
             throw new _t5(_t6);
           case 3:
             if (!(data !== null && data !== void 0 && data.error)) {
-              _context1.n = 4;
+              _context11.n = 4;
               break;
             }
             throw new Error(data.error);
           case 4:
             if (!(data.status === 'transcribed')) {
-              _context1.n = 5;
+              _context11.n = 5;
               break;
             }
             setPdfImporting(false);
             setPdfTranscribedBatchId(batchId);
             setActiveBatchId(batchId); // still active -- waiting on "Generate Answers", not done yet
             setPdfImportMessage("Transcribed ".concat((_data$questions_so_fa = data.questions_so_far) !== null && _data$questions_so_fa !== void 0 ? _data$questions_so_fa : '?', " question(s) into JSON.") + (data.answer_key_found ? ' Answer key detected in the PDF — answers will be checked against it.' : '') + (data.error_message ? ' Note: ' + data.error_message : '') + ' Click "Generate Answers" below to solve them.');
-            return _context1.a(2);
+            return _context11.a(2);
           case 5:
             if (!(data.status === 'failed')) {
-              _context1.n = 6;
+              _context11.n = 6;
               break;
             }
             setPdfImporting(false);
             setActiveBatchId(null);
             setPdfImportMessage('Failed: ' + (data.error_message || 'Unknown error.'));
-            return _context1.a(2);
+            return _context11.a(2);
           case 6:
             setPdfImportMessage("Transcribed page ".concat(data.next_page_index, " of ").concat(data.pages_total, " ") + "(".concat((_data$questions_so_fa2 = data.questions_so_far) !== null && _data$questions_so_fa2 !== void 0 ? _data$questions_so_fa2 : 0, " question(s) so far)\u2026 next page in ~").concat(PACED_CALL_DELAY_MS / 1000, "s."));
             pdfPollRef.current = setTimeout(function () {
               return _continueTranscription(batchId);
             }, PACED_CALL_DELAY_MS);
-            _context1.n = 14;
+            _context11.n = 14;
             break;
           case 7:
-            _context1.p = 7;
-            _t7 = _context1.v;
+            _context11.p = 7;
+            _t7 = _context11.v;
             message = _t7.message || String(_t7); // Don't trust the error message alone -- a concurrent cron tick can
             // advance (or even finish) this batch between this call firing and
             // its response landing, so re-check the batch's actual status and
             // branch on ground truth instead of guessing from error text. This
             // catches every "not really a failure" case in one place, not just
             // the one lease-conflict string this used to special-case.
-            _context1.n = 8;
+            _context11.n = 8;
             return _supabase.from('import_batches').select('*').eq('id', batchId).single();
           case 8:
-            _yield$_supabase$from7 = _context1.v;
-            fresh = _yield$_supabase$from7.data;
+            _yield$_supabase$from9 = _context11.v;
+            fresh = _yield$_supabase$from9.data;
             if (!fresh) {
-              _context1.n = 13;
+              _context11.n = 13;
               break;
             }
             if (!(fresh.status === 'transcribed')) {
-              _context1.n = 9;
+              _context11.n = 9;
               break;
             }
             setPdfImporting(false);
             setPdfTranscribedBatchId(batchId);
             setActiveBatchId(batchId);
             setPdfImportMessage("Transcription already finished (".concat((fresh.boundaries_json || []).length, " question(s)) \u2014 click \"Generate Answers\" below to solve them."));
-            return _context1.a(2);
+            return _context11.a(2);
           case 9:
             if (!(fresh.status === 'processing')) {
-              _context1.n = 10;
+              _context11.n = 10;
               break;
             }
             setPdfImportMessage('Background queue is working on this batch right now… checking again shortly.');
             pdfPollRef.current = setTimeout(function () {
               return _continueTranscription(batchId);
             }, PACED_CALL_DELAY_MS);
-            return _context1.a(2);
+            return _context11.a(2);
           case 10:
             if (!(fresh.status === 'completed' || fresh.status === 'needs_attention')) {
-              _context1.n = 12;
+              _context11.n = 12;
               break;
             }
-            _context1.n = 11;
+            _context11.n = 11;
             return _supabase.from('draft_questions').select('*').eq('batch_id', batchId);
           case 11:
-            _yield$_supabase$from8 = _context1.v;
-            drafts = _yield$_supabase$from8.data;
+            _yield$_supabase$from0 = _context11.v;
+            drafts = _yield$_supabase$from0.data;
             setDraftRows((drafts || []).map(draftQuestionRowToLocal).sort(byOriginalQuestionNumber));
             setPdfImporting(false);
             setActiveBatchId(null);
             setResumeBannerInfo(null);
             setPdfImportMessage("This batch already finished (".concat(drafts ? drafts.length : 0, " question(s) solved) \u2014 loaded for review."));
-            return _context1.a(2);
+            return _context11.a(2);
           case 12:
             if (!(fresh.status === 'failed' || fresh.status === 'cancelled')) {
-              _context1.n = 13;
+              _context11.n = 13;
               break;
             }
             setPdfImporting(false);
             setActiveBatchId(null);
             setPdfImportMessage('Transcription failed: ' + (fresh.error_message || message));
-            return _context1.a(2);
+            return _context11.a(2);
           case 13:
             setPdfImporting(false);
             setPdfImportMessage('Transcription failed: ' + message);
           case 14:
-            return _context1.a(2);
+            return _context11.a(2);
         }
-      }, _callee1, null, [[0, 7]]);
+      }, _callee11, null, [[0, 7]]);
     }));
-    function continueTranscription(_x15) {
+    function continueTranscription(_x18) {
       return _continueTranscription2.apply(this, arguments);
     }
     return continueTranscription;
@@ -1990,28 +2160,28 @@ function ReviewImportsPanel(_ref15) {
   // admin can still review/fix it before transcribing; the manual-key-wins
   // priority in import-test-pdf is unaffected either way.
   var extractAnswerKeyFile = /*#__PURE__*/function () {
-    var _extractAnswerKeyFile = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10(file) {
+    var _extractAnswerKeyFile = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee12(file) {
       var dataUrl, file_base64, _yield$_supabase$func3, data, error, _t8, _t9, _t0;
-      return _regenerator().w(function (_context10) {
-        while (1) switch (_context10.p = _context10.n) {
+      return _regenerator().w(function (_context12) {
+        while (1) switch (_context12.p = _context12.n) {
           case 0:
             if (file) {
-              _context10.n = 1;
+              _context12.n = 1;
               break;
             }
-            return _context10.a(2);
+            return _context12.a(2);
           case 1:
             if (!(file.type !== 'application/pdf' && !file.type.startsWith('image/'))) {
-              _context10.n = 2;
+              _context12.n = 2;
               break;
             }
             setAnswerKeyExtractMsg('Please choose a PDF or image file.');
-            return _context10.a(2);
+            return _context12.a(2);
           case 2:
             setAnswerKeyExtracting(true);
             setAnswerKeyExtractMsg('Reading answer key…');
-            _context10.p = 3;
-            _context10.n = 4;
+            _context12.p = 3;
+            _context12.n = 4;
             return new Promise(function (resolve, reject) {
               var reader = new FileReader();
               reader.onload = function () {
@@ -2023,9 +2193,9 @@ function ReviewImportsPanel(_ref15) {
               reader.readAsDataURL(file);
             });
           case 4:
-            dataUrl = _context10.v;
+            dataUrl = _context12.v;
             file_base64 = dataUrl.split(',')[1];
-            _context10.n = 5;
+            _context12.n = 5;
             return _supabase.functions.invoke('extract-answer-key', {
               body: {
                 file_base64: file_base64,
@@ -2033,74 +2203,74 @@ function ReviewImportsPanel(_ref15) {
               }
             });
           case 5:
-            _yield$_supabase$func3 = _context10.v;
+            _yield$_supabase$func3 = _context12.v;
             data = _yield$_supabase$func3.data;
             error = _yield$_supabase$func3.error;
             if (!error) {
-              _context10.n = 7;
+              _context12.n = 7;
               break;
             }
             _t8 = Error;
-            _context10.n = 6;
+            _context12.n = 6;
             return edgeFunctionErrorMessage(error);
           case 6:
-            _t9 = _context10.v;
+            _t9 = _context12.v;
             throw new _t8(_t9);
           case 7:
             if (!(data !== null && data !== void 0 && data.error)) {
-              _context10.n = 8;
+              _context12.n = 8;
               break;
             }
             throw new Error(data.error);
           case 8:
             setPdfAnswerKey(data.answer_key_text || '');
             setAnswerKeyExtractMsg('Answer key extracted — review it below before transcribing.');
-            _context10.n = 10;
+            _context12.n = 10;
             break;
           case 9:
-            _context10.p = 9;
-            _t0 = _context10.v;
+            _context12.p = 9;
+            _t0 = _context12.v;
             setAnswerKeyExtractMsg('Could not read answer key: ' + (_t0.message || String(_t0)));
           case 10:
-            _context10.p = 10;
+            _context12.p = 10;
             setAnswerKeyExtracting(false);
-            return _context10.f(10);
+            return _context12.f(10);
           case 11:
-            return _context10.a(2);
+            return _context12.a(2);
         }
-      }, _callee10, null, [[3, 9, 10, 11]]);
+      }, _callee12, null, [[3, 9, 10, 11]]);
     }));
-    function extractAnswerKeyFile(_x16) {
+    function extractAnswerKeyFile(_x19) {
       return _extractAnswerKeyFile.apply(this, arguments);
     }
     return extractAnswerKeyFile;
   }();
   var extractFromPdf = /*#__PURE__*/function () {
-    var _extractFromPdf = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11() {
+    var _extractFromPdf = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee13() {
       var dataUrl, pdf_base64, _yield$_supabase$func4, data, error, _data$questions_so_fa3, _t1, _t10, _t11;
-      return _regenerator().w(function (_context11) {
-        while (1) switch (_context11.p = _context11.n) {
+      return _regenerator().w(function (_context13) {
+        while (1) switch (_context13.p = _context13.n) {
           case 0:
             if (pdfFile) {
-              _context11.n = 1;
+              _context13.n = 1;
               break;
             }
             setPdfImportMessage('Pick a PDF file first.');
-            return _context11.a(2);
+            return _context13.a(2);
           case 1:
             if (!(pdfFile.type !== 'application/pdf')) {
-              _context11.n = 2;
+              _context13.n = 2;
               break;
             }
             setPdfImportMessage('That file is not a PDF.');
-            return _context11.a(2);
+            return _context13.a(2);
           case 2:
             if (!(pdfFile.size > 15 * 1024 * 1024)) {
-              _context11.n = 3;
+              _context13.n = 3;
               break;
             }
             setPdfImportMessage('PDF is over 15 MB — split it into smaller page ranges first.');
-            return _context11.a(2);
+            return _context13.a(2);
           case 3:
             clearTimeout(pdfPollRef.current);
             setPdfTranscribedBatchId(null);
@@ -2113,13 +2283,13 @@ function ReviewImportsPanel(_ref15) {
             // Capped at 8s so a slow/hung reap call can never silently freeze the
             // whole import flow -- if it times out, the actual upload below still
             // proceeds, and the real guardrail error (if any) will surface normally.
-            _context11.n = 4;
+            _context13.n = 4;
             return Promise.race([Promise.resolve(_supabase.rpc('reap_stale_import_batches')).catch(function () {}), new Promise(function (resolve) {
               return setTimeout(resolve, 8000);
             })]);
           case 4:
-            _context11.p = 4;
-            _context11.n = 5;
+            _context13.p = 4;
+            _context13.n = 5;
             return new Promise(function (resolve, reject) {
               var reader = new FileReader();
               reader.onload = function () {
@@ -2131,9 +2301,9 @@ function ReviewImportsPanel(_ref15) {
               reader.readAsDataURL(pdfFile);
             });
           case 5:
-            dataUrl = _context11.v;
+            dataUrl = _context13.v;
             pdf_base64 = dataUrl.split(',')[1];
-            _context11.n = 6;
+            _context13.n = 6;
             return _supabase.functions.invoke('import-test-pdf', {
               body: {
                 pdf_base64: pdf_base64,
@@ -2143,22 +2313,22 @@ function ReviewImportsPanel(_ref15) {
               }
             });
           case 6:
-            _yield$_supabase$func4 = _context11.v;
+            _yield$_supabase$func4 = _context13.v;
             data = _yield$_supabase$func4.data;
             error = _yield$_supabase$func4.error;
             if (!error) {
-              _context11.n = 8;
+              _context13.n = 8;
               break;
             }
             _t1 = Error;
-            _context11.n = 7;
+            _context13.n = 7;
             return edgeFunctionErrorMessage(error);
           case 7:
-            _t10 = _context11.v;
+            _t10 = _context13.v;
             throw new _t1(_t10);
           case 8:
             if (!(data !== null && data !== void 0 && data.error)) {
-              _context11.n = 9;
+              _context13.n = 9;
               break;
             }
             throw new Error(data.error);
@@ -2167,38 +2337,38 @@ function ReviewImportsPanel(_ref15) {
             // got -- this is what lets a reload find and resume it.
             setActiveBatchId(data.batch_id);
             if (!(data.status === 'transcribed')) {
-              _context11.n = 10;
+              _context13.n = 10;
               break;
             }
             setPdfImporting(false);
             setPdfTranscribedBatchId(data.batch_id);
             setPdfImportMessage("Transcribed ".concat((_data$questions_so_fa3 = data.questions_so_far) !== null && _data$questions_so_fa3 !== void 0 ? _data$questions_so_fa3 : '?', " question(s) into JSON.") + (data.answer_key_found ? ' Answer key detected in the PDF — answers will be checked against it.' : '') + ' Click "Generate Answers" below to solve them.');
-            return _context11.a(2);
+            return _context13.a(2);
           case 10:
             if (!(data.status === 'failed')) {
-              _context11.n = 11;
+              _context13.n = 11;
               break;
             }
             setPdfImporting(false);
             setActiveBatchId(null);
             setPdfImportMessage('Failed: ' + (data.error_message || 'Unknown error.'));
-            return _context11.a(2);
+            return _context13.a(2);
           case 11:
             setPdfImportMessage("Transcribed page ".concat(data.next_page_index, " of ").concat(data.pages_total, "\u2026 next page in ~").concat(PACED_CALL_DELAY_MS / 1000, "s."));
             pdfPollRef.current = setTimeout(function () {
               return _continueTranscription(data.batch_id);
             }, PACED_CALL_DELAY_MS);
-            _context11.n = 13;
+            _context13.n = 13;
             break;
           case 12:
-            _context11.p = 12;
-            _t11 = _context11.v;
+            _context13.p = 12;
+            _t11 = _context13.v;
             setPdfImporting(false);
             setPdfImportMessage('Transcription failed: ' + (_t11.message || String(_t11)));
           case 13:
-            return _context11.a(2);
+            return _context13.a(2);
         }
-      }, _callee11, null, [[4, 12]]);
+      }, _callee13, null, [[4, 12]]);
     }));
     function extractFromPdf() {
       return _extractFromPdf.apply(this, arguments);
@@ -2211,21 +2381,21 @@ function ReviewImportsPanel(_ref15) {
   // needs_image calls insert rows independently, so this is how new ones
   // show up live instead of waiting for the whole batch to finish.
   var mergeNewDraftRows = /*#__PURE__*/function () {
-    var _mergeNewDraftRows = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee12(batchId) {
-      var _yield$_supabase$from9, drafts;
-      return _regenerator().w(function (_context12) {
-        while (1) switch (_context12.n) {
+    var _mergeNewDraftRows = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee14(batchId) {
+      var _yield$_supabase$from1, drafts;
+      return _regenerator().w(function (_context14) {
+        while (1) switch (_context14.n) {
           case 0:
-            _context12.n = 1;
+            _context14.n = 1;
             return _supabase.from('draft_questions').select('*').eq('batch_id', batchId);
           case 1:
-            _yield$_supabase$from9 = _context12.v;
-            drafts = _yield$_supabase$from9.data;
+            _yield$_supabase$from1 = _context14.v;
+            drafts = _yield$_supabase$from1.data;
             if (drafts) {
-              _context12.n = 2;
+              _context14.n = 2;
               break;
             }
-            return _context12.a(2);
+            return _context14.a(2);
           case 2:
             setDraftRows(function (prev) {
               var known = new Set(prev.map(function (r) {
@@ -2237,11 +2407,11 @@ function ReviewImportsPanel(_ref15) {
               return fresh.length ? [].concat(_toConsumableArray(prev), _toConsumableArray(fresh)).sort(byOriginalQuestionNumber) : prev;
             });
           case 3:
-            return _context12.a(2);
+            return _context14.a(2);
         }
-      }, _callee12);
+      }, _callee14);
     }));
-    function mergeNewDraftRows(_x17) {
+    function mergeNewDraftRows(_x20) {
       return _mergeNewDraftRows.apply(this, arguments);
     }
     return mergeNewDraftRows;
@@ -2252,61 +2422,61 @@ function ReviewImportsPanel(_ref15) {
   // questions finish in the background within a call or two; needs_image
   // questions are paced one per call like transcription.
   var _continueSolving = /*#__PURE__*/function () {
-    var _continueSolving2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee13(batchId) {
-      var _data$questions_solve2, _data$questions_solve3, _yield$_supabase$func5, data, error, _data$questions_solve, delay, message, _yield$_supabase$from0, fresh, _t12, _t13, _t14;
-      return _regenerator().w(function (_context13) {
-        while (1) switch (_context13.p = _context13.n) {
+    var _continueSolving2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee15(batchId) {
+      var _data$questions_solve2, _data$questions_solve3, _yield$_supabase$func5, data, error, _data$questions_solve, delay, message, _yield$_supabase$from10, fresh, _t12, _t13, _t14;
+      return _regenerator().w(function (_context15) {
+        while (1) switch (_context15.p = _context15.n) {
           case 0:
-            _context13.p = 0;
-            _context13.n = 1;
+            _context15.p = 0;
+            _context15.n = 1;
             return _supabase.functions.invoke('solve-pdf-questions', {
               body: {
                 batch_id: batchId
               }
             });
           case 1:
-            _yield$_supabase$func5 = _context13.v;
+            _yield$_supabase$func5 = _context15.v;
             data = _yield$_supabase$func5.data;
             error = _yield$_supabase$func5.error;
             if (!error) {
-              _context13.n = 3;
+              _context15.n = 3;
               break;
             }
             _t12 = Error;
-            _context13.n = 2;
+            _context15.n = 2;
             return edgeFunctionErrorMessage(error);
           case 2:
-            _t13 = _context13.v;
+            _t13 = _context15.v;
             throw new _t12(_t13);
           case 3:
             if (!(data !== null && data !== void 0 && data.error)) {
-              _context13.n = 4;
+              _context15.n = 4;
               break;
             }
             throw new Error(data.error);
           case 4:
-            _context13.n = 5;
+            _context15.n = 5;
             return mergeNewDraftRows(batchId);
           case 5:
             if (!(data.status === 'completed' || data.status === 'needs_attention')) {
-              _context13.n = 6;
+              _context15.n = 6;
               break;
             }
             setPdfImporting(false);
             setActiveBatchId(null); // terminal -- nothing left to auto-resume, drafts are loaded for review
             setResumeBannerInfo(null);
             setPdfImportMessage("Solved ".concat((_data$questions_solve = data.questions_solved) !== null && _data$questions_solve !== void 0 ? _data$questions_solve : '?', " question(s)") + (data.status === 'needs_attention' ? ' — some need review (answer mismatch, duplicate, or a solve failure), check the badges below.' : ' — all answers matched the key.'));
-            return _context13.a(2);
+            return _context15.a(2);
           case 6:
             if (!(data.status === 'failed')) {
-              _context13.n = 7;
+              _context15.n = 7;
               break;
             }
             setPdfImporting(false);
             setActiveBatchId(null);
             setResumeBannerInfo(null);
             setPdfImportMessage('Failed: ' + (data.error_message || 'Unknown error.'));
-            return _context13.a(2);
+            return _context15.a(2);
           case 7:
             // No rate-limit risk left to wait out if there's no needs_image work
             // pending -- just poll quickly until the background text-only batch finishes.
@@ -2315,65 +2485,65 @@ function ReviewImportsPanel(_ref15) {
             pdfPollRef.current = setTimeout(function () {
               return _continueSolving(batchId);
             }, delay);
-            _context13.n = 14;
+            _context15.n = 14;
             break;
           case 8:
-            _context13.p = 8;
-            _t14 = _context13.v;
+            _context15.p = 8;
+            _t14 = _context15.v;
             message = _t14.message || String(_t14); // Same reasoning as continueTranscription's catch block -- re-check
             // ground truth instead of guessing from error text, since a
             // concurrent cron tick can finish solving this batch between this
             // call firing and its response landing.
-            _context13.n = 9;
+            _context15.n = 9;
             return _supabase.from('import_batches').select('*').eq('id', batchId).single();
           case 9:
-            _yield$_supabase$from0 = _context13.v;
-            fresh = _yield$_supabase$from0.data;
+            _yield$_supabase$from10 = _context15.v;
+            fresh = _yield$_supabase$from10.data;
             if (!fresh) {
-              _context13.n = 13;
+              _context15.n = 13;
               break;
             }
             if (!(fresh.status === 'completed' || fresh.status === 'needs_attention')) {
-              _context13.n = 11;
+              _context15.n = 11;
               break;
             }
-            _context13.n = 10;
+            _context15.n = 10;
             return mergeNewDraftRows(batchId);
           case 10:
             setPdfImporting(false);
             setActiveBatchId(null);
             setResumeBannerInfo(null);
             setPdfImportMessage('Solving already finished' + (fresh.status === 'needs_attention' ? ' — some need review (answer mismatch, duplicate, or a solve failure), check the badges below.' : ' — all answers matched the key.'));
-            return _context13.a(2);
+            return _context15.a(2);
           case 11:
             if (!(fresh.status === 'processing' || fresh.status === 'transcribed')) {
-              _context13.n = 12;
+              _context15.n = 12;
               break;
             }
             setPdfImportMessage('Background queue is working on this batch right now… checking again shortly.');
             pdfPollRef.current = setTimeout(function () {
               return _continueSolving(batchId);
             }, PACED_CALL_DELAY_MS);
-            return _context13.a(2);
+            return _context15.a(2);
           case 12:
             if (!(fresh.status === 'failed' || fresh.status === 'cancelled')) {
-              _context13.n = 13;
+              _context15.n = 13;
               break;
             }
             setPdfImporting(false);
             setActiveBatchId(null);
             setResumeBannerInfo(null);
             setPdfImportMessage('Failed to generate answers: ' + (fresh.error_message || message));
-            return _context13.a(2);
+            return _context15.a(2);
           case 13:
             setPdfImporting(false);
             setPdfImportMessage('Failed to generate answers: ' + message);
           case 14:
-            return _context13.a(2);
+            return _context15.a(2);
         }
-      }, _callee13, null, [[0, 8]]);
+      }, _callee15, null, [[0, 8]]);
     }));
-    function continueSolving(_x18) {
+    function continueSolving(_x21) {
       return _continueSolving2.apply(this, arguments);
     }
     return continueSolving;
@@ -2399,65 +2569,65 @@ function ReviewImportsPanel(_ref15) {
   useEffect(function () {
     var stale = false;
     var resume = /*#__PURE__*/function () {
-      var _resume = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee14() {
-        var batchId, _yield$_supabase$from1, batch, _yield$_supabase$from10, drafts, testName, _batch$pages_total, _batch$next_page_inde, _batch$pages_total2, stillTranscribing, _batch$next_page_inde2, _batch$next_page_inde3, _t15;
-        return _regenerator().w(function (_context14) {
-          while (1) switch (_context14.p = _context14.n) {
+      var _resume = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee16() {
+        var batchId, _yield$_supabase$from11, batch, _yield$_supabase$from12, drafts, testName, _batch$pages_total, _batch$next_page_inde, _batch$pages_total2, stillTranscribing, _batch$next_page_inde2, _batch$next_page_inde3, _t15;
+        return _regenerator().w(function (_context16) {
+          while (1) switch (_context16.p = _context16.n) {
             case 0:
-              _context14.p = 0;
+              _context16.p = 0;
               batchId = localStorage.getItem(ACTIVE_BATCH_KEY);
-              _context14.n = 2;
+              _context16.n = 2;
               break;
             case 1:
-              _context14.p = 1;
-              _t15 = _context14.v;
-              return _context14.a(2);
+              _context16.p = 1;
+              _t15 = _context16.v;
+              return _context16.a(2);
             case 2:
               if (batchId) {
-                _context14.n = 3;
+                _context16.n = 3;
                 break;
               }
-              return _context14.a(2);
+              return _context16.a(2);
             case 3:
-              _context14.n = 4;
+              _context16.n = 4;
               return Promise.race([Promise.resolve(_supabase.rpc('reap_stale_import_batches')).catch(function () {}), new Promise(function (resolve) {
                 return setTimeout(resolve, 8000);
               })]);
             case 4:
               if (!stale) {
-                _context14.n = 5;
+                _context16.n = 5;
                 break;
               }
-              return _context14.a(2);
+              return _context16.a(2);
             case 5:
-              _context14.n = 6;
+              _context16.n = 6;
               return _supabase.from('import_batches').select('*').eq('id', batchId).single();
             case 6:
-              _yield$_supabase$from1 = _context14.v;
-              batch = _yield$_supabase$from1.data;
+              _yield$_supabase$from11 = _context16.v;
+              batch = _yield$_supabase$from11.data;
               if (!stale) {
-                _context14.n = 7;
+                _context16.n = 7;
                 break;
               }
-              return _context14.a(2);
+              return _context16.a(2);
             case 7:
               if (!(!batch || ['failed', 'cancelled'].includes(batch.status))) {
-                _context14.n = 8;
+                _context16.n = 8;
                 break;
               }
               setActiveBatchId(null);
-              return _context14.a(2);
+              return _context16.a(2);
             case 8:
-              _context14.n = 9;
+              _context16.n = 9;
               return _supabase.from('draft_questions').select('*').eq('batch_id', batchId);
             case 9:
-              _yield$_supabase$from10 = _context14.v;
-              drafts = _yield$_supabase$from10.data;
+              _yield$_supabase$from12 = _context16.v;
+              drafts = _yield$_supabase$from12.data;
               if (!stale) {
-                _context14.n = 10;
+                _context16.n = 10;
                 break;
               }
-              return _context14.a(2);
+              return _context16.a(2);
             case 10:
               if (drafts && drafts.length) {
                 setDraftRows(drafts.map(draftQuestionRowToLocal).sort(byOriginalQuestionNumber));
@@ -2501,9 +2671,9 @@ function ReviewImportsPanel(_ref15) {
                 setPdfImportMessage("Loaded ".concat(drafts ? drafts.length : 0, " previously-solved question(s) for review."));
               }
             case 11:
-              return _context14.a(2);
+              return _context16.a(2);
           }
-        }, _callee14, null, [[0, 1]]);
+        }, _callee16, null, [[0, 1]]);
       }));
       function resume() {
         return _resume.apply(this, arguments);
@@ -2522,15 +2692,15 @@ function ReviewImportsPanel(_ref15) {
   // is what the Review Imports tab's notification badge actually points
   // to: every other finished batch only ever existed as a DB row with no
   // way to browse into it from here.
-  var _useState71 = useState([]),
-    _useState72 = _slicedToArray(_useState71, 2),
-    pastBatches = _useState72[0],
-    setPastBatches = _useState72[1];
+  var _useState75 = useState([]),
+    _useState76 = _slicedToArray(_useState75, 2),
+    pastBatches = _useState76[0],
+    setPastBatches = _useState76[1];
   var refreshPastBatches = function refreshPastBatches() {
     _supabase.from('import_batches').select('id, source_label, original_test, status, started_at, questions_extracted').in('status', ['completed', 'needs_attention']).is('notified_at', null).order('started_at', {
       ascending: false
-    }).then(function (_ref16) {
-      var data = _ref16.data;
+    }).then(function (_ref18) {
+      var data = _ref18.data;
       return setPastBatches(data || []);
     });
   };
@@ -2545,32 +2715,32 @@ function ReviewImportsPanel(_ref15) {
   // Tracks which list entry is currently loaded below, so it can stay
   // visible in its list (instead of vanishing the moment it's clicked) with
   // a highlight showing which one is on screen right now.
-  var _useState73 = useState(null),
-    _useState74 = _slicedToArray(_useState73, 2),
-    selectedReviewBatchId = _useState74[0],
-    setSelectedReviewBatchId = _useState74[1];
+  var _useState77 = useState(null),
+    _useState78 = _slicedToArray(_useState77, 2),
+    selectedReviewBatchId = _useState78[0],
+    setSelectedReviewBatchId = _useState78[1];
   var loadBatchForReview = /*#__PURE__*/function () {
-    var _loadBatchForReview = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee15(batchId) {
-      var _yield$_supabase$from11, batch, _yield$_supabase$from12, drafts;
-      return _regenerator().w(function (_context15) {
-        while (1) switch (_context15.n) {
+    var _loadBatchForReview = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee17(batchId) {
+      var _yield$_supabase$from13, batch, _yield$_supabase$from14, drafts;
+      return _regenerator().w(function (_context17) {
+        while (1) switch (_context17.n) {
           case 0:
-            _context15.n = 1;
+            _context17.n = 1;
             return _supabase.from('import_batches').select('*').eq('id', batchId).single();
           case 1:
-            _yield$_supabase$from11 = _context15.v;
-            batch = _yield$_supabase$from11.data;
+            _yield$_supabase$from13 = _context17.v;
+            batch = _yield$_supabase$from13.data;
             if (batch) {
-              _context15.n = 2;
+              _context17.n = 2;
               break;
             }
-            return _context15.a(2);
+            return _context17.a(2);
           case 2:
-            _context15.n = 3;
+            _context17.n = 3;
             return _supabase.from('draft_questions').select('*').eq('batch_id', batchId);
           case 3:
-            _yield$_supabase$from12 = _context15.v;
-            drafts = _yield$_supabase$from12.data;
+            _yield$_supabase$from14 = _context17.v;
+            drafts = _yield$_supabase$from14.data;
             setDraftRows((drafts || []).map(draftQuestionRowToLocal).sort(byOriginalQuestionNumber));
             setPdfOriginalTest(batch.original_test || batch.source_label || '');
             setPdfAnswerKey(batch.answer_key || '');
@@ -2578,18 +2748,18 @@ function ReviewImportsPanel(_ref15) {
             setResumeBannerInfo(null);
             setPdfImportMessage("Loaded ".concat(drafts ? drafts.length : 0, " question(s) from \"").concat(batch.source_label || batch.original_test || batchId, "\" for review."));
             setSelectedReviewBatchId(batchId);
-            _context15.n = 4;
+            _context17.n = 4;
             return _supabase.from('import_batches').update({
               notified_at: new Date().toISOString()
             }).eq('id', batchId);
           case 4:
             if (onBatchReviewed) onBatchReviewed();
           case 5:
-            return _context15.a(2);
+            return _context17.a(2);
         }
-      }, _callee15);
+      }, _callee17);
     }));
-    function loadBatchForReview(_x19) {
+    function loadBatchForReview(_x22) {
       return _loadBatchForReview.apply(this, arguments);
     }
     return loadBatchForReview;
@@ -2599,17 +2769,17 @@ function ReviewImportsPanel(_ref15) {
   // for duplicate/unwanted imports cluttering this list. Never touches the
   // published questions table, regardless of batch status.
   var deleteBatch = /*#__PURE__*/function () {
-    var _deleteBatch = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee16(batchId, label) {
-      return _regenerator().w(function (_context16) {
-        while (1) switch (_context16.n) {
+    var _deleteBatch = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee18(batchId, label) {
+      return _regenerator().w(function (_context18) {
+        while (1) switch (_context18.n) {
           case 0:
             if (confirm("Permanently delete \"".concat(label, "\" and all its draft questions? This cannot be undone."))) {
-              _context16.n = 1;
+              _context18.n = 1;
               break;
             }
-            return _context16.a(2);
+            return _context18.a(2);
           case 1:
-            _context16.n = 2;
+            _context18.n = 2;
             return _supabase.from('import_batches').delete().eq('id', batchId);
           case 2:
             setPastBatches(function (prev) {
@@ -2625,11 +2795,11 @@ function ReviewImportsPanel(_ref15) {
             if (selectedReviewBatchId === batchId) setSelectedReviewBatchId(null);
             if (onBatchReviewed) onBatchReviewed();
           case 3:
-            return _context16.a(2);
+            return _context18.a(2);
         }
-      }, _callee16);
+      }, _callee18);
     }));
-    function deleteBatch(_x20, _x21) {
+    function deleteBatch(_x23, _x24) {
       return _deleteBatch.apply(this, arguments);
     }
     return deleteBatch;
@@ -2640,20 +2810,20 @@ function ReviewImportsPanel(_ref15) {
   // opened (e.g. a past bug that marked everything notified on tab-click).
   // Collapsed by default since pastBatches above already covers the normal
   // case; this is for digging up something that fell through that signal.
-  var _useState75 = useState([]),
-    _useState76 = _slicedToArray(_useState75, 2),
-    allBatches = _useState76[0],
-    setAllBatches = _useState76[1];
-  var _useState77 = useState(false),
-    _useState78 = _slicedToArray(_useState77, 2),
-    showAllBatches = _useState78[0],
-    setShowAllBatches = _useState78[1];
+  var _useState79 = useState([]),
+    _useState80 = _slicedToArray(_useState79, 2),
+    allBatches = _useState80[0],
+    setAllBatches = _useState80[1];
+  var _useState81 = useState(false),
+    _useState82 = _slicedToArray(_useState81, 2),
+    showAllBatches = _useState82[0],
+    setShowAllBatches = _useState82[1];
   var toggleAllBatches = function toggleAllBatches() {
     if (!showAllBatches && allBatches.length === 0) {
       _supabase.from('import_batches').select('id, source_label, original_test, status, started_at, questions_extracted, source_pdf_path').in('status', ['completed', 'needs_attention']).order('started_at', {
         ascending: false
-      }).then(function (_ref17) {
-        var data = _ref17.data;
+      }).then(function (_ref19) {
+        var data = _ref19.data;
         return setAllBatches(data || []);
       });
     }
@@ -2666,22 +2836,22 @@ function ReviewImportsPanel(_ref15) {
   // stops the local poll loop -- anything already solved stays staged for
   // review exactly as if the batch had completed normally.
   var cancelActiveImport = /*#__PURE__*/function () {
-    var _cancelActiveImport = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee17() {
+    var _cancelActiveImport = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee19() {
       var batchId;
-      return _regenerator().w(function (_context17) {
-        while (1) switch (_context17.n) {
+      return _regenerator().w(function (_context19) {
+        while (1) switch (_context19.n) {
           case 0:
             batchId = activeBatchId;
             if (batchId) {
-              _context17.n = 1;
+              _context19.n = 1;
               break;
             }
-            return _context17.a(2);
+            return _context19.a(2);
           case 1:
             clearTimeout(pdfPollRef.current);
             setPdfImporting(false);
             setPdfTranscribedBatchId(null);
-            _context17.n = 2;
+            _context19.n = 2;
             return _supabase.from('import_batches').update({
               status: 'cancelled',
               finished_at: new Date().toISOString(),
@@ -2692,9 +2862,9 @@ function ReviewImportsPanel(_ref15) {
             setResumeBannerInfo(null);
             setPdfImportMessage('Import cancelled. Already-solved questions remain below for review.');
           case 3:
-            return _context17.a(2);
+            return _context19.a(2);
         }
-      }, _callee17);
+      }, _callee19);
     }));
     function cancelActiveImport() {
       return _cancelActiveImport.apply(this, arguments);
@@ -2743,72 +2913,72 @@ function ReviewImportsPanel(_ref15) {
   // final question id, since drafts don't have one yet) -- publishing later
   // just reads r.image as-is, same as any other manually attached image.
   var uploadDraftDiagram = /*#__PURE__*/function () {
-    var _uploadDraftDiagram = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee18(rowKey, file) {
+    var _uploadDraftDiagram = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee20(rowKey, file) {
       var resized, ext, path, _yield$uploadWithSess, error, _supabase$storage$fro, data;
-      return _regenerator().w(function (_context18) {
-        while (1) switch (_context18.n) {
+      return _regenerator().w(function (_context20) {
+        while (1) switch (_context20.n) {
           case 0:
             if (file) {
-              _context18.n = 1;
+              _context20.n = 1;
               break;
             }
-            return _context18.a(2);
+            return _context20.a(2);
           case 1:
             if (ALLOWED_IMAGE_TYPES.includes(file.type)) {
-              _context18.n = 2;
+              _context20.n = 2;
               break;
             }
             updateRow(rowKey, '_imageUploadMsg', 'Please choose a PNG, JPEG, WEBP, or GIF image.');
-            return _context18.a(2);
+            return _context20.a(2);
           case 2:
             if (!(file.size > MAX_IMAGE_BYTES)) {
-              _context18.n = 3;
+              _context20.n = 3;
               break;
             }
             updateRow(rowKey, '_imageUploadMsg', 'Image is too large. Please use a file under 5 MB.');
-            return _context18.a(2);
+            return _context20.a(2);
           case 3:
             updateRow(rowKey, '_imageUploading', true);
             updateRow(rowKey, '_imageUploadMsg', '');
-            _context18.n = 4;
+            _context20.n = 4;
             return resizeImageForUpload(file);
           case 4:
-            resized = _context18.v;
+            resized = _context20.v;
             if (!(resized.size > MAX_IMAGE_BYTES)) {
-              _context18.n = 5;
+              _context20.n = 5;
               break;
             }
             updateRow(rowKey, '_imageUploading', false);
             updateRow(rowKey, '_imageUploadMsg', 'Image is still too large after resizing. Please use a smaller file.');
-            return _context18.a(2);
+            return _context20.a(2);
           case 5:
             ext = (resized.name.split('.').pop() || 'png').toLowerCase();
             path = "draft-".concat(rowKey, "/diagram-").concat(Date.now(), ".").concat(ext);
-            _context18.n = 6;
+            _context20.n = 6;
             return uploadWithSessionRetry('question-images', path, resized, {
               upsert: true,
               contentType: resized.type
             });
           case 6:
-            _yield$uploadWithSess = _context18.v;
+            _yield$uploadWithSess = _context20.v;
             error = _yield$uploadWithSess.error;
             updateRow(rowKey, '_imageUploading', false);
             if (!error) {
-              _context18.n = 7;
+              _context20.n = 7;
               break;
             }
             updateRow(rowKey, '_imageUploadMsg', error.message || 'Image upload failed.');
-            return _context18.a(2);
+            return _context20.a(2);
           case 7:
             _supabase$storage$fro = _supabase.storage.from('question-images').getPublicUrl(path), data = _supabase$storage$fro.data;
             updateRow(rowKey, 'image', data.publicUrl);
             updateRow(rowKey, '_imageUploadMsg', 'Diagram uploaded and attached.');
           case 8:
-            return _context18.a(2);
+            return _context20.a(2);
         }
-      }, _callee18);
+      }, _callee20);
     }));
-    function uploadDraftDiagram(_x22, _x23) {
+    function uploadDraftDiagram(_x25, _x26) {
       return _uploadDraftDiagram.apply(this, arguments);
     }
     return uploadDraftDiagram;
@@ -2824,43 +2994,43 @@ function ReviewImportsPanel(_ref15) {
   // intended. The mismatch badge above clears on its own once
   // verification_status flips to 'match', since it just reads this row state.
   var redoQuestion = /*#__PURE__*/function () {
-    var _redoQuestion = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee19(key, draftId) {
+    var _redoQuestion = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee21(key, draftId) {
       var _yield$_supabase$func6, data, error, _t16, _t17, _t18;
-      return _regenerator().w(function (_context19) {
-        while (1) switch (_context19.p = _context19.n) {
+      return _regenerator().w(function (_context21) {
+        while (1) switch (_context21.p = _context21.n) {
           case 0:
             if (draftId) {
-              _context19.n = 1;
+              _context21.n = 1;
               break;
             }
-            return _context19.a(2);
+            return _context21.a(2);
           case 1:
             updateRow(key, '_redoing', true);
             updateRow(key, '_redoMsg', '');
-            _context19.p = 2;
-            _context19.n = 3;
+            _context21.p = 2;
+            _context21.n = 3;
             return _supabase.functions.invoke('solve-pdf-questions', {
               body: {
                 redo_draft_id: draftId
               }
             });
           case 3:
-            _yield$_supabase$func6 = _context19.v;
+            _yield$_supabase$func6 = _context21.v;
             data = _yield$_supabase$func6.data;
             error = _yield$_supabase$func6.error;
             if (!error) {
-              _context19.n = 5;
+              _context21.n = 5;
               break;
             }
             _t16 = Error;
-            _context19.n = 4;
+            _context21.n = 4;
             return edgeFunctionErrorMessage(error);
           case 4:
-            _t17 = _context19.v;
+            _t17 = _context21.v;
             throw new _t16(_t17);
           case 5:
             if (!(data !== null && data !== void 0 && data.error)) {
-              _context19.n = 6;
+              _context21.n = 6;
               break;
             }
             throw new Error(data.error);
@@ -2876,22 +3046,22 @@ function ReviewImportsPanel(_ref15) {
             } else {
               updateRow(key, '_redoMsg', 'Redone — review the new answer/explanation below.');
             }
-            _context19.n = 8;
+            _context21.n = 8;
             break;
           case 7:
-            _context19.p = 7;
-            _t18 = _context19.v;
+            _context21.p = 7;
+            _t18 = _context21.v;
             updateRow(key, '_redoMsg', 'Redo failed: ' + (_t18.message || String(_t18)));
           case 8:
-            _context19.p = 8;
+            _context21.p = 8;
             updateRow(key, '_redoing', false);
-            return _context19.f(8);
+            return _context21.f(8);
           case 9:
-            return _context19.a(2);
+            return _context21.a(2);
         }
-      }, _callee19, null, [[2, 7, 8, 9]]);
+      }, _callee21, null, [[2, 7, 8, 9]]);
     }));
-    function redoQuestion(_x24, _x25) {
+    function redoQuestion(_x27, _x28) {
       return _redoQuestion.apply(this, arguments);
     }
     return redoQuestion;
@@ -2904,8 +3074,8 @@ function ReviewImportsPanel(_ref15) {
     if (row !== null && row !== void 0 && row._draftId) {
       _supabase.from('draft_questions').update({
         review_status: status
-      }).eq('id', row._draftId).then(function (_ref18) {
-        var error = _ref18.error;
+      }).eq('id', row._draftId).then(function (_ref20) {
+        var error = _ref20.error;
         if (error) console.error('Failed to persist review status:', error.message);
       });
     }
@@ -2933,20 +3103,20 @@ function ReviewImportsPanel(_ref15) {
     };
   }, [draftRows]);
   var publishApproved = /*#__PURE__*/function () {
-    var _publishApproved = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee20() {
-      var approved, errors, _yield$_supabase$from13, idRows, nextId, rowsToUpsert, idByKey, _iterator2, _step2, r, id, imageUrl, imageAlt, matchedImage, resizedImage, ext, path, _yield$uploadWithSess2, uploadErr, _supabase$storage$fro2, pub, _yield$_supabase$from14, error, publishedDraftIds, manualRows, label, now, _t19;
-      return _regenerator().w(function (_context20) {
-        while (1) switch (_context20.p = _context20.n) {
+    var _publishApproved = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee22() {
+      var approved, errors, _yield$_supabase$from15, idRows, nextId, rowsToUpsert, idByKey, _iterator2, _step2, r, id, imageUrl, imageAlt, matchedImage, resizedImage, ext, path, _yield$uploadWithSess2, uploadErr, _supabase$storage$fro2, pub, _yield$_supabase$from16, error, publishedDraftIds, manualRows, label, now, _t19;
+      return _regenerator().w(function (_context22) {
+        while (1) switch (_context22.p = _context22.n) {
           case 0:
             approved = draftRows.filter(function (r) {
               return r._status === 'approved';
             });
             if (approved.length) {
-              _context20.n = 1;
+              _context22.n = 1;
               break;
             }
             setPublishMessage('No approved questions to publish.');
-            return _context20.a(2);
+            return _context22.a(2);
           case 1:
             // Validate before writing anything.
             errors = [];
@@ -2960,30 +3130,30 @@ function ReviewImportsPanel(_ref15) {
               if (!r.topic) errors.push("\"".concat(r.title || 'Untitled', "\": missing topic."));
             });
             if (!errors.length) {
-              _context20.n = 2;
+              _context22.n = 2;
               break;
             }
             setPublishMessage('Fix these before publishing: ' + errors.join(' '));
-            return _context20.a(2);
+            return _context22.a(2);
           case 2:
             setPublishing(true);
             setPublishMessage('');
-            _context20.n = 3;
+            _context22.n = 3;
             return _supabase.from('questions').select('id').order('id', {
               ascending: false
             }).limit(1);
           case 3:
-            _yield$_supabase$from13 = _context20.v;
-            idRows = _yield$_supabase$from13.data;
+            _yield$_supabase$from15 = _context22.v;
+            idRows = _yield$_supabase$from15.data;
             nextId = idRows && idRows.length > 0 ? idRows[0].id + 1 : 1;
             rowsToUpsert = [];
             idByKey = {};
             _iterator2 = _createForOfIteratorHelper(approved);
-            _context20.p = 4;
+            _context22.p = 4;
             _iterator2.s();
           case 5:
             if ((_step2 = _iterator2.n()).done) {
-              _context20.n = 14;
+              _context22.n = 14;
               break;
             }
             r = _step2.value;
@@ -2993,54 +3163,54 @@ function ReviewImportsPanel(_ref15) {
             imageAlt = r.image_alt || null;
             matchedImage = r.image_pending_filename ? imageMap[r.image_pending_filename] : null;
             if (!matchedImage) {
-              _context20.n = 12;
+              _context22.n = 12;
               break;
             }
             if (ALLOWED_IMAGE_TYPES.includes(matchedImage.file.type)) {
-              _context20.n = 6;
+              _context22.n = 6;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": attached image must be PNG, JPEG, WEBP, or GIF."));
-            return _context20.a(2);
+            return _context22.a(2);
           case 6:
             if (!(matchedImage.file.size > MAX_IMAGE_BYTES)) {
-              _context20.n = 7;
+              _context22.n = 7;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": attached image is over 5 MB."));
-            return _context20.a(2);
+            return _context22.a(2);
           case 7:
-            _context20.n = 8;
+            _context22.n = 8;
             return resizeImageForUpload(matchedImage.file);
           case 8:
-            resizedImage = _context20.v;
+            resizedImage = _context22.v;
             if (!(resizedImage.size > MAX_IMAGE_BYTES)) {
-              _context20.n = 9;
+              _context22.n = 9;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": attached image is still too large after resizing."));
-            return _context20.a(2);
+            return _context22.a(2);
           case 9:
             ext = (resizedImage.name.split('.').pop() || 'png').toLowerCase();
             path = "".concat(id, "/question-").concat(id, "-").concat(Date.now(), ".").concat(ext);
-            _context20.n = 10;
+            _context22.n = 10;
             return uploadWithSessionRetry('question-images', path, resizedImage, {
               upsert: true,
               contentType: resizedImage.type
             });
           case 10:
-            _yield$uploadWithSess2 = _context20.v;
+            _yield$uploadWithSess2 = _context22.v;
             uploadErr = _yield$uploadWithSess2.error;
             if (!uploadErr) {
-              _context20.n = 11;
+              _context22.n = 11;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": image upload failed \u2014 ").concat(uploadErr.message));
-            return _context20.a(2);
+            return _context22.a(2);
           case 11:
             _supabase$storage$fro2 = _supabase.storage.from('question-images').getPublicUrl(path), pub = _supabase$storage$fro2.data;
             imageUrl = pub.publicUrl;
@@ -3065,34 +3235,34 @@ function ReviewImportsPanel(_ref15) {
               image_alt: imageAlt
             });
           case 13:
-            _context20.n = 5;
+            _context22.n = 5;
             break;
           case 14:
-            _context20.n = 16;
+            _context22.n = 16;
             break;
           case 15:
-            _context20.p = 15;
-            _t19 = _context20.v;
+            _context22.p = 15;
+            _t19 = _context22.v;
             _iterator2.e(_t19);
           case 16:
-            _context20.p = 16;
+            _context22.p = 16;
             _iterator2.f();
-            return _context20.f(16);
+            return _context22.f(16);
           case 17:
-            _context20.n = 18;
+            _context22.n = 18;
             return _supabase.from('questions').upsert(rowsToUpsert, {
               onConflict: 'id'
             });
           case 18:
-            _yield$_supabase$from14 = _context20.v;
-            error = _yield$_supabase$from14.error;
+            _yield$_supabase$from16 = _context22.v;
+            error = _yield$_supabase$from16.error;
             setPublishing(false);
             if (!error) {
-              _context20.n = 19;
+              _context22.n = 19;
               break;
             }
             setPublishMessage('Publish failed — nothing was saved: ' + error.message);
-            return _context20.a(2);
+            return _context22.a(2);
           case 19:
             // Keep the source draft_questions rows in sync so a page refresh doesn't
             // show already-published drafts as pending again.
@@ -3102,10 +3272,10 @@ function ReviewImportsPanel(_ref15) {
               return r._draftId;
             });
             if (!publishedDraftIds.length) {
-              _context20.n = 20;
+              _context22.n = 20;
               break;
             }
-            _context20.n = 20;
+            _context22.n = 20;
             return _supabase.from('draft_questions').update({
               review_status: 'published'
             }).in('id', publishedDraftIds);
@@ -3129,12 +3299,12 @@ function ReviewImportsPanel(_ref15) {
               return !r._draftId;
             });
             if (!manualRows.length) {
-              _context20.n = 22;
+              _context22.n = 22;
               break;
             }
             label = manualRows[0].original_test || manualRows[0].source || 'Manual import';
             now = new Date().toISOString();
-            _context20.n = 21;
+            _context22.n = 21;
             return _supabase.from('import_batches').insert({
               source_label: label,
               original_test: label,
@@ -3149,15 +3319,15 @@ function ReviewImportsPanel(_ref15) {
             if (showAllBatches) {
               _supabase.from('import_batches').select('id, source_label, original_test, status, started_at, questions_extracted, source_pdf_path').in('status', ['completed', 'needs_attention']).order('started_at', {
                 ascending: false
-              }).then(function (_ref19) {
-                var data = _ref19.data;
+              }).then(function (_ref21) {
+                var data = _ref21.data;
                 return setAllBatches(data || []);
               });
             }
           case 22:
-            return _context20.a(2);
+            return _context22.a(2);
         }
-      }, _callee20, null, [[4, 15, 16, 17]]);
+      }, _callee22, null, [[4, 15, 16, 17]]);
     }));
     function publishApproved() {
       return _publishApproved.apply(this, arguments);
@@ -3165,20 +3335,20 @@ function ReviewImportsPanel(_ref15) {
     return publishApproved;
   }();
   var publishAll = /*#__PURE__*/function () {
-    var _publishAll = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee21() {
-      var toPublish, errors, _yield$_supabase$from15, idRows, nextId, rowsToUpsert, idByKey, _iterator3, _step3, r, id, imageUrl, imageAlt, matchedImage, resizedImage, ext, path, _yield$uploadWithSess3, uploadErr, _supabase$storage$fro3, pub, _yield$_supabase$from16, error, publishedDraftIds, manualRows, label, now, _t20;
-      return _regenerator().w(function (_context21) {
-        while (1) switch (_context21.p = _context21.n) {
+    var _publishAll = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee23() {
+      var toPublish, errors, _yield$_supabase$from17, idRows, nextId, rowsToUpsert, idByKey, _iterator3, _step3, r, id, imageUrl, imageAlt, matchedImage, resizedImage, ext, path, _yield$uploadWithSess3, uploadErr, _supabase$storage$fro3, pub, _yield$_supabase$from18, error, publishedDraftIds, manualRows, label, now, _t20;
+      return _regenerator().w(function (_context23) {
+        while (1) switch (_context23.p = _context23.n) {
           case 0:
             toPublish = draftRows.filter(function (r) {
               return r._status !== 'published';
             });
             if (toPublish.length) {
-              _context21.n = 1;
+              _context23.n = 1;
               break;
             }
             setPublishMessage('No questions to publish.');
-            return _context21.a(2);
+            return _context23.a(2);
           case 1:
             errors = [];
             toPublish.forEach(function (r) {
@@ -3191,30 +3361,30 @@ function ReviewImportsPanel(_ref15) {
               if (!r.topic) errors.push("\"".concat(r.title || 'Untitled', "\": missing topic."));
             });
             if (!errors.length) {
-              _context21.n = 2;
+              _context23.n = 2;
               break;
             }
             setPublishMessage('Fix these before publishing: ' + errors.join(' '));
-            return _context21.a(2);
+            return _context23.a(2);
           case 2:
             setPublishing(true);
             setPublishMessage('');
-            _context21.n = 3;
+            _context23.n = 3;
             return _supabase.from('questions').select('id').order('id', {
               ascending: false
             }).limit(1);
           case 3:
-            _yield$_supabase$from15 = _context21.v;
-            idRows = _yield$_supabase$from15.data;
+            _yield$_supabase$from17 = _context23.v;
+            idRows = _yield$_supabase$from17.data;
             nextId = idRows && idRows.length > 0 ? idRows[0].id + 1 : 1;
             rowsToUpsert = [];
             idByKey = {};
             _iterator3 = _createForOfIteratorHelper(toPublish);
-            _context21.p = 4;
+            _context23.p = 4;
             _iterator3.s();
           case 5:
             if ((_step3 = _iterator3.n()).done) {
-              _context21.n = 14;
+              _context23.n = 14;
               break;
             }
             r = _step3.value;
@@ -3224,54 +3394,54 @@ function ReviewImportsPanel(_ref15) {
             imageAlt = r.image_alt || null;
             matchedImage = r.image_pending_filename ? imageMap[r.image_pending_filename] : null;
             if (!matchedImage) {
-              _context21.n = 12;
+              _context23.n = 12;
               break;
             }
             if (ALLOWED_IMAGE_TYPES.includes(matchedImage.file.type)) {
-              _context21.n = 6;
+              _context23.n = 6;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": attached image must be PNG, JPEG, WEBP, or GIF."));
-            return _context21.a(2);
+            return _context23.a(2);
           case 6:
             if (!(matchedImage.file.size > MAX_IMAGE_BYTES)) {
-              _context21.n = 7;
+              _context23.n = 7;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": attached image is over 5 MB."));
-            return _context21.a(2);
+            return _context23.a(2);
           case 7:
-            _context21.n = 8;
+            _context23.n = 8;
             return resizeImageForUpload(matchedImage.file);
           case 8:
-            resizedImage = _context21.v;
+            resizedImage = _context23.v;
             if (!(resizedImage.size > MAX_IMAGE_BYTES)) {
-              _context21.n = 9;
+              _context23.n = 9;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": attached image is still too large after resizing."));
-            return _context21.a(2);
+            return _context23.a(2);
           case 9:
             ext = (resizedImage.name.split('.').pop() || 'png').toLowerCase();
             path = "".concat(id, "/question-").concat(id, "-").concat(Date.now(), ".").concat(ext);
-            _context21.n = 10;
+            _context23.n = 10;
             return uploadWithSessionRetry('question-images', path, resizedImage, {
               upsert: true,
               contentType: resizedImage.type
             });
           case 10:
-            _yield$uploadWithSess3 = _context21.v;
+            _yield$uploadWithSess3 = _context23.v;
             uploadErr = _yield$uploadWithSess3.error;
             if (!uploadErr) {
-              _context21.n = 11;
+              _context23.n = 11;
               break;
             }
             setPublishing(false);
             setPublishMessage("\"".concat(r.title || 'Untitled', "\": image upload failed \u2014 ").concat(uploadErr.message));
-            return _context21.a(2);
+            return _context23.a(2);
           case 11:
             _supabase$storage$fro3 = _supabase.storage.from('question-images').getPublicUrl(path), pub = _supabase$storage$fro3.data;
             imageUrl = pub.publicUrl;
@@ -3296,34 +3466,34 @@ function ReviewImportsPanel(_ref15) {
               image_alt: imageAlt
             });
           case 13:
-            _context21.n = 5;
+            _context23.n = 5;
             break;
           case 14:
-            _context21.n = 16;
+            _context23.n = 16;
             break;
           case 15:
-            _context21.p = 15;
-            _t20 = _context21.v;
+            _context23.p = 15;
+            _t20 = _context23.v;
             _iterator3.e(_t20);
           case 16:
-            _context21.p = 16;
+            _context23.p = 16;
             _iterator3.f();
-            return _context21.f(16);
+            return _context23.f(16);
           case 17:
-            _context21.n = 18;
+            _context23.n = 18;
             return _supabase.from('questions').upsert(rowsToUpsert, {
               onConflict: 'id'
             });
           case 18:
-            _yield$_supabase$from16 = _context21.v;
-            error = _yield$_supabase$from16.error;
+            _yield$_supabase$from18 = _context23.v;
+            error = _yield$_supabase$from18.error;
             setPublishing(false);
             if (!error) {
-              _context21.n = 19;
+              _context23.n = 19;
               break;
             }
             setPublishMessage('Publish failed — nothing was saved: ' + error.message);
-            return _context21.a(2);
+            return _context23.a(2);
           case 19:
             publishedDraftIds = toPublish.filter(function (r) {
               return r._draftId;
@@ -3331,10 +3501,10 @@ function ReviewImportsPanel(_ref15) {
               return r._draftId;
             });
             if (!publishedDraftIds.length) {
-              _context21.n = 20;
+              _context23.n = 20;
               break;
             }
-            _context21.n = 20;
+            _context23.n = 20;
             return _supabase.from('draft_questions').update({
               review_status: 'published'
             }).in('id', publishedDraftIds);
@@ -3352,12 +3522,12 @@ function ReviewImportsPanel(_ref15) {
               return !r._draftId;
             });
             if (!manualRows.length) {
-              _context21.n = 22;
+              _context23.n = 22;
               break;
             }
             label = manualRows[0].original_test || manualRows[0].source || 'Manual import';
             now = new Date().toISOString();
-            _context21.n = 21;
+            _context23.n = 21;
             return _supabase.from('import_batches').insert({
               source_label: label,
               original_test: label,
@@ -3372,15 +3542,15 @@ function ReviewImportsPanel(_ref15) {
             if (showAllBatches) {
               _supabase.from('import_batches').select('id, source_label, original_test, status, started_at, questions_extracted, source_pdf_path').in('status', ['completed', 'needs_attention']).order('started_at', {
                 ascending: false
-              }).then(function (_ref20) {
-                var data = _ref20.data;
+              }).then(function (_ref22) {
+                var data = _ref22.data;
                 return setAllBatches(data || []);
               });
             }
           case 22:
-            return _context21.a(2);
+            return _context23.a(2);
         }
-      }, _callee21, null, [[4, 15, 16, 17]]);
+      }, _callee23, null, [[4, 15, 16, 17]]);
     }));
     function publishAll() {
       return _publishAll.apply(this, arguments);
@@ -3841,8 +4011,8 @@ function ReviewImportsPanel(_ref15) {
     })))));
   }));
 }
-function AdminQuestionManager(_ref21) {
-  var authUser = _ref21.authUser;
+function AdminQuestionManager(_ref23) {
+  var authUser = _ref23.authUser;
   var blank = {
     id: '',
     title: '',
@@ -3861,50 +4031,50 @@ function AdminQuestionManager(_ref21) {
     image: '',
     image_alt: ''
   };
-  var _useState79 = useState(blank),
-    _useState80 = _slicedToArray(_useState79, 2),
-    form = _useState80[0],
-    setForm = _useState80[1];
-  var _useState81 = useState(''),
-    _useState82 = _slicedToArray(_useState81, 2),
-    message = _useState82[0],
-    setMessage = _useState82[1];
-  var _useState83 = useState(false),
+  var _useState83 = useState(blank),
     _useState84 = _slicedToArray(_useState83, 2),
-    saving = _useState84[0],
-    setSaving = _useState84[1];
-  var _useState85 = useState(false),
+    form = _useState84[0],
+    setForm = _useState84[1];
+  var _useState85 = useState(''),
     _useState86 = _slicedToArray(_useState85, 2),
-    imageUploading = _useState86[0],
-    setImageUploading = _useState86[1];
+    message = _useState86[0],
+    setMessage = _useState86[1];
+  var _useState87 = useState(false),
+    _useState88 = _slicedToArray(_useState87, 2),
+    saving = _useState88[0],
+    setSaving = _useState88[1];
+  var _useState89 = useState(false),
+    _useState90 = _slicedToArray(_useState89, 2),
+    imageUploading = _useState90[0],
+    setImageUploading = _useState90[1];
   var _useLocalStorage = useLocalStorage('admin_panel_tab', 'activity'),
     _useLocalStorage2 = _slicedToArray(_useLocalStorage, 2),
     adminPanelTab = _useLocalStorage2[0],
     setAdminPanelTab = _useLocalStorage2[1];
-  var _useState87 = useState(false),
-    _useState88 = _slicedToArray(_useState87, 2),
-    showDateOverride = _useState88[0],
-    setShowDateOverride = _useState88[1];
-  var _useState89 = useState(false),
-    _useState90 = _slicedToArray(_useState89, 2),
-    idLoading = _useState90[0],
-    setIdLoading = _useState90[1];
-  var _useState91 = useState([]),
+  var _useState91 = useState(false),
     _useState92 = _slicedToArray(_useState91, 2),
-    questionList = _useState92[0],
-    setQuestionList = _useState92[1];
+    showDateOverride = _useState92[0],
+    setShowDateOverride = _useState92[1];
   var _useState93 = useState(false),
     _useState94 = _slicedToArray(_useState93, 2),
-    questionListLoading = _useState94[0],
-    setQuestionListLoading = _useState94[1];
-  var _useState95 = useState(''),
+    idLoading = _useState94[0],
+    setIdLoading = _useState94[1];
+  var _useState95 = useState([]),
     _useState96 = _slicedToArray(_useState95, 2),
-    questionSearch = _useState96[0],
-    setQuestionSearch = _useState96[1];
+    questionList = _useState96[0],
+    setQuestionList = _useState96[1];
   var _useState97 = useState(false),
     _useState98 = _slicedToArray(_useState97, 2),
-    editingExisting = _useState98[0],
-    setEditingExisting = _useState98[1];
+    questionListLoading = _useState98[0],
+    setQuestionListLoading = _useState98[1];
+  var _useState99 = useState(''),
+    _useState100 = _slicedToArray(_useState99, 2),
+    questionSearch = _useState100[0],
+    setQuestionSearch = _useState100[1];
+  var _useState101 = useState(false),
+    _useState102 = _slicedToArray(_useState101, 2),
+    editingExisting = _useState102[0],
+    setEditingExisting = _useState102[1];
 
   // Auto-generate next question ID when switching to Question Manager tab
   useEffect(function () {
@@ -3912,8 +4082,8 @@ function AdminQuestionManager(_ref21) {
     setIdLoading(true);
     _supabase.from('questions').select('id').order('id', {
       ascending: false
-    }).limit(1).then(function (_ref22) {
-      var data = _ref22.data;
+    }).limit(1).then(function (_ref24) {
+      var data = _ref24.data;
       var nextId = data && data.length > 0 ? data[0].id + 1 : 1;
       setForm(function (f) {
         return _objectSpread(_objectSpread({}, f), {}, {
@@ -3928,9 +4098,9 @@ function AdminQuestionManager(_ref21) {
     setQuestionListLoading(true);
     _supabase.from('questions').select('*').order('id', {
       ascending: true
-    }).then(function (_ref23) {
-      var data = _ref23.data,
-        error = _ref23.error;
+    }).then(function (_ref25) {
+      var data = _ref25.data,
+        error = _ref25.error;
       if (error) {
         setMessage(error.message || 'Could not load questions to edit.');
         setQuestionList([]);
@@ -3945,17 +4115,17 @@ function AdminQuestionManager(_ref21) {
   // (completed/needs_attention) that nobody has opened Review Imports for
   // yet. Polled so it stays current even if this dashboard tab is left open
   // while the cron-driven pipeline finishes work in the background.
-  var _useState99 = useState(0),
-    _useState100 = _slicedToArray(_useState99, 2),
-    pendingReviewCount = _useState100[0],
-    setPendingReviewCount = _useState100[1];
+  var _useState103 = useState(0),
+    _useState104 = _slicedToArray(_useState103, 2),
+    pendingReviewCount = _useState104[0],
+    setPendingReviewCount = _useState104[1];
   var refreshPendingReviewCount = function refreshPendingReviewCount() {
     if (!authUser) return;
     _supabase.from('import_batches').select('id', {
       count: 'exact',
       head: true
-    }).in('status', ['completed', 'needs_attention']).is('notified_at', null).then(function (_ref24) {
-      var count = _ref24.count;
+    }).in('status', ['completed', 'needs_attention']).is('notified_at', null).then(function (_ref26) {
+      var count = _ref26.count;
       return setPendingReviewCount(count || 0);
     });
   };
@@ -4003,23 +4173,23 @@ function AdminQuestionManager(_ref21) {
     });
   };
   var startNewQuestion = /*#__PURE__*/function () {
-    var _startNewQuestion = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee22() {
-      var _yield$_supabase$from17, data, nextId;
-      return _regenerator().w(function (_context22) {
-        while (1) switch (_context22.n) {
+    var _startNewQuestion = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee24() {
+      var _yield$_supabase$from19, data, nextId;
+      return _regenerator().w(function (_context24) {
+        while (1) switch (_context24.n) {
           case 0:
             setEditingExisting(false);
             setShowDateOverride(false);
             setMessage('');
             setAdminPanelTab('questions');
             setIdLoading(true);
-            _context22.n = 1;
+            _context24.n = 1;
             return _supabase.from('questions').select('id').order('id', {
               ascending: false
             }).limit(1);
           case 1:
-            _yield$_supabase$from17 = _context22.v;
-            data = _yield$_supabase$from17.data;
+            _yield$_supabase$from19 = _context24.v;
+            data = _yield$_supabase$from19.data;
             nextId = data && data.length > 0 ? data[0].id + 1 : 1;
             setForm(_objectSpread(_objectSpread({}, blank), {}, {
               id: String(nextId),
@@ -4027,9 +4197,9 @@ function AdminQuestionManager(_ref21) {
             }));
             setIdLoading(false);
           case 2:
-            return _context22.a(2);
+            return _context24.a(2);
         }
-      }, _callee22);
+      }, _callee24);
     }));
     function startNewQuestion() {
       return _startNewQuestion.apply(this, arguments);
@@ -4065,90 +4235,90 @@ function AdminQuestionManager(_ref21) {
     set(target, (form[target] || '') + snippet);
   };
   var uploadImage = /*#__PURE__*/function () {
-    var _uploadImage = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee23(file) {
+    var _uploadImage = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee25(file) {
       var resized, ext, safeName, path, _yield$_supabase$stor, error, _supabase$storage$fro4, data;
-      return _regenerator().w(function (_context23) {
-        while (1) switch (_context23.n) {
+      return _regenerator().w(function (_context25) {
+        while (1) switch (_context25.n) {
           case 0:
             if (file) {
-              _context23.n = 1;
+              _context25.n = 1;
               break;
             }
-            return _context23.a(2);
+            return _context25.a(2);
           case 1:
             if (form.id) {
-              _context23.n = 2;
+              _context25.n = 2;
               break;
             }
             setMessage('Question ID not yet generated. Wait a moment and try again.');
-            return _context23.a(2);
+            return _context25.a(2);
           case 2:
             if (ALLOWED_IMAGE_TYPES.includes(file.type)) {
-              _context23.n = 3;
+              _context25.n = 3;
               break;
             }
             setMessage('Please choose a PNG, JPEG, WEBP, or GIF image.');
-            return _context23.a(2);
+            return _context25.a(2);
           case 3:
             if (!(file.size > MAX_IMAGE_BYTES)) {
-              _context23.n = 4;
+              _context25.n = 4;
               break;
             }
             setMessage('Image is too large. Please use a file under 5 MB.');
-            return _context23.a(2);
+            return _context25.a(2);
           case 4:
             setImageUploading(true);
             setMessage('');
-            _context23.n = 5;
+            _context25.n = 5;
             return resizeImageForUpload(file);
           case 5:
-            resized = _context23.v;
+            resized = _context25.v;
             if (!(resized.size > MAX_IMAGE_BYTES)) {
-              _context23.n = 6;
+              _context25.n = 6;
               break;
             }
             setImageUploading(false);
             setMessage('Image is still too large after resizing. Please use a smaller file.');
-            return _context23.a(2);
+            return _context25.a(2);
           case 6:
             ext = (resized.name.split('.').pop() || 'png').toLowerCase();
             safeName = "question-".concat(form.id, "-").concat(Date.now(), ".").concat(ext);
             path = "".concat(form.id, "/").concat(safeName);
-            _context23.n = 7;
+            _context25.n = 7;
             return _supabase.storage.from('question-images').upload(path, resized, {
               upsert: true,
               contentType: resized.type
             });
           case 7:
-            _yield$_supabase$stor = _context23.v;
+            _yield$_supabase$stor = _context25.v;
             error = _yield$_supabase$stor.error;
             setImageUploading(false);
             if (!error) {
-              _context23.n = 8;
+              _context25.n = 8;
               break;
             }
             setMessage(error.message || 'Image upload failed.');
-            return _context23.a(2);
+            return _context25.a(2);
           case 8:
             _supabase$storage$fro4 = _supabase.storage.from('question-images').getPublicUrl(path), data = _supabase$storage$fro4.data;
             set('image', data.publicUrl);
             if (!form.image_alt) set('image_alt', form.title ? "Image for ".concat(form.title) : "Image for question ".concat(form.id));
             setMessage('Image uploaded and attached to this question.');
           case 9:
-            return _context23.a(2);
+            return _context25.a(2);
         }
-      }, _callee23);
+      }, _callee25);
     }));
-    function uploadImage(_x26) {
+    function uploadImage(_x29) {
       return _uploadImage.apply(this, arguments);
     }
     return uploadImage;
   }();
   var saveQuestion = /*#__PURE__*/function () {
-    var _saveQuestion = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee24() {
-      var row, _yield$_supabase$from18, error, nextId;
-      return _regenerator().w(function (_context24) {
-        while (1) switch (_context24.n) {
+    var _saveQuestion = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee26() {
+      var row, _yield$_supabase$from20, error, nextId;
+      return _regenerator().w(function (_context26) {
+        while (1) switch (_context26.n) {
           case 0:
             setSaving(true);
             setMessage('');
@@ -4174,27 +4344,27 @@ function AdminQuestionManager(_ref21) {
               image_alt: form.image_alt || null
             };
             if (!(!row.id || !row.question || row.choices.length < 2 || !row.answer)) {
-              _context24.n = 1;
+              _context26.n = 1;
               break;
             }
             setSaving(false);
             setMessage('Please fill in the question text, choices, and correct answer.');
-            return _context24.a(2);
+            return _context26.a(2);
           case 1:
-            _context24.n = 2;
+            _context26.n = 2;
             return _supabase.from('questions').upsert(row, {
               onConflict: 'id'
             });
           case 2:
-            _yield$_supabase$from18 = _context24.v;
-            error = _yield$_supabase$from18.error;
+            _yield$_supabase$from20 = _context26.v;
+            error = _yield$_supabase$from20.error;
             setSaving(false);
             if (!error) {
-              _context24.n = 3;
+              _context26.n = 3;
               break;
             }
             setMessage(error.message || 'Could not save question.');
-            return _context24.a(2);
+            return _context26.a(2);
           case 3:
             setShowDateOverride(false);
             if (editingExisting) {
@@ -4213,9 +4383,9 @@ function AdminQuestionManager(_ref21) {
               setMessage("Question #".concat(row.id, " saved! Ready to add question #").concat(nextId, "."));
             }
           case 4:
-            return _context24.a(2);
+            return _context26.a(2);
         }
-      }, _callee24);
+      }, _callee26);
     }));
     function saveQuestion() {
       return _saveQuestion.apply(this, arguments);
@@ -4238,11 +4408,6 @@ function AdminQuestionManager(_ref21) {
     },
     className: "px-4 py-2 rounded-lg text-sm font-semibold ".concat(adminPanelTab === 'activity' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "User Activity"), /*#__PURE__*/React.createElement("button", {
-    onClick: function onClick() {
-      return setAdminPanelTab('reports');
-    },
-    className: "px-4 py-2 rounded-lg text-sm font-semibold ".concat(adminPanelTab === 'reports' ? 'bg-rose-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')
-  }, "Reports"), /*#__PURE__*/React.createElement("button", {
     onClick: startNewQuestion,
     className: "px-4 py-2 rounded-lg text-sm font-semibold ".concat(adminPanelTab === 'questions' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "Add Question"), /*#__PURE__*/React.createElement("button", {
@@ -4261,8 +4426,6 @@ function AdminQuestionManager(_ref21) {
     },
     className: "px-4 py-2 rounded-lg text-sm font-semibold ".concat(adminPanelTab === 'bugReports' ? 'bg-rose-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "Bug Reports"))), adminPanelTab === 'activity' ? /*#__PURE__*/React.createElement(AdminUserActivity, {
-    authUser: authUser
-  }) : adminPanelTab === 'reports' ? /*#__PURE__*/React.createElement(AdminReports, {
     authUser: authUser
   }) : adminPanelTab === 'bugReports' ? /*#__PURE__*/React.createElement(AdminBugReports, {
     authUser: authUser
@@ -4426,10 +4589,10 @@ function AdminQuestionManager(_ref21) {
     className: "w-full px-3 py-2 rounded-xl border bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700 resize-none"
   }), /*#__PURE__*/React.createElement("div", {
     className: "mt-2 space-y-2"
-  }, [['Basics', ['\\(x^2\\)', '\\(x_n\\)', '\\(\\frac{a}{b}\\)', '\\(\\sqrt{x}\\)', '\\(\\pi\\)', '\\(\\theta\\)', '\\(\\pm\\)', '\\(\\le\\)', '\\(\\ge\\)', '\\(\\neq\\)']], ['Algebra / Functions', ['\\(f(x)\\)', '\\(f^{-1}(x)\\)', '\\(|x|\\)', '\\(\\log_b x\\)', '\\(\\ln x\\)', '\\(a_n=a_1+(n-1)d\\)', '\\(S_n=\\frac{n}{2}(a_1+a_n)\\)']], ['Geometry / Trig', ['\\(\\sin x\\)', '\\(\\cos x\\)', '\\(\\tan x\\)', '\\(\\sin^2 x+\\cos^2 x=1\\)', '\\(A=\\pi r^2\\)', '\\(a^2+b^2=c^2\\)', '\\(\\angle ABC\\)']], ['Calculus', ['\\(\\lim_{x\\to a}\\)', '\\(\\frac{dy}{dx}\\)', '\\(f\\prime(x)\\)', '\\(f\\prime\\prime(x)\\)', '\\(\\int f(x)\\,dx\\)', '\\(\\int_a^b f(x)\\,dx\\)', '\\(\\frac{d}{dx}\\)', '\\(\\frac{d}{dx}[\\sin x]=\\cos x\\)']], ['Statistics', ['\\(\\bar{x}\\)', '\\(s^2\\)', '\\(\\sigma\\)', '\\(z=\\frac{x-\\mu}{\\sigma}\\)', '\\(P(A)\\)', '\\(P(A\\cap B)\\)', '\\(P(A\\cup B)\\)']], ['Display', ['\\[ y = mx+b \\]', '\\[ ax^2+bx+c=0 \\]', '\\[ \\frac{-b\\pm\\sqrt{b^2-4ac}}{2a} \\]']]].map(function (_ref25) {
-    var _ref26 = _slicedToArray(_ref25, 2),
-      group = _ref26[0],
-      items = _ref26[1];
+  }, [['Basics', ['\\(x^2\\)', '\\(x_n\\)', '\\(\\frac{a}{b}\\)', '\\(\\sqrt{x}\\)', '\\(\\pi\\)', '\\(\\theta\\)', '\\(\\pm\\)', '\\(\\le\\)', '\\(\\ge\\)', '\\(\\neq\\)']], ['Algebra / Functions', ['\\(f(x)\\)', '\\(f^{-1}(x)\\)', '\\(|x|\\)', '\\(\\log_b x\\)', '\\(\\ln x\\)', '\\(a_n=a_1+(n-1)d\\)', '\\(S_n=\\frac{n}{2}(a_1+a_n)\\)']], ['Geometry / Trig', ['\\(\\sin x\\)', '\\(\\cos x\\)', '\\(\\tan x\\)', '\\(\\sin^2 x+\\cos^2 x=1\\)', '\\(A=\\pi r^2\\)', '\\(a^2+b^2=c^2\\)', '\\(\\angle ABC\\)']], ['Calculus', ['\\(\\lim_{x\\to a}\\)', '\\(\\frac{dy}{dx}\\)', '\\(f\\prime(x)\\)', '\\(f\\prime\\prime(x)\\)', '\\(\\int f(x)\\,dx\\)', '\\(\\int_a^b f(x)\\,dx\\)', '\\(\\frac{d}{dx}\\)', '\\(\\frac{d}{dx}[\\sin x]=\\cos x\\)']], ['Statistics', ['\\(\\bar{x}\\)', '\\(s^2\\)', '\\(\\sigma\\)', '\\(z=\\frac{x-\\mu}{\\sigma}\\)', '\\(P(A)\\)', '\\(P(A\\cap B)\\)', '\\(P(A\\cup B)\\)']], ['Display', ['\\[ y = mx+b \\]', '\\[ ax^2+bx+c=0 \\]', '\\[ \\frac{-b\\pm\\sqrt{b^2-4ac}}{2a} \\]']]].map(function (_ref27) {
+    var _ref28 = _slicedToArray(_ref27, 2),
+      group = _ref28[0],
+      items = _ref28[1];
     return /*#__PURE__*/React.createElement("div", {
       key: group
     }, /*#__PURE__*/React.createElement("p", {

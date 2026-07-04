@@ -565,6 +565,8 @@ function AdminReports({ authUser }) {
 
 function AdminBugReports({ authUser }) {
   const [reports, setReports] = useState([]);
+  const [questionReports, setQuestionReports] = useState([]);
+  const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const isAdmin = authUser && ADMIN_EMAILS.includes(authUser.email || '');
@@ -572,25 +574,43 @@ function AdminBugReports({ authUser }) {
   useEffect(() => {
     if (!isAdmin) return;
     setLoading(true);
-    _supabase.from('bug_reports').select('*').order('created_at', { ascending: false }).limit(500)
-      .then(({ data, error }) => {
-        if (error) setError(error.message);
-        setReports(data || []);
-        setLoading(false);
-      });
+    Promise.all([
+      _supabase.from('bug_reports').select('*').order('created_at', { ascending: false }).limit(500),
+      _supabase.from('question_reports').select('*').order('created_at', { ascending: false }).limit(500),
+      _supabase.from('public_questions').select('id,title,topic,difficulty').limit(5000),
+    ]).then(([b, r, q]) => {
+      if (b.error || r.error || q.error) setError(b.error?.message || r.error?.message || q.error?.message);
+      setReports(b.data || []);
+      setQuestionReports(r.data || []);
+      setQuestions(q.data || []);
+      setLoading(false);
+    });
   }, [isAdmin]);
 
-  const updateStatus = async (reportId, status) => {
+  const updateBugStatus = async (reportId, status) => {
     const { error } = await _supabase.from('bug_reports').update({ status }).eq('id', reportId);
     if (error) { alert(error.message); return; }
     setReports(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
   };
 
-  const deleteReport = async (reportId) => {
+  const deleteBugReport = async (reportId) => {
     if (!confirm('Delete this report?')) return;
     const { error } = await _supabase.from('bug_reports').delete().eq('id', reportId);
     if (error) { alert(error.message); return; }
     setReports(prev => prev.filter(r => r.id !== reportId));
+  };
+
+  const updateQuestionReportStatus = async (reportId, status) => {
+    const { error } = await _supabase.from('question_reports').update({ status }).eq('id', reportId);
+    if (error) { alert(error.message); return; }
+    setQuestionReports(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
+  };
+
+  const deleteQuestionReport = async (reportId) => {
+    if (!confirm('Delete this report?')) return;
+    const { error } = await _supabase.from('question_reports').delete().eq('id', reportId);
+    if (error) { alert(error.message); return; }
+    setQuestionReports(prev => prev.filter(r => r.id !== reportId));
   };
 
   if (!isAdmin) return null;
@@ -598,59 +618,120 @@ function AdminBugReports({ authUser }) {
   if (error) return <div className="rounded-2xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-500/10 p-6 text-rose-700 dark:text-rose-300">Error: {error}</div>;
 
   const openCount = reports.filter(r => r.status === 'open').length;
+  const qrOpenCount = questionReports.filter(r => r.status === 'open').length;
+  const qMap = {};
+  questions.forEach(q => qMap[q.id] = q);
+
+  const StatusSelect = ({ value, onChange }) => (
+    <select value={value || 'open'} onChange={onChange}
+      className="px-2 py-1.5 rounded-lg text-xs font-semibold border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
+      <option value="open">open</option>
+      <option value="reviewing">reviewing</option>
+      <option value="resolved">resolved</option>
+      <option value="dismissed">dismissed</option>
+    </select>
+  );
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-      <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
-        <div>
-          <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Bug Reports</h2>
-          <p className="text-xs text-slate-400 dark:text-slate-500">{reports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{openCount} open</span></p>
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Bug Reports</h2>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{reports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{openCount} open</span></p>
+          </div>
+          {openCount > 0 && (
+            <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold">{openCount} need review</span>
+          )}
         </div>
-        {openCount > 0 && (
-          <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold">{openCount} need review</span>
-        )}
-      </div>
-      {reports.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="font-semibold text-slate-700 dark:text-slate-300">No bug reports</p>
-          <p className="text-sm text-slate-400 mt-1">Reports submitted from the profile menu will appear here.</p>
-        </div>
-      ) : (
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {reports.map(r => {
-            const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
-            return (
-              <div key={r.id} className="px-5 py-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>{r.status || 'open'}</span>
-                      <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+        {reports.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="font-semibold text-slate-700 dark:text-slate-300">No bug reports</p>
+            <p className="text-sm text-slate-400 mt-1">Reports submitted from the profile menu will appear here.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {reports.map(r => {
+              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
+              return (
+                <div key={r.id} className="px-5 py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>{r.status || 'open'}</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{r.subject}</p>
+                      <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.description}</p>
+                      </div>
                     </div>
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{r.subject}</p>
-                    <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                      <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.description}</p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <StatusSelect value={r.status} onChange={e=>updateBugStatus(r.id, e.target.value)} />
+                      <button onClick={()=>deleteBugReport(r.id)}
+                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
+                        Delete
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <select value={r.status || 'open'} onChange={e=>updateStatus(r.id, e.target.value)}
-                      className="px-2 py-1.5 rounded-lg text-xs font-semibold border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
-                      <option value="open">open</option>
-                      <option value="reviewing">reviewing</option>
-                      <option value="resolved">resolved</option>
-                      <option value="dismissed">dismissed</option>
-                    </select>
-                    <button onClick={()=>deleteReport(r.id)}
-                      className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
-                      Delete
-                    </button>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Question Issue Reports</h2>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{questionReports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{qrOpenCount} open</span></p>
+          </div>
+          {qrOpenCount > 0 && (
+            <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold">{qrOpenCount} need review</span>
+          )}
         </div>
-      )}
+        {questionReports.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="font-semibold text-slate-700 dark:text-slate-300">No issue reports</p>
+            <p className="text-sm text-slate-400 mt-1">Reports submitted by users will appear here.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {questionReports.map(r => {
+              const q = qMap[r.question_id] || { id: r.question_id, title: 'Question #' + r.question_id };
+              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
+              return (
+                <div key={r.id} className="px-5 py-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>{r.status || 'open'}</span>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{r.issue_type}</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{q.title || 'Question #' + r.question_id}</p>
+                      {q.topic && <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{q.topic} · {q.difficulty}</p>}
+                      {r.details && (
+                        <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.details}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <StatusSelect value={r.status} onChange={e=>updateQuestionReportStatus(r.id, e.target.value)} />
+                      <button onClick={()=>deleteQuestionReport(r.id)}
+                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -2392,10 +2473,6 @@ function AdminQuestionManager({ authUser }) {
             className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='activity' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
             User Activity
           </button>
-          <button onClick={()=>setAdminPanelTab('reports')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='reports' ? 'bg-rose-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-            Reports
-          </button>
           <button onClick={startNewQuestion}
             className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='questions' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
             Add Question
@@ -2422,8 +2499,6 @@ function AdminQuestionManager({ authUser }) {
 
       {adminPanelTab === 'activity' ? (
         <AdminUserActivity authUser={authUser} />
-      ) : adminPanelTab === 'reports' ? (
-        <AdminReports authUser={authUser} />
       ) : adminPanelTab === 'bugReports' ? (
         <AdminBugReports authUser={authUser} />
       ) : adminPanelTab === 'reviewImports' ? (
