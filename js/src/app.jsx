@@ -404,6 +404,7 @@ function App() {
   const [recSort, setRecSort] = useState("Most Recent");
   const [typeFilter, setTypeFilter] = useState("All Types");
   const [sourceFilter, setSourceFilter] = useState("All Sources");
+  const [statusFilter, setStatusFilter] = useState("All Status");
 
   // Rebuild per-question stats from the `attempts` table on login. Answers can only be
   // submitted while signed in, so server history is authoritative — this keeps the list's
@@ -604,6 +605,9 @@ function App() {
 
   const filtered = useMemo(() => questions.filter(q => {
     if (recommendedMode && !recommendedIds.has(q.id)) return false;
+    if (statusFilter === "Unattempted" && qStats[q.id]?.attempts > 0) return false;
+    if (statusFilter === "Correct" && !(qStats[q.id]?.correct > 0)) return false;
+    if (statusFilter === "Incorrect" && !(qStats[q.id]?.attempts > 0 && qStats[q.id]?.correct === 0)) return false;
     if (topic !== "All Topics") {
       const col = getColumnCategory(q);
       if (["Column 1","Column 2","Column 3"].includes(topic)) {
@@ -618,7 +622,7 @@ function App() {
       return q.question.toLowerCase().includes(s) || q.tags.some(t=>t.includes(s)) || q.topic.toLowerCase().includes(s) || (q.source||"").toLowerCase().includes(s);
     }
     return true;
-  }), [questions, topic, diff, search, typeFilter, sourceFilter, recommendedMode, recommendedIds]);
+  }), [questions, topic, diff, search, typeFilter, sourceFilter, statusFilter, qStats, recommendedMode, recommendedIds]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageClamped = Math.min(page, totalPages);
@@ -895,10 +899,12 @@ function App() {
               <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
               </div>
-              {recommendedVisible.map((q,i) => (
-                <ProblemRow key={q.id} q={q} n={i+1}
-                  onOpen={()=>openProblem(filtered.findIndex(x=>x.id===q.id))} />
-              ))}
+              {recommendedVisible.map((q,i) => {
+                const rec = qStats[q.id];
+                const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
+                return <ProblemRow key={q.id} q={q} n={i+1} status={status}
+                  onOpen={()=>openProblem(filtered.findIndex(x=>x.id===q.id))} />;
+              })}
             </div>
           )}
         </div>
@@ -932,10 +938,12 @@ function App() {
               <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
               </div>
-              {questions.filter(q=>bookmarks.includes(q.id)).map((q,i) => (
-                <ProblemRow key={q.id} q={q} n={i+1}
-                  onOpen={()=>{ const idx=filtered.findIndex(x=>x.id===q.id); if(idx===-1){setTopic("All Topics");setDiff("All Difficulties");setSearch(""); setTimeout(()=>openProblem(questions.findIndex(x=>x.id===q.id)),50);} else openProblem(idx); }} />
-              ))}
+              {questions.filter(q=>bookmarks.includes(q.id)).map((q,i) => {
+                const rec = qStats[q.id];
+                const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
+                return <ProblemRow key={q.id} q={q} n={i+1} status={status}
+                  onOpen={()=>{ const idx=filtered.findIndex(x=>x.id===q.id); if(idx===-1){setTopic("All Topics");setDiff("All Difficulties");setSearch(""); setTimeout(()=>openProblem(questions.findIndex(x=>x.id===q.id)),50);} else openProblem(idx); }} />;
+              })}
             </div>
           )}
         </div>
@@ -954,6 +962,7 @@ function App() {
               onChange={e=>{setSearch(e.target.value); setRecommendedMode(false); setView("list"); setPage(1);}}
               className="w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
+          <Dropdown label="Status" value={statusFilter} options={["All Status","Unattempted","Correct","Incorrect"]} onChange={v=>onFilter(setStatusFilter,v)} />
           <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
           <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
           <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
@@ -976,7 +985,9 @@ function App() {
             </div>
           ) : pageItems.map((q, i) => {
             const globalIdx = (pageClamped-1)*PAGE_SIZE + i;
-            return <ProblemRow key={q.id} q={q} n={globalIdx+1} onOpen={()=>openProblem(globalIdx)} />;
+            const rec = qStats[q.id];
+            const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
+            return <ProblemRow key={q.id} q={q} n={globalIdx+1} status={status} onOpen={()=>openProblem(globalIdx)} />;
           })}
         </div>
 

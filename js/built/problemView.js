@@ -22,14 +22,18 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function ProblemRow(_ref) {
   var q = _ref.q,
     n = _ref.n,
-    onOpen = _ref.onOpen;
+    onOpen = _ref.onOpen,
+    status = _ref.status;
+  var dotCls = status === "correct" ? "bg-emerald-500" : status === "incorrect" ? "bg-rose-500" : "bg-transparent";
   return /*#__PURE__*/React.createElement("button", {
     onClick: onOpen,
     className: "group w-full grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] items-center gap-3 px-4 py-3 text-left border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center gap-2"
+    className: "flex items-center justify-end gap-1.5"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "text-xs font-mono text-slate-400 dark:text-slate-600 w-6 text-right"
+    className: "w-1.5 h-1.5 rounded-full shrink-0 ".concat(dotCls)
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono text-slate-400 dark:text-slate-600 text-right"
   }, n)), /*#__PURE__*/React.createElement("div", {
     className: "min-w-0"
   }, /*#__PURE__*/React.createElement("p", {

@@ -778,6 +778,10 @@ function App() {
     _useState60 = _slicedToArray(_useState59, 2),
     sourceFilter = _useState60[0],
     setSourceFilter = _useState60[1];
+  var _useState61 = useState("All Status"),
+    _useState62 = _slicedToArray(_useState61, 2),
+    statusFilter = _useState62[0],
+    setStatusFilter = _useState62[1];
 
   // Rebuild per-question stats from the `attempts` table on login. Answers can only be
   // submitted while signed in, so server history is authoritative — this keeps the list's
@@ -961,18 +965,18 @@ function App() {
       setPage(1);
     }
   };
-  var _useState61 = useState([]),
-    _useState62 = _slicedToArray(_useState61, 2),
-    questions = _useState62[0],
-    setQuestions = _useState62[1];
-  var _useState63 = useState("loading"),
+  var _useState63 = useState([]),
     _useState64 = _slicedToArray(_useState63, 2),
-    loadState = _useState64[0],
-    setLoadState = _useState64[1]; // "loading" | "ready" | "error"
-  var _useState65 = useState(""),
+    questions = _useState64[0],
+    setQuestions = _useState64[1];
+  var _useState65 = useState("loading"),
     _useState66 = _slicedToArray(_useState65, 2),
-    loadError = _useState66[0],
-    setLoadError = _useState66[1];
+    loadState = _useState66[0],
+    setLoadState = _useState66[1]; // "loading" | "ready" | "error"
+  var _useState67 = useState(""),
+    _useState68 = _slicedToArray(_useState67, 2),
+    loadError = _useState68[0],
+    setLoadError = _useState68[1];
   useEffect(function () {
     var cancelled = false;
     function loadQuestionsFromSupabase() {
@@ -1104,7 +1108,11 @@ function App() {
   }, [questions, qStats]);
   var filtered = useMemo(function () {
     return questions.filter(function (q) {
+      var _qStats$q$id, _qStats$q$id2, _qStats$q$id3, _qStats$q$id4;
       if (recommendedMode && !recommendedIds.has(q.id)) return false;
+      if (statusFilter === "Unattempted" && ((_qStats$q$id = qStats[q.id]) === null || _qStats$q$id === void 0 ? void 0 : _qStats$q$id.attempts) > 0) return false;
+      if (statusFilter === "Correct" && !(((_qStats$q$id2 = qStats[q.id]) === null || _qStats$q$id2 === void 0 ? void 0 : _qStats$q$id2.correct) > 0)) return false;
+      if (statusFilter === "Incorrect" && !(((_qStats$q$id3 = qStats[q.id]) === null || _qStats$q$id3 === void 0 ? void 0 : _qStats$q$id3.attempts) > 0 && ((_qStats$q$id4 = qStats[q.id]) === null || _qStats$q$id4 === void 0 ? void 0 : _qStats$q$id4.correct) === 0)) return false;
       if (topic !== "All Topics") {
         var col = getColumnCategory(q);
         if (["Column 1", "Column 2", "Column 3"].includes(topic)) {
@@ -1122,7 +1130,7 @@ function App() {
       }
       return true;
     });
-  }, [questions, topic, diff, search, typeFilter, sourceFilter, recommendedMode, recommendedIds]);
+  }, [questions, topic, diff, search, typeFilter, sourceFilter, statusFilter, qStats, recommendedMode, recommendedIds]);
   var totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   var pageClamped = Math.min(page, totalPages);
   var pageItems = filtered.slice((pageClamped - 1) * PAGE_SIZE, pageClamped * PAGE_SIZE);
@@ -1485,10 +1493,13 @@ function App() {
   }, /*#__PURE__*/React.createElement("div", {
     className: "hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500"
   }, /*#__PURE__*/React.createElement("span", null, "#"), /*#__PURE__*/React.createElement("span", null, "Problem"), /*#__PURE__*/React.createElement("span", null, "Topic"), /*#__PURE__*/React.createElement("span", null, "Difficulty"), /*#__PURE__*/React.createElement("span", null, "Source"), /*#__PURE__*/React.createElement("span", null, "Date Added")), recommendedVisible.map(function (q, i) {
+    var rec = qStats[q.id];
+    var status = (rec === null || rec === void 0 ? void 0 : rec.attempts) > 0 ? rec.correct > 0 ? "correct" : "incorrect" : null;
     return /*#__PURE__*/React.createElement(ProblemRow, {
       key: q.id,
       q: q,
       n: i + 1,
+      status: status,
       onOpen: function onOpen() {
         return openProblem(filtered.findIndex(function (x) {
           return x.id === q.id;
@@ -1552,10 +1563,13 @@ function App() {
   }, /*#__PURE__*/React.createElement("span", null, "#"), /*#__PURE__*/React.createElement("span", null, "Problem"), /*#__PURE__*/React.createElement("span", null, "Topic"), /*#__PURE__*/React.createElement("span", null, "Difficulty"), /*#__PURE__*/React.createElement("span", null, "Source"), /*#__PURE__*/React.createElement("span", null, "Date Added")), questions.filter(function (q) {
     return bookmarks.includes(q.id);
   }).map(function (q, i) {
+    var rec = qStats[q.id];
+    var status = (rec === null || rec === void 0 ? void 0 : rec.attempts) > 0 ? rec.correct > 0 ? "correct" : "incorrect" : null;
     return /*#__PURE__*/React.createElement(ProblemRow, {
       key: q.id,
       q: q,
       n: i + 1,
+      status: status,
       onOpen: function onOpen() {
         var idx = filtered.findIndex(function (x) {
           return x.id === q.id;
@@ -1596,6 +1610,13 @@ function App() {
     },
     className: "w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
   })), /*#__PURE__*/React.createElement(Dropdown, {
+    label: "Status",
+    value: statusFilter,
+    options: ["All Status", "Unattempted", "Correct", "Incorrect"],
+    onChange: function onChange(v) {
+      return onFilter(setStatusFilter, v);
+    }
+  }), /*#__PURE__*/React.createElement(Dropdown, {
     label: "Topic",
     value: topic,
     options: TOPICS,
@@ -1651,10 +1672,13 @@ function App() {
     className: "text-sm text-slate-400 dark:text-slate-500"
   }, "Try adjusting your filters or search term.")) : pageItems.map(function (q, i) {
     var globalIdx = (pageClamped - 1) * PAGE_SIZE + i;
+    var rec = qStats[q.id];
+    var status = (rec === null || rec === void 0 ? void 0 : rec.attempts) > 0 ? rec.correct > 0 ? "correct" : "incorrect" : null;
     return /*#__PURE__*/React.createElement(ProblemRow, {
       key: q.id,
       q: q,
       n: globalIdx + 1,
+      status: status,
       onOpen: function onOpen() {
         return openProblem(globalIdx);
       }

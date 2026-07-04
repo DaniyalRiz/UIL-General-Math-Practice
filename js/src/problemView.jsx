@@ -1,12 +1,16 @@
 // ── Problem list (row layout) ────────────────────────────────────────────────
-function ProblemRow({ q, n, onOpen }) {
+function ProblemRow({ q, n, onOpen, status }) {
+  const dotCls = status === "correct" ? "bg-emerald-500"
+               : status === "incorrect" ? "bg-rose-500"
+               : "bg-transparent";
   return (
     <button onClick={onOpen}
       className="group w-full grid grid-cols-[2.5rem_1fr_auto] sm:grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] items-center gap-3 px-4 py-3 text-left
                  border-b border-slate-100 dark:border-slate-800
                  hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors">
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-mono text-slate-400 dark:text-slate-600 w-6 text-right">{n}</span>
+      <div className="flex items-center justify-end gap-1.5">
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotCls}`}></span>
+        <span className="text-xs font-mono text-slate-400 dark:text-slate-600 text-right">{n}</span>
       </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
