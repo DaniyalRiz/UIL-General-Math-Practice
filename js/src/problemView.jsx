@@ -369,11 +369,11 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
             {/* Right: timer + bookmark + close */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Timer */}
-              <div className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg border font-mono text-xs sm:text-sm font-bold tabular-nums transition-colors
+              <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-sm font-bold tabular-nums transition-colors
                 ${answered
                   ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500"
                   : "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"}`}>
-                <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" strokeWidth="2"/>
                   <path strokeLinecap="round" strokeWidth="2" d="M12 6v6l4 2"/>
                 </svg>
@@ -424,7 +424,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
             {/* ── hint ── */}
             {!answered && (
               <p className="px-4 sm:px-6 pb-2 text-xs text-slate-400 dark:text-slate-500">
-                Click to select · Right-click to cross out · Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[10px]">Submit</kbd> to check
+                Click to select · Right-click to cross out · Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs">Submit</kbd> to check
               </p>
             )}
 
@@ -472,7 +472,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
                   </p>
                 )}
                 <button onClick={handleSubmit} disabled={!pending || submitting || !authUser}
-                  className={`w-full py-3 rounded-xl text-sm font-bold transition-all
+                  className={`w-full py-3 rounded-lg text-sm font-bold transition-all
                     ${pending && !submitting && authUser
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"}`}>
@@ -483,14 +483,29 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
 
             {/* ── explanation (post-answer) ── */}
             {answered && (
-              <div className={`mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border flex flex-col
+              <div className={`mx-4 sm:mx-6 mb-5 rounded-xl border overflow-hidden
                 ${isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30"
                             : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30"}`}>
-                <div className={`font-bold text-base mb-3 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
-                  {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{` · Time: ${timer.fmt}`}
+                {/* Verdict row */}
+                <div className={`flex items-center justify-between px-5 py-3.5 border-b
+                  ${isCorrect ? "border-emerald-200 dark:border-emerald-500/30" : "border-rose-200 dark:border-rose-500/30"}`}>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className={`text-base font-black ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
+                      {isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                    </span>
+                    {!isCorrect && correctAnswer && (
+                      <span className="text-sm text-slate-600 dark:text-slate-300">
+                        Correct answer: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{correctAnswer}</span>
+                      </span>
+                    )}
+                  </div>
+                  <span className={`text-xs font-mono font-bold tabular-nums shrink-0 ml-3 ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
+                    {timer.fmt}
+                  </span>
                 </div>
-                <div className="mt-1 text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed whitespace-normal break-words">
-                  <div className="overflow-x-auto max-w-full">
+                {/* Explanation body */}
+                <div className="px-5 py-5 text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed max-w-3xl">
+                  <div className="overflow-x-auto">
                     <MathText text={explanationText || ""} />
                   </div>
                 </div>
@@ -536,7 +551,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
             className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasPrev
               ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed"}`}>← Prev</button>
-          <button onClick={onClose} className="w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700">Back to List</button>
+          <button onClick={onClose} className="w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700">Close</button>
           <button onClick={onNext} disabled={!hasNext}
             className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasNext
               ? "bg-blue-600 hover:bg-blue-700 text-white"
