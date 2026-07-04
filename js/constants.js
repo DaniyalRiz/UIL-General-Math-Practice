@@ -99,7 +99,7 @@ const MASTERY_LEVELS = [
   { min: 50,  name: 'State Qualifier',   color: 'text-sky-500 dark:text-sky-400',         bar: 'bg-sky-500'     },
   { min: 25,  name: 'Region Qualifier',  color: 'text-emerald-500 dark:text-emerald-400', bar: 'bg-emerald-500' },
   { min: 10,  name: 'Competitor',        color: 'text-orange-500 dark:text-orange-400',   bar: 'bg-orange-500'  },
-  { min: 0,   name: 'Beginner',          color: 'text-slate-400 dark:text-slate-500',     bar: 'bg-slate-400'   },
+  { min: 0,   name: 'Beginner',          color: 'text-cyan-500 dark:text-cyan-400',       bar: 'bg-cyan-500'    },
 ];
 
 const getMasteryLevel = (pct) =>
