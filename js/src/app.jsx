@@ -391,6 +391,8 @@ function App() {
   const [page, setPage] = useState(1);
   const [openIdx, setOpenIdx] = useState(null);
   const [view, setView] = useState("list");
+  const [jumpValue, setJumpValue] = useState('');
+  const [jumpActive, setJumpActive] = useState(null);
 
   const answersRef = useRef({});
   const [answerVersion, setAnswerVersion] = useState(0);
@@ -982,7 +984,26 @@ function App() {
               <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={pageClamped===1}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium ${pageClamped===1?"text-slate-300 dark:text-slate-700 cursor-not-allowed":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>‹</button>
               {items.map((p, i) => p === '...'
-                ? <span key={`e${i}`} className="px-1 text-slate-400 dark:text-slate-600 select-none">…</span>
+                ? jumpActive === i
+                  ? <input key={`e${i}`} type="number" autoFocus value={jumpValue}
+                      onChange={e => setJumpValue(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          const n = Math.min(totalPages, Math.max(1, parseInt(jumpValue, 10)));
+                          if (!isNaN(n)) setPage(n);
+                          setJumpActive(null); setJumpValue('');
+                        }
+                        if (e.key === 'Escape') { setJumpActive(null); setJumpValue(''); }
+                      }}
+                      onBlur={() => {
+                        const n = Math.min(totalPages, Math.max(1, parseInt(jumpValue, 10)));
+                        if (!isNaN(n) && jumpValue) setPage(n);
+                        setJumpActive(null); setJumpValue('');
+                      }}
+                      className="w-12 h-9 text-center rounded-lg border border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                  : <button key={`e${i}`} onClick={() => { setJumpActive(i); setJumpValue(''); }}
+                      title="Jump to page"
+                      className="px-1.5 h-9 text-slate-400 dark:text-slate-600 hover:text-blue-500 dark:hover:text-blue-400 text-sm font-bold select-none transition-colors">…</button>
                 : <button key={p} onClick={()=>setPage(p)}
                     className={`w-9 h-9 rounded-lg text-sm font-medium ${p===pageClamped?"bg-blue-600 text-white":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p}</button>
               )}
