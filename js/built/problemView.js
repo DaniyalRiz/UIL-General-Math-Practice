@@ -600,7 +600,7 @@ function ProblemView(_ref3) {
   }, q.title))), /*#__PURE__*/React.createElement("div", {
     className: "flex-1 min-h-0 overflow-y-auto overscroll-contain ".concat(answered ? "flex flex-col lg:flex-row pb-32 sm:pb-6" : "flex flex-col pb-3")
   }, /*#__PURE__*/React.createElement("div", {
-    className: answered ? "lg:flex-1 lg:min-w-0 lg:overflow-y-auto flex flex-col" : "flex flex-col"
+    className: answered ? "lg:flex-1 lg:min-w-0 flex flex-col overflow-y-auto" : "flex flex-col"
   }, /*#__PURE__*/React.createElement("div", {
     className: "px-4 sm:px-6 pt-4 sm:pt-5 pb-4"
   }, /*#__PURE__*/React.createElement("p", {
@@ -655,7 +655,7 @@ function ProblemView(_ref3) {
     disabled: !pending || submitting || !authUser,
     className: "w-full py-3 rounded-lg text-sm font-bold transition-all\n                    ".concat(pending && !submitting && authUser ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed")
   }, !authUser ? "Sign in to submit securely" : submitting ? "Submitting…" : pending ? "Submit Answer" : "Select an answer first")), answered && /*#__PURE__*/React.createElement("div", {
-    className: "mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border flex flex-col\n                ".concat(isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30" : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30")
+    className: "mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border flex flex-col shrink-0\n                ".concat(isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30" : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30")
   }, /*#__PURE__*/React.createElement("div", {
     className: "font-bold text-base mb-3 ".concat(isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300")
   }, isCorrect ? "✓ Correct!" : "\u2717 Incorrect \u2014 Correct: ".concat(correctAnswer), " \xB7 Time: ".concat(timer.fmt)), /*#__PURE__*/React.createElement("div", {
