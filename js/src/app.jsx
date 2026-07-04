@@ -738,9 +738,7 @@ function App() {
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-1 sm:gap-4">
           {/* Left: logo + tabs — scrollable on mobile */}
-          <div className="relative flex-1 min-w-0">
-          <div className="flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar">
-          <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white/90 dark:from-slate-900/90 to-transparent sm:hidden"></div>
+          <div className="flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar flex-1">
             <img src="./assets/logo-icon.svg" alt="UIL Math Practice" className="hidden lg:block h-7 w-auto flex-shrink-0 mr-1" />
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <a href="./index.html"
@@ -785,15 +783,6 @@ function App() {
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                 Leaderboard
               </button>
-              {authUser && (
-                <button onClick={()=>navigateTab('mastery')}
-                  className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
-                    ${tab==='mastery'
-                      ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                  Mastery
-                </button>
-              )}
               {authUser && ADMIN_EMAILS.includes(authUser.email || '') && (
                 <button onClick={()=>navigateTab('admin')}
                   className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
@@ -804,7 +793,6 @@ function App() {
                 </button>
               )}
             </div>
-          </div>
           </div>
           {/* Right: actions */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
