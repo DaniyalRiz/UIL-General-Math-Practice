@@ -23,7 +23,7 @@
   />
   <!-- Square root symbol: descender → check bottom → upstroke → vinculum -->
   <polyline
-    points="56,99 73,121 109,57 156,57"
+    points="90,100 112,128 145,70 180,70"
     fill="none"
     stroke="#22C55E"
     stroke-width="14"
