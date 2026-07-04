@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 203 179" role="img" aria-label="UIL Math Practice">
+  <title>UIL Math Practice</title>
+  <!--
+    Texas outline: 17-point polygon from real lat/lon coordinates.
+    Points (clockwise from NW panhandle corner):
+      NW panhandle (103°W,36.5°N), NE panhandle (100°W,36.5°N),
+      SE panhandle (100°W,34°N), Texarkana (94.05°W,33.45°N),
+      Sabine Pass (93.85°W,29.73°N), Galveston Bay (94.95°W,29.35°N),
+      Matagorda Bay (96.4°W,28.5°N), Corpus Christi (97.4°W,27.8°N),
+      South Padre (97.2°W,26.1°N), Brownsville (97.16°W,25.96°N),
+      Laredo (99.51°W,27.48°N), Del Rio (100.9°W,29.36°N),
+      Langtry (101.6°W,29.8°N), Big Bend (103.5°W,29.1°N),
+      Presidio (104.37°W,29.57°N), El Paso (106.49°W,31.76°N),
+      NM border corner (103°W,32°N) — Z closes to NW panhandle.
+  -->
+  <path
+    d="M56,2 L104,2 L104,43 L198,52 L201,114 L180,121 L161,135 L145,146 L148,175 L149,177 L111,152 L89,120 L78,113 L48,125 L35,117 L1,80 L56,76 Z"
+    fill="none"
+    stroke="#DC2626"
+    stroke-width="9"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+  />
+  <!-- Square root symbol: descender → check bottom → upstroke → vinculum -->
+  <polyline
+    points="56,99 73,121 109,57 156,57"
+    fill="none"
+    stroke="#22C55E"
+    stroke-width="14"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

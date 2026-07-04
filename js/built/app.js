@@ -1141,9 +1141,11 @@ function App() {
     className: "max-w-6xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-1 sm:gap-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar flex-1"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-slate-800 dark:text-slate-100 text-sm tracking-tight whitespace-nowrap hidden lg:block flex-shrink-0 mr-2"
-  }, "UIL Math"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "./assets/logo-icon.svg",
+    alt: "UIL Math Practice",
+    className: "hidden lg:block h-7 w-auto flex-shrink-0 mr-1"
+  }), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-0.5 flex-shrink-0"
   }, /*#__PURE__*/React.createElement("a", {
     href: "./index.html",

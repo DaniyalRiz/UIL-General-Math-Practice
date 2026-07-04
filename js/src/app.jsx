@@ -690,7 +690,7 @@ function App() {
         <div className="max-w-6xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-1 sm:gap-4">
           {/* Left: logo + tabs — scrollable on mobile */}
           <div className="flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar flex-1">
-            <span className="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-tight whitespace-nowrap hidden lg:block flex-shrink-0 mr-2">UIL Math</span>
+            <img src="./assets/logo-icon.svg" alt="UIL Math Practice" className="hidden lg:block h-7 w-auto flex-shrink-0 mr-1" />
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <a href="./index.html"
                 className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">

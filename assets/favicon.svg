@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="UIL Math Practice">
+  <title>UIL Math Practice</title>
+  <!-- Navy background -->
+  <rect width="32" height="32" rx="6" fill="#1B2B4B"/>
+  <!--
+    Texas scaled to fit within 32×32: original viewBox 203×179 → scale 0.154 → fits 31×28.
+    Translated +0.5,+2 to center vertically.
+    Strokes scaled inversely so they remain visible: tx stroke-width=1.6, sqrt stroke-width=2.5
+  -->
+  <g transform="translate(0.5,2) scale(0.154)">
+    <path
+      d="M56,2 L104,2 L104,43 L198,52 L201,114 L180,121 L161,135 L145,146 L148,175 L149,177 L111,152 L89,120 L78,113 L48,125 L35,117 L1,80 L56,76 Z"
+      fill="none"
+      stroke="#DC2626"
+      stroke-width="10"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+    <polyline
+      points="56,99 73,121 109,57 156,57"
+      fill="none"
+      stroke="#22C55E"
+      stroke-width="16"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>
