@@ -352,7 +352,7 @@ function AnalyticsPage(_ref) {
   }, [{
     label: 'Attempted',
     value: total,
-    color: 'text-blue-600 dark:text-blue-400'
+    color: 'text-slate-700 dark:text-slate-200'
   }, {
     label: 'Correct',
     value: correct,
@@ -360,64 +360,98 @@ function AnalyticsPage(_ref) {
   }, {
     label: 'Accuracy',
     value: accuracy + '%',
-    color: accuracy >= 70 ? 'text-emerald-600 dark:text-emerald-400' : accuracy >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'
+    color: accuracy >= 70 ? 'text-emerald-600 dark:text-emerald-400' : accuracy >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400',
+    border: 'border-blue-200 dark:border-blue-800/60',
+    large: true
   }, {
     label: 'Avg Time',
     value: fmtTime(avgMs),
-    color: 'text-slate-800 dark:text-slate-100'
+    color: 'text-slate-600 dark:text-slate-300'
   }, {
     label: 'Total Time',
     value: fmtTime(totalMs),
-    color: 'text-slate-800 dark:text-slate-100'
+    color: 'text-slate-600 dark:text-slate-300'
   }, {
     label: 'Day Streak',
     value: streak + (streak === 1 ? ' day' : ' days'),
-    color: 'text-amber-600 dark:text-amber-400'
+    color: 'text-amber-600 dark:text-amber-400',
+    border: 'border-amber-200 dark:border-amber-800/60'
   }].map(function (_ref5) {
     var label = _ref5.label,
       value = _ref5.value,
-      color = _ref5.color;
+      color = _ref5.color,
+      border = _ref5.border,
+      large = _ref5.large;
     return /*#__PURE__*/React.createElement("div", {
       key: label,
-      className: "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-center shadow-sm"
+      className: "rounded-xl border ".concat(border || 'border-slate-200 dark:border-slate-800', " bg-white dark:bg-slate-900 p-4 text-center shadow-sm")
     }, /*#__PURE__*/React.createElement("p", {
-      className: "text-2xl font-black ".concat(color)
+      className: "".concat(large ? 'text-3xl' : 'text-2xl', " font-black ").concat(color)
     }, value), /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium uppercase tracking-wide"
     }, label));
-  })), topicsWithData.length > 1 && /*#__PURE__*/React.createElement("div", {
-    className: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"
-  }, [{
-    label: 'Strongest Topic',
-    value: strongest === null || strongest === void 0 ? void 0 : strongest.topic,
-    sub: (strongest === null || strongest === void 0 ? void 0 : strongest.accuracy) + '% accuracy'
-  }, {
-    label: 'Needs Work',
-    value: weakest === null || weakest === void 0 ? void 0 : weakest.topic,
-    sub: (weakest === null || weakest === void 0 ? void 0 : weakest.accuracy) + '% accuracy'
-  }, {
-    label: 'Fastest Topic',
-    value: fastest === null || fastest === void 0 ? void 0 : fastest.topic,
-    sub: fmtTime(fastest === null || fastest === void 0 ? void 0 : fastest.avgMs) + ' avg'
-  }, {
-    label: 'Slowest Topic',
-    value: slowest === null || slowest === void 0 ? void 0 : slowest.topic,
-    sub: fmtTime(slowest === null || slowest === void 0 ? void 0 : slowest.avgMs) + ' avg'
-  }].map(function (_ref6) {
-    var label = _ref6.label,
-      value = _ref6.value,
-      sub = _ref6.sub;
+  })), topicsWithData.length > 1 && function () {
+    var INSIGHT_STYLE = {
+      'Strongest Topic': {
+        dot: 'bg-emerald-500',
+        text: 'text-emerald-700 dark:text-emerald-400',
+        border: 'border-emerald-200 dark:border-emerald-800/60'
+      },
+      'Needs Work': {
+        dot: 'bg-rose-500',
+        text: 'text-rose-700 dark:text-rose-400',
+        border: 'border-rose-200 dark:border-rose-800/60'
+      },
+      'Fastest Topic': {
+        dot: 'bg-blue-500',
+        text: 'text-blue-700 dark:text-blue-400',
+        border: 'border-blue-200 dark:border-blue-800/60'
+      },
+      'Slowest Topic': {
+        dot: 'bg-amber-500',
+        text: 'text-amber-700 dark:text-amber-400',
+        border: 'border-amber-200 dark:border-amber-800/60'
+      }
+    };
     return /*#__PURE__*/React.createElement("div", {
-      key: label,
-      className: "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm"
-    }, /*#__PURE__*/React.createElement("p", {
-      className: "text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1"
-    }, label), /*#__PURE__*/React.createElement("p", {
-      className: "text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight"
-    }, value || '—'), /*#__PURE__*/React.createElement("p", {
-      className: "text-xs text-slate-500 dark:text-slate-400 mt-0.5"
-    }, sub));
-  })), /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"
+    }, [{
+      label: 'Strongest Topic',
+      value: strongest === null || strongest === void 0 ? void 0 : strongest.topic,
+      sub: (strongest === null || strongest === void 0 ? void 0 : strongest.accuracy) + '% accuracy'
+    }, {
+      label: 'Needs Work',
+      value: weakest === null || weakest === void 0 ? void 0 : weakest.topic,
+      sub: (weakest === null || weakest === void 0 ? void 0 : weakest.accuracy) + '% accuracy'
+    }, {
+      label: 'Fastest Topic',
+      value: fastest === null || fastest === void 0 ? void 0 : fastest.topic,
+      sub: fmtTime(fastest === null || fastest === void 0 ? void 0 : fastest.avgMs) + ' avg'
+    }, {
+      label: 'Slowest Topic',
+      value: slowest === null || slowest === void 0 ? void 0 : slowest.topic,
+      sub: fmtTime(slowest === null || slowest === void 0 ? void 0 : slowest.avgMs) + ' avg'
+    }].map(function (_ref6) {
+      var label = _ref6.label,
+        value = _ref6.value,
+        sub = _ref6.sub;
+      var s = INSIGHT_STYLE[label];
+      return /*#__PURE__*/React.createElement("div", {
+        key: label,
+        className: "rounded-xl border ".concat(s.border, " bg-white dark:bg-slate-900 p-4 shadow-sm")
+      }, /*#__PURE__*/React.createElement("div", {
+        className: "flex items-center gap-1.5 mb-1.5"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "w-2 h-2 rounded-full shrink-0 ".concat(s.dot)
+      }), /*#__PURE__*/React.createElement("p", {
+        className: "text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+      }, label)), /*#__PURE__*/React.createElement("p", {
+        className: "text-sm font-bold ".concat(s.text, " leading-tight")
+      }, value || '—'), /*#__PURE__*/React.createElement("p", {
+        className: "text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+      }, sub));
+    }));
+  }(), /*#__PURE__*/React.createElement("div", {
     className: "grid lg:grid-cols-2 gap-6"
   }, /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6"
