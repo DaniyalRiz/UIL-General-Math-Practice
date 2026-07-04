@@ -445,8 +445,7 @@ function App() {
   const markUsedRecommendedPractice = async () => {
     if (!authUser || masteryStats?.used_recommended_practice) return;
     const { error } = await _supabase.from('user_stats')
-      .update({ used_recommended_practice: true })
-      .eq('user_id', authUser.id);
+      .upsert({ user_id: authUser.id, used_recommended_practice: true }, { onConflict: 'user_id' });
     if (!error) setMasteryStats(prev => prev ? { ...prev, used_recommended_practice: true } : prev);
   };
 

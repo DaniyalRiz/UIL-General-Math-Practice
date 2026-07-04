@@ -853,9 +853,12 @@ function App() {
             return _context7.a(2);
           case 1:
             _context7.n = 2;
-            return _supabase.from('user_stats').update({
+            return _supabase.from('user_stats').upsert({
+              user_id: authUser.id,
               used_recommended_practice: true
-            }).eq('user_id', authUser.id);
+            }, {
+              onConflict: 'user_id'
+            });
           case 2:
             _yield$_supabase$from2 = _context7.v;
             error = _yield$_supabase$from2.error;
