@@ -1,6 +1,6 @@
 
 
-function SettingsPage({ authUser }) {
+function SettingsPage({ authUser, navigateTab }) {
   const providers = authUser?.app_metadata?.providers || [];
   const hasPasswordAuth = providers.includes('email');
   const avatarColor = avatarColorFor(authUser);
@@ -123,9 +123,12 @@ function SettingsPage({ authUser }) {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Settings</h1>
-        <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">← Click <span className="font-semibold text-slate-500 dark:text-slate-400">Problems</span> in the nav to return to practicing</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">Settings</h1>
+        <button onClick={() => navigateTab('problems')} title="Close"
+          className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
@@ -232,9 +235,12 @@ function ReportBugPage({ authUser, navigateTab }) {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Report a Bug</h1>
-        <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">← Click <span className="font-semibold text-slate-500 dark:text-slate-400">Problems</span> in the nav to return to practicing</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">Report a Bug</h1>
+        <button onClick={() => navigateTab('problems')} title="Close"
+          className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
@@ -777,7 +783,7 @@ function App() {
       ) : tab === 'admin' ? (
         <AdminQuestionManager authUser={authUser} />
       ) : tab === 'settings' ? (
-        <SettingsPage authUser={authUser} />
+        <SettingsPage authUser={authUser} navigateTab={navigateTab} />
       ) : tab === 'reportBug' ? (
         <ReportBugPage authUser={authUser} navigateTab={navigateTab} />
       ) : view === "recommended" ? (
@@ -787,8 +793,11 @@ function App() {
               <div>
                 <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Recommended Practice</h1>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">{recommendedVisible.length} recommended problem{recommendedVisible.length!==1?"s":""}</p>
-                <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">← Click <span className="font-semibold text-slate-500 dark:text-slate-400">Problems</span> in the nav to return to all problems</p>
               </div>
+              <button onClick={() => { setRecommendedMode(false); setView('list'); }} title="Close"
+                className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
             </div>
           </div>
 
@@ -843,15 +852,20 @@ function App() {
         </div>
       ) : view === "review" ? (
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Review Later</h1>
               <p className="text-slate-500 dark:text-slate-400 text-sm">{bookmarks.length} bookmarked problem{bookmarks.length!==1?"s":""}</p>
-              <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">← Click <span className="font-semibold text-slate-500 dark:text-slate-400">Problems</span> in the nav to return to all problems</p>
             </div>
-            {bookmarks.length>0 && (
-              <button onClick={()=>setBookmarks([])} className="text-xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Clear all</button>
-            )}
+            <div className="flex items-center gap-2 mt-1 shrink-0">
+              {bookmarks.length>0 && (
+                <button onClick={()=>setBookmarks([])} className="text-xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Clear all</button>
+              )}
+              <button onClick={() => setView('list')} title="Close"
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
           </div>
           {bookmarks.length === 0 ? (
             <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">

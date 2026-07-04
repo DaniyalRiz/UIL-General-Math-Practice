@@ -20,7 +20,8 @@ function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" !=
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function SettingsPage(_ref) {
   var _authUser$app_metadat, _authUser$user_metada;
-  var authUser = _ref.authUser;
+  var authUser = _ref.authUser,
+    navigateTab = _ref.navigateTab;
   var providers = (authUser === null || authUser === void 0 || (_authUser$app_metadat = authUser.app_metadata) === null || _authUser$app_metadat === void 0 ? void 0 : _authUser$app_metadat.providers) || [];
   var hasPasswordAuth = providers.includes('email');
   var avatarColor = avatarColorFor(authUser);
@@ -283,14 +284,26 @@ function SettingsPage(_ref) {
   return /*#__PURE__*/React.createElement("div", {
     className: "max-w-xl mx-auto px-4 py-8"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "mb-6"
+    className: "mb-6 flex items-start justify-between gap-4"
   }, /*#__PURE__*/React.createElement("h1", {
-    className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1"
-  }, "Settings"), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-400 dark:text-slate-600 text-xs mt-1"
-  }, "\u2190 Click ", /*#__PURE__*/React.createElement("span", {
-    className: "font-semibold text-slate-500 dark:text-slate-400"
-  }, "Problems"), " in the nav to return to practicing")), /*#__PURE__*/React.createElement("div", {
+    className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white"
+  }, "Settings"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return navigateTab('problems');
+    },
+    title: "Close",
+    className: "mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "20",
+    height: "20",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.5",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M18 6L6 18M6 6l12 12"
+  })))), /*#__PURE__*/React.createElement("div", {
     className: "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5"
   }, /*#__PURE__*/React.createElement("div", {
     className: "mb-6"
@@ -459,14 +472,26 @@ function ReportBugPage(_ref2) {
   return /*#__PURE__*/React.createElement("div", {
     className: "max-w-xl mx-auto px-4 py-8"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "mb-6"
+    className: "mb-6 flex items-start justify-between gap-4"
   }, /*#__PURE__*/React.createElement("h1", {
-    className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1"
-  }, "Report a Bug"), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-400 dark:text-slate-600 text-xs mt-1"
-  }, "\u2190 Click ", /*#__PURE__*/React.createElement("span", {
-    className: "font-semibold text-slate-500 dark:text-slate-400"
-  }, "Problems"), " in the nav to return to practicing")), /*#__PURE__*/React.createElement("div", {
+    className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white"
+  }, "Report a Bug"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return navigateTab('problems');
+    },
+    title: "Close",
+    className: "mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "20",
+    height: "20",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.5",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M18 6L6 18M6 6l12 12"
+  })))), /*#__PURE__*/React.createElement("div", {
     className: "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5"
   }, /*#__PURE__*/React.createElement("label", {
     className: "block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5"
@@ -1200,7 +1225,8 @@ function App() {
   }) : tab === 'admin' ? /*#__PURE__*/React.createElement(AdminQuestionManager, {
     authUser: authUser
   }) : tab === 'settings' ? /*#__PURE__*/React.createElement(SettingsPage, {
-    authUser: authUser
+    authUser: authUser,
+    navigateTab: navigateTab
   }) : tab === 'reportBug' ? /*#__PURE__*/React.createElement(ReportBugPage, {
     authUser: authUser,
     navigateTab: navigateTab
@@ -1214,11 +1240,24 @@ function App() {
     className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1"
   }, "Recommended Practice"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-500 dark:text-slate-400 text-sm"
-  }, recommendedVisible.length, " recommended problem", recommendedVisible.length !== 1 ? "s" : ""), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-400 dark:text-slate-600 text-xs mt-1"
-  }, "\u2190 Click ", /*#__PURE__*/React.createElement("span", {
-    className: "font-semibold text-slate-500 dark:text-slate-400"
-  }, "Problems"), " in the nav to return to all problems")))), /*#__PURE__*/React.createElement("div", {
+  }, recommendedVisible.length, " recommended problem", recommendedVisible.length !== 1 ? "s" : "")), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      setRecommendedMode(false);
+      setView('list');
+    },
+    title: "Close",
+    className: "mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "20",
+    height: "20",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.5",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M18 6L6 18M6 6l12 12"
+  }))))), /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 p-5 mb-6"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-start gap-3"
@@ -1317,21 +1356,35 @@ function App() {
   }))) : view === "review" ? /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-4 py-8"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "mb-6 flex items-center justify-between"
+    className: "mb-6 flex items-start justify-between gap-4"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1"
   }, "Review Later"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-500 dark:text-slate-400 text-sm"
-  }, bookmarks.length, " bookmarked problem", bookmarks.length !== 1 ? "s" : ""), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-400 dark:text-slate-600 text-xs mt-1"
-  }, "\u2190 Click ", /*#__PURE__*/React.createElement("span", {
-    className: "font-semibold text-slate-500 dark:text-slate-400"
-  }, "Problems"), " in the nav to return to all problems")), bookmarks.length > 0 && /*#__PURE__*/React.createElement("button", {
+  }, bookmarks.length, " bookmarked problem", bookmarks.length !== 1 ? "s" : "")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 mt-1 shrink-0"
+  }, bookmarks.length > 0 && /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return setBookmarks([]);
     },
     className: "text-xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
-  }, "Clear all")), bookmarks.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, "Clear all"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return setView('list');
+    },
+    title: "Close",
+    className: "p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "20",
+    height: "20",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.5",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M18 6L6 18M6 6l12 12"
+  }))))), bookmarks.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "text-center py-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
   }, /*#__PURE__*/React.createElement("p", {
     className: "font-semibold text-slate-700 dark:text-slate-300"
