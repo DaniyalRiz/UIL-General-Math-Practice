@@ -39,7 +39,7 @@ function LBRankBadge({ rank }) {
     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-black">2</span>
   );
   if (rank === 3) return (
-    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 text-xs font-black">3</span>
+    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-200 dark:bg-orange-700/30 text-orange-800 dark:text-orange-500 text-xs font-black">3</span>
   );
   return <span className="text-sm font-semibold text-slate-400 dark:text-slate-500">#{rank}</span>;
 }
