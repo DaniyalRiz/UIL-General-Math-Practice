@@ -969,18 +969,28 @@ function App() {
         </div>
 
         {/* PAGINATION */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-1.5 mt-6">
-            <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={pageClamped===1}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium ${pageClamped===1?"text-slate-300 dark:text-slate-700 cursor-not-allowed":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>‹</button>
-            {Array.from({length: totalPages}, (_,i)=>i+1).map(p => (
-              <button key={p} onClick={()=>setPage(p)}
-                className={`w-9 h-9 rounded-lg text-sm font-medium ${p===pageClamped?"bg-blue-600 text-white":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p}</button>
-            ))}
-            <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={pageClamped===totalPages}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium ${pageClamped===totalPages?"text-slate-300 dark:text-slate-700 cursor-not-allowed":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>›</button>
-          </div>
-        )}
+        {totalPages > 1 && (() => {
+          const pages = new Set([1, totalPages]);
+          for (let i = Math.max(1, pageClamped - 2); i <= Math.min(totalPages, pageClamped + 2); i++) pages.add(i);
+          const items = [];
+          [...pages].sort((a,b)=>a-b).forEach((p, i, arr) => {
+            if (i > 0 && p - arr[i-1] > 1) items.push('...');
+            items.push(p);
+          });
+          return (
+            <div className="flex items-center justify-center gap-1.5 mt-6">
+              <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={pageClamped===1}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${pageClamped===1?"text-slate-300 dark:text-slate-700 cursor-not-allowed":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>‹</button>
+              {items.map((p, i) => p === '...'
+                ? <span key={`e${i}`} className="px-1 text-slate-400 dark:text-slate-600 select-none">…</span>
+                : <button key={p} onClick={()=>setPage(p)}
+                    className={`w-9 h-9 rounded-lg text-sm font-medium ${p===pageClamped?"bg-blue-600 text-white":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p}</button>
+              )}
+              <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={pageClamped===totalPages}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${pageClamped===totalPages?"text-slate-300 dark:text-slate-700 cursor-not-allowed":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>›</button>
+            </div>
+          );
+        })()}
       </div>
       )}
 

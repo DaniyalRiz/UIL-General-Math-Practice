@@ -1607,37 +1607,47 @@ function App() {
         return openProblem(globalIdx);
       }
     });
-  })), totalPages > 1 && /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-center gap-1.5 mt-6"
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: function onClick() {
-      return setPage(function (p) {
-        return Math.max(1, p - 1);
-      });
-    },
-    disabled: pageClamped === 1,
-    className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === 1 ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
-  }, "\u2039"), Array.from({
-    length: totalPages
-  }, function (_, i) {
-    return i + 1;
-  }).map(function (p) {
-    return /*#__PURE__*/React.createElement("button", {
-      key: p,
+  })), totalPages > 1 && function () {
+    var pages = new Set([1, totalPages]);
+    for (var i = Math.max(1, pageClamped - 2); i <= Math.min(totalPages, pageClamped + 2); i++) pages.add(i);
+    var items = [];
+    _toConsumableArray(pages).sort(function (a, b) {
+      return a - b;
+    }).forEach(function (p, i, arr) {
+      if (i > 0 && p - arr[i - 1] > 1) items.push('...');
+      items.push(p);
+    });
+    return /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-center gap-1.5 mt-6"
+    }, /*#__PURE__*/React.createElement("button", {
       onClick: function onClick() {
-        return setPage(p);
+        return setPage(function (p) {
+          return Math.max(1, p - 1);
+        });
       },
-      className: "w-9 h-9 rounded-lg text-sm font-medium ".concat(p === pageClamped ? "bg-blue-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
-    }, p);
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: function onClick() {
-      return setPage(function (p) {
-        return Math.min(totalPages, p + 1);
-      });
-    },
-    disabled: pageClamped === totalPages,
-    className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === totalPages ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
-  }, "\u203A"))), tab === 'problems' && openIdx !== null && filtered[openIdx] && /*#__PURE__*/React.createElement(ProblemView, {
+      disabled: pageClamped === 1,
+      className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === 1 ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
+    }, "\u2039"), items.map(function (p, i) {
+      return p === '...' ? /*#__PURE__*/React.createElement("span", {
+        key: "e".concat(i),
+        className: "px-1 text-slate-400 dark:text-slate-600 select-none"
+      }, "\u2026") : /*#__PURE__*/React.createElement("button", {
+        key: p,
+        onClick: function onClick() {
+          return setPage(p);
+        },
+        className: "w-9 h-9 rounded-lg text-sm font-medium ".concat(p === pageClamped ? "bg-blue-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
+      }, p);
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return setPage(function (p) {
+          return Math.min(totalPages, p + 1);
+        });
+      },
+      disabled: pageClamped === totalPages,
+      className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === totalPages ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
+    }, "\u203A"));
+  }()), tab === 'problems' && openIdx !== null && filtered[openIdx] && /*#__PURE__*/React.createElement(ProblemView, {
     q: filtered[openIdx],
     prevAnswer: answersRef.current[filtered[openIdx].id],
     stat: qStats[filtered[openIdx].id],
