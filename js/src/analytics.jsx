@@ -20,9 +20,12 @@ function AnalyticsPage({ authUser }) {
 
   if (!authUser) return (
     <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+      <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+      </div>
       <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">Analytics</p>
       <p className="text-slate-500 dark:text-slate-400 mb-6">Sign in to see your personal performance analytics.</p>
-      <a href="./index.html" className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">Sign In</a>
+      <a href="./index.html" className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">Sign In</a>
     </div>
   );
 
@@ -41,8 +44,11 @@ function AnalyticsPage({ authUser }) {
 
   if (!data || data.length === 0) return (
     <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+      <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+      </div>
       <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">No data yet</p>
-      <p className="text-slate-500 dark:text-slate-400">Answer some problems and your analytics will appear here.</p>
+      <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">Answer some problems and your analytics will appear here.</p>
     </div>
   );
 
@@ -383,9 +389,12 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
 
   if (!authUser) return (
     <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+      <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      </div>
       <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">History</p>
       <p className="text-slate-500 dark:text-slate-400 mb-6">Sign in to see your attempt history.</p>
-      <a href="./index.html" className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">Sign In</a>
+      <a href="./index.html" className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">Sign In</a>
     </div>
   );
 
@@ -465,13 +474,13 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
       <div className="mb-6">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">History</h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm">{historySubTab === 'attempts' ? `${rows.length} total attempt${rows.length !== 1 ? 's' : ''} · showing ${sorted.length}` : `${mySolutions.length} community solution${mySolutions.length !== 1 ? 's' : ''}`}</p>
-        <div className="mt-4 inline-flex rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1">
+        <div className="mt-4 flex gap-0 border-b border-slate-200 dark:border-slate-800">
           <button onClick={()=>setHistorySubTab('attempts')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${historySubTab==='attempts' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${historySubTab==='attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             Attempts
           </button>
           <button onClick={()=>setHistorySubTab('solutions')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${historySubTab==='solutions' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${historySubTab==='solutions' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             My Community Solutions
           </button>
         </div>
@@ -481,8 +490,11 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
           {mySolutions.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="font-semibold text-slate-700 dark:text-slate-300">No community solutions yet</p>
-              <p className="text-sm text-slate-400 mt-1">Solutions you post under questions will appear here.</p>
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No community solutions yet</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Solutions you post under questions will appear here.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -576,11 +588,14 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
 
       {/* ── Table ── */}
       {sorted.length === 0 ? (
-        <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <p className="font-semibold text-slate-700 dark:text-slate-300">
+        <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
             {rows.length === 0 ? 'No attempts yet' : 'No results match your filters'}
           </p>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
             {rows.length === 0 ? 'Answer some problems and they will appear here.' : 'Try adjusting your filters or search.'}
           </p>
         </div>

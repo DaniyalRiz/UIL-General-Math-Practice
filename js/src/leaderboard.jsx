@@ -133,15 +133,18 @@ function LeaderboardPage({ authUser }) {
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : error ? (
-        <div className="text-center py-16 rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10">
+        <div className="text-center py-16 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10">
           <p className="text-rose-600 dark:text-rose-400 text-sm font-semibold mb-1">Could not load leaderboard</p>
           <p className="text-slate-400 dark:text-slate-500 text-xs">{error}</p>
         </div>
       ) : entries.length === 0 ? (
-        <div className="text-center py-24 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <p className="font-semibold text-slate-700 dark:text-slate-300">No entries yet</p>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-            Answer at least 5 questions correctly to appear.
+        <div className="text-center py-20 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          </div>
+          <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No entries yet</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
+            Answer at least 5 questions correctly to appear on the leaderboard.
           </p>
         </div>
       ) : (
@@ -164,9 +167,7 @@ function LeaderboardPage({ authUser }) {
               className={`grid grid-cols-[2.5rem_1fr] sm:grid-cols-[2.5rem_1fr_5.5rem_8rem_6rem_5.5rem_6rem] gap-2 px-4 py-3 items-center border-b border-slate-100 dark:border-slate-800/60 last:border-0
                 ${e.is_current_user
                   ? 'bg-blue-50 dark:bg-blue-500/10'
-                  : i % 2 === 0
-                    ? 'bg-white dark:bg-slate-900'
-                    : 'bg-slate-50/60 dark:bg-slate-900/40'
+                  : 'bg-white dark:bg-slate-900'
                 }`}
             >
               {/* Rank */}

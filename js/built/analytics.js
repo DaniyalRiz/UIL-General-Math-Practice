@@ -54,13 +54,44 @@ function AnalyticsPage(_ref) {
   }, [authUser]);
   if (!authUser) return /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-4 py-16 text-center"
-  }, /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "26",
+    height: "26",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "18",
+    y1: "20",
+    x2: "18",
+    y2: "10"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "20",
+    x2: "12",
+    y2: "4"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "6",
+    y1: "20",
+    x2: "6",
+    y2: "14"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "2",
+    y1: "20",
+    x2: "22",
+    y2: "20"
+  }))), /*#__PURE__*/React.createElement("p", {
     className: "font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2"
   }, "Analytics"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-500 dark:text-slate-400 mb-6"
   }, "Sign in to see your personal performance analytics."), /*#__PURE__*/React.createElement("a", {
     href: "./index.html",
-    className: "inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+    className: "inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
   }, "Sign In"));
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-32"
@@ -76,10 +107,41 @@ function AnalyticsPage(_ref) {
   }, "Make sure the attempts table exists in Supabase."));
   if (!data || data.length === 0) return /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-4 py-16 text-center"
-  }, /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "26",
+    height: "26",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "18",
+    y1: "20",
+    x2: "18",
+    y2: "10"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "20",
+    x2: "12",
+    y2: "4"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "6",
+    y1: "20",
+    x2: "6",
+    y2: "14"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "2",
+    y1: "20",
+    x2: "22",
+    y2: "20"
+  }))), /*#__PURE__*/React.createElement("p", {
     className: "font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2"
   }, "No data yet"), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-500 dark:text-slate-400"
+    className: "text-slate-500 dark:text-slate-400 max-w-xs mx-auto"
   }, "Answer some problems and your analytics will appear here."));
 
   // ── compute stats ──────────────────────────────────────────────────────────
@@ -597,13 +659,29 @@ function HistoryPage(_ref7) {
   }, [authUser]);
   if (!authUser) return /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-4 py-16 text-center"
-  }, /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "26",
+    height: "26",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 6v6l4 2"
+  }))), /*#__PURE__*/React.createElement("p", {
     className: "font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2"
   }, "History"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-500 dark:text-slate-400 mb-6"
   }, "Sign in to see your attempt history."), /*#__PURE__*/React.createElement("a", {
     href: "./index.html",
-    className: "inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+    className: "inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
   }, "Sign In"));
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-32"
@@ -681,25 +759,38 @@ function HistoryPage(_ref7) {
   }, "History"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-500 dark:text-slate-400 text-sm"
   }, historySubTab === 'attempts' ? "".concat(rows.length, " total attempt").concat(rows.length !== 1 ? 's' : '', " \xB7 showing ").concat(sorted.length) : "".concat(mySolutions.length, " community solution").concat(mySolutions.length !== 1 ? 's' : '')), /*#__PURE__*/React.createElement("div", {
-    className: "mt-4 inline-flex rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1"
+    className: "mt-4 flex gap-0 border-b border-slate-200 dark:border-slate-800"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return setHistorySubTab('attempts');
     },
-    className: "px-4 py-2 rounded-lg text-sm font-semibold ".concat(historySubTab === 'attempts' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')
+    className: "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ".concat(historySubTab === 'attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200')
   }, "Attempts"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return setHistorySubTab('solutions');
     },
-    className: "px-4 py-2 rounded-lg text-sm font-semibold ".concat(historySubTab === 'solutions' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800')
+    className: "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ".concat(historySubTab === 'solutions' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200')
   }, "My Community Solutions"))), historySubTab === 'solutions' ? /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
   }, mySolutions.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "py-20 text-center"
-  }, /*#__PURE__*/React.createElement("p", {
-    className: "font-semibold text-slate-700 dark:text-slate-300"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "22",
+    height: "22",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-slate-700 dark:text-slate-300 mb-1"
   }, "No community solutions yet"), /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 mt-1"
+    className: "text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto"
   }, "Solutions you post under questions will appear here.")) : /*#__PURE__*/React.createElement("div", {
     className: "divide-y divide-slate-100 dark:divide-slate-800"
   }, mySolutions.map(function (s) {
@@ -826,11 +917,27 @@ function HistoryPage(_ref7) {
     onChange: setFilterDate,
     options: ['Most Recent', 'Oldest First', 'Today', 'Last 7 Days', 'Last 30 Days']
   })), sorted.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "py-20 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
-  }, /*#__PURE__*/React.createElement("p", {
-    className: "font-semibold text-slate-700 dark:text-slate-300"
+    className: "py-20 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "22",
+    height: "22",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 6v6l4 2"
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-slate-700 dark:text-slate-300 mb-1"
   }, rows.length === 0 ? 'No attempts yet' : 'No results match your filters'), /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 mt-1"
+    className: "text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto"
   }, rows.length === 0 ? 'Answer some problems and they will appear here.' : 'Try adjusting your filters or search.')) : /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
   }, /*#__PURE__*/React.createElement("div", {

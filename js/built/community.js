@@ -438,9 +438,26 @@ function CommunitySolutions(_ref2) {
     className: "space-y-3"
   }, loading ? /*#__PURE__*/React.createElement("p", {
     className: "text-sm text-slate-400 dark:text-slate-500 py-4 text-center"
-  }, "Loading community solutions\u2026") : sorted.length === 0 ? /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 dark:text-slate-500 py-4 text-center"
-  }, "No community solutions yet. Be the first to add one.") : sorted.map(function (s) {
+  }, "Loading community solutions\u2026") : sorted.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "py-8 text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-10 h-10 mx-auto mb-3 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "18",
+    height: "18",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-semibold text-slate-600 dark:text-slate-400 mb-0.5"
+  }, "No solutions yet"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 dark:text-slate-500"
+  }, "Be the first to add one above.")) : sorted.map(function (s) {
     return /*#__PURE__*/React.createElement("div", {
       key: s.id,
       className: "rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-3"

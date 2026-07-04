@@ -576,18 +576,18 @@ function ProfileMenu(_ref3) {
       },
       className: "hidden md:flex flex-col items-end gap-1 hover:opacity-75 transition-opacity"
     }, /*#__PURE__*/React.createElement("span", {
-      className: "text-[9px] font-bold uppercase tracking-wide leading-none ".concat(lvl.color)
+      className: "text-xs font-bold uppercase tracking-wide leading-none ".concat(lvl.color)
     }, lvl.name), /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-1.5"
     }, /*#__PURE__*/React.createElement("div", {
-      className: "w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+      className: "w-24 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
     }, /*#__PURE__*/React.createElement("div", {
       className: "h-full rounded-full transition-all duration-500 ".concat(lvl.bar),
       style: {
         width: "".concat(pct, "%")
       }
     })), /*#__PURE__*/React.createElement("span", {
-      className: "text-[10px] font-bold tabular-nums ".concat(lvl.color)
+      className: "text-xs font-bold tabular-nums ".concat(lvl.color)
     }, pct, "%")));
   }(), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
@@ -1282,27 +1282,27 @@ function App() {
       setSearch("");
       setPage(1);
     },
-    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'problems' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'problems' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "Problems"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return navigateTab('analytics');
     },
-    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'analytics' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'analytics' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "Analytics"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return navigateTab('history');
     },
-    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'history' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'history' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "History"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return navigateTab('leaderboard');
     },
-    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'leaderboard' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'leaderboard' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "Leaderboard"), authUser && ADMIN_EMAILS.includes(authUser.email || '') && /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return navigateTab('admin');
     },
-    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                    ".concat(tab === 'admin' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                    ".concat(tab === 'admin' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "Admin"))), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-1 sm:gap-2 flex-shrink-0"
   }, authUser ? /*#__PURE__*/React.createElement(ProfileMenu, {
@@ -1462,11 +1462,24 @@ function App() {
       setPage(1);
     }
   })), recommendedVisible.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "text-center py-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
-  }, /*#__PURE__*/React.createElement("p", {
-    className: "font-semibold text-slate-700 dark:text-slate-300"
+    className: "text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "22",
+    height: "22",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-slate-700 dark:text-slate-300 mb-1"
   }, "No recommendations yet"), /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 mt-1"
+    className: "text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto"
   }, "Answer a few problems first so the site can learn your weak areas.")) : /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
   }, /*#__PURE__*/React.createElement("div", {
@@ -1514,12 +1527,25 @@ function App() {
   }, /*#__PURE__*/React.createElement("path", {
     d: "M18 6L6 18M6 6l12 12"
   }))))), bookmarks.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "text-center py-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
-  }, /*#__PURE__*/React.createElement("p", {
-    className: "font-semibold text-slate-700 dark:text-slate-300"
+    className: "text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "22",
+    height: "22",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-slate-700 dark:text-slate-300 mb-1"
   }, "No bookmarks yet"), /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 mt-1"
-  }, "Open any problem and click \"Review later\" to save it here.")) : /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto"
+  }, "Open any problem and click \"Review Later\" to save it here.")) : /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
   }, /*#__PURE__*/React.createElement("div", {
     className: "hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500"
@@ -1602,10 +1628,28 @@ function App() {
   }, /*#__PURE__*/React.createElement("div", {
     className: "hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500"
   }, /*#__PURE__*/React.createElement("span", null, "#"), /*#__PURE__*/React.createElement("span", null, "Problem"), /*#__PURE__*/React.createElement("span", null, "Topic"), /*#__PURE__*/React.createElement("span", null, "Difficulty"), /*#__PURE__*/React.createElement("span", null, "Source"), /*#__PURE__*/React.createElement("span", null, "Date Added")), pageItems.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    className: "py-20 text-center text-slate-400 dark:text-slate-600"
-  }, /*#__PURE__*/React.createElement("p", {
-    className: "font-semibold"
-  }, "No problems found")) : pageItems.map(function (q, i) {
+    className: "py-20 text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "22",
+    height: "22",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.5",
+    strokeLinecap: "round"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "11",
+    cy: "11",
+    r: "8"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "m21 21-4.35-4.35"
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-slate-700 dark:text-slate-300 mb-1"
+  }, "No problems found"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 dark:text-slate-500"
+  }, "Try adjusting your filters or search term.")) : pageItems.map(function (q, i) {
     var globalIdx = (pageClamped - 1) * PAGE_SIZE + i;
     return /*#__PURE__*/React.createElement(ProblemRow, {
       key: q.id,

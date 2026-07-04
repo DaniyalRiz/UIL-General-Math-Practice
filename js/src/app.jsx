@@ -293,12 +293,12 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
           return (
             <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
               className="hidden md:flex flex-col items-end gap-1 hover:opacity-75 transition-opacity">
-              <span className={`text-[9px] font-bold uppercase tracking-wide leading-none ${lvl.color}`}>{lvl.name}</span>
+              <span className={`text-xs font-bold uppercase tracking-wide leading-none ${lvl.color}`}>{lvl.name}</span>
               <div className="flex items-center gap-1.5">
-                <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div className="w-24 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div className={`h-full rounded-full transition-all duration-500 ${lvl.bar}`} style={{ width: `${pct}%` }} />
                 </div>
-                <span className={`text-[10px] font-bold tabular-nums ${lvl.color}`}>{pct}%</span>
+                <span className={`text-xs font-bold tabular-nums ${lvl.color}`}>{pct}%</span>
               </div>
             </button>
           );
@@ -754,28 +754,28 @@ function App() {
                 }}
                 className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
                   ${tab==='problems'
-                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                 Problems
               </button>
               <button onClick={()=>navigateTab('analytics')}
                 className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
                   ${tab==='analytics'
-                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                 Analytics
               </button>
               <button onClick={()=>navigateTab('history')}
                 className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
                   ${tab==='history'
-                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                 History
               </button>
               <button onClick={()=>navigateTab('leaderboard')}
                 className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
                   ${tab==='leaderboard'
-                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                 Leaderboard
               </button>
@@ -783,7 +783,7 @@ function App() {
                 <button onClick={()=>navigateTab('admin')}
                   className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
                     ${tab==='admin'
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                      ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                   Admin
                 </button>
@@ -883,9 +883,12 @@ function App() {
           </div>
 
           {recommendedVisible.length === 0 ? (
-            <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <p className="font-semibold text-slate-700 dark:text-slate-300">No recommendations yet</p>
-              <p className="text-sm text-slate-400 mt-1">Answer a few problems first so the site can learn your weak areas.</p>
+            <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              </div>
+              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No recommendations yet</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Answer a few problems first so the site can learn your weak areas.</p>
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
@@ -917,9 +920,12 @@ function App() {
             </div>
           </div>
           {bookmarks.length === 0 ? (
-            <div className="text-center py-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <p className="font-semibold text-slate-700 dark:text-slate-300">No bookmarks yet</p>
-              <p className="text-sm text-slate-400 mt-1">Open any problem and click "Review later" to save it here.</p>
+            <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+              </div>
+              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No bookmarks yet</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Open any problem and click "Review Later" to save it here.</p>
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
@@ -961,8 +967,12 @@ function App() {
             <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
           </div>
           {pageItems.length === 0 ? (
-            <div className="py-20 text-center text-slate-400 dark:text-slate-600">
-              <p className="font-semibold">No problems found</p>
+            <div className="py-20 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No problems found</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500">Try adjusting your filters or search term.</p>
             </div>
           ) : pageItems.map((q, i) => {
             const globalIdx = (pageClamped-1)*PAGE_SIZE + i;
