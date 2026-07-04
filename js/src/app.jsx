@@ -286,27 +286,29 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
 
   return (
     <div className="relative" ref={menuRef}>
-      <button onClick={() => (tab === 'settings' || tab === 'reportBug') ? navigateTab('problems') : setOpen(o => !o)}
-        title={(tab === 'settings' || tab === 'reportBug') ? 'Back to Problems' : 'Account menu'}
-        className="flex items-center gap-2 shrink-0 group">
+      <div className="flex items-center gap-4 shrink-0">
         {masteryStats && (() => {
           const pct = Math.min(100, Math.round((masteryStats.total_mastered / TOTAL_QUESTIONS) * 100));
+          const lvl = getMasteryLevel(pct);
           return (
-            <div className="hidden md:flex flex-col items-end gap-1">
-              <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-none">{getMasteryLevel(pct).name}</span>
+            <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
+              className="hidden md:flex flex-col items-end gap-1 hover:opacity-75 transition-opacity">
+              <span className={`text-[9px] font-bold uppercase tracking-wide leading-none ${lvl.color}`}>{lvl.name}</span>
               <div className="flex items-center gap-1.5">
                 <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                  <div className={`h-full rounded-full transition-all duration-500 ${lvl.bar}`} style={{ width: `${pct}%` }} />
                 </div>
-                <span className="text-[10px] font-bold tabular-nums text-slate-500 dark:text-slate-400">{pct}%</span>
+                <span className={`text-[10px] font-bold tabular-nums ${lvl.color}`}>{pct}%</span>
               </div>
-            </div>
+            </button>
           );
         })()}
-        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs group-hover:border-blue-400 transition-colors ${avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text}`}>
+        <button onClick={() => (tab === 'settings' || tab === 'reportBug') ? navigateTab('problems') : setOpen(o => !o)}
+          title={(tab === 'settings' || tab === 'reportBug') ? 'Back to Problems' : 'Account menu'}
+          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs hover:border-blue-400 transition-colors shrink-0 ${avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text}`}>
           {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initialsFor(authUser)}</span>}
-        </div>
-      </button>
+        </button>
+      </div>
 
       {open && (
         <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg py-1.5 z-40 text-sm">

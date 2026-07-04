@@ -258,7 +258,7 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab }) {
             </div>
 
             <div className="w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-2.5">
-              <div className="h-full bg-blue-500 rounded-full transition-all duration-700"
+              <div className={`h-full rounded-full transition-all duration-700 ${level.bar}`}
                 style={{ width: `${masteryPct}%` }} />
             </div>
 

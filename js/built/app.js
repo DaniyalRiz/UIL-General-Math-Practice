@@ -564,34 +564,39 @@ function ProfileMenu(_ref3) {
   return /*#__PURE__*/React.createElement("div", {
     className: "relative",
     ref: menuRef
-  }, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-4 shrink-0"
+  }, masteryStats && function () {
+    var pct = Math.min(100, Math.round(masteryStats.total_mastered / TOTAL_QUESTIONS * 100));
+    var lvl = getMasteryLevel(pct);
+    return /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        setOpen(false);
+        navigateTab('mastery');
+      },
+      className: "hidden md:flex flex-col items-end gap-1 hover:opacity-75 transition-opacity"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-[9px] font-bold uppercase tracking-wide leading-none ".concat(lvl.color)
+    }, lvl.name), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-1.5"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "h-full rounded-full transition-all duration-500 ".concat(lvl.bar),
+      style: {
+        width: "".concat(pct, "%")
+      }
+    })), /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px] font-bold tabular-nums ".concat(lvl.color)
+    }, pct, "%")));
+  }(), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return tab === 'settings' || tab === 'reportBug' ? navigateTab('problems') : setOpen(function (o) {
         return !o;
       });
     },
     title: tab === 'settings' || tab === 'reportBug' ? 'Back to Problems' : 'Account menu',
-    className: "flex items-center gap-2 shrink-0 group"
-  }, masteryStats && function () {
-    var pct = Math.min(100, Math.round(masteryStats.total_mastered / TOTAL_QUESTIONS * 100));
-    return /*#__PURE__*/React.createElement("div", {
-      className: "hidden md:flex flex-col items-end gap-1"
-    }, /*#__PURE__*/React.createElement("span", {
-      className: "text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-none"
-    }, getMasteryLevel(pct).name), /*#__PURE__*/React.createElement("div", {
-      className: "flex items-center gap-1.5"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
-    }, /*#__PURE__*/React.createElement("div", {
-      className: "h-full bg-blue-500 rounded-full transition-all duration-500",
-      style: {
-        width: "".concat(pct, "%")
-      }
-    })), /*#__PURE__*/React.createElement("span", {
-      className: "text-[10px] font-bold tabular-nums text-slate-500 dark:text-slate-400"
-    }, pct, "%")));
-  }(), /*#__PURE__*/React.createElement("div", {
-    className: "w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs group-hover:border-blue-400 transition-colors ".concat(avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text)
+    className: "w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs hover:border-blue-400 transition-colors shrink-0 ".concat(avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text)
   }, avatarUrl ? /*#__PURE__*/React.createElement("img", {
     src: avatarUrl,
     alt: "",

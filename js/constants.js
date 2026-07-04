@@ -94,12 +94,12 @@ const TOPIC_TOTALS = {
 };
 
 const MASTERY_LEVELS = [
-  { min: 100, name: 'Full Mastery',      color: 'text-yellow-500' },
-  { min: 75,  name: 'State Medalist',    color: 'text-violet-500' },
-  { min: 50,  name: 'State Qualifier',   color: 'text-blue-500'   },
-  { min: 25,  name: 'Region Qualifier',  color: 'text-emerald-500'},
-  { min: 10,  name: 'Competitor',        color: 'text-amber-500'  },
-  { min: 0,   name: 'Beginner',          color: 'text-slate-400'  },
+  { min: 100, name: 'Full Mastery',      color: 'text-yellow-500 dark:text-yellow-400',   bar: 'bg-yellow-400'  },
+  { min: 75,  name: 'State Medalist',    color: 'text-violet-500 dark:text-violet-400',   bar: 'bg-violet-500'  },
+  { min: 50,  name: 'State Qualifier',   color: 'text-sky-500 dark:text-sky-400',         bar: 'bg-sky-500'     },
+  { min: 25,  name: 'Region Qualifier',  color: 'text-emerald-500 dark:text-emerald-400', bar: 'bg-emerald-500' },
+  { min: 10,  name: 'Competitor',        color: 'text-orange-500 dark:text-orange-400',   bar: 'bg-orange-500'  },
+  { min: 0,   name: 'Beginner',          color: 'text-slate-400 dark:text-slate-500',     bar: 'bg-slate-400'   },
 ];
 
 const getMasteryLevel = (pct) =>

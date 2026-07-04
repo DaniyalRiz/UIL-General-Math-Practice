@@ -312,7 +312,7 @@ function MasteryPage(_ref4) {
   }, masteryPct, "%")), /*#__PURE__*/React.createElement("div", {
     className: "w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-2.5"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "h-full bg-blue-500 rounded-full transition-all duration-700",
+    className: "h-full rounded-full transition-all duration-700 ".concat(level.bar),
     style: {
       width: "".concat(masteryPct, "%")
     }
