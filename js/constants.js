@@ -82,6 +82,29 @@ const avatarColorFor = (user) => {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 };
 
+// ─── MASTERY ──────────────────────────────────────────────────────────────────
+const TOTAL_QUESTIONS = 400;
+
+const TOPIC_TOTALS = {
+  'Algebra 1 & 2': 85,
+  'AP Calculus':   89,
+  'AP Statistics': 57,
+  'Geometry':      102,
+  'Precalculus':   67,
+};
+
+const MASTERY_LEVELS = [
+  { min: 100, name: 'Full Mastery',      color: 'text-yellow-500' },
+  { min: 75,  name: 'State Medalist',    color: 'text-violet-500' },
+  { min: 50,  name: 'State Qualifier',   color: 'text-blue-500'   },
+  { min: 25,  name: 'Region Qualifier',  color: 'text-emerald-500'},
+  { min: 10,  name: 'Competitor',        color: 'text-amber-500'  },
+  { min: 0,   name: 'Beginner',          color: 'text-slate-400'  },
+];
+
+const getMasteryLevel = (pct) =>
+  MASTERY_LEVELS.find(l => pct >= l.min) || MASTERY_LEVELS[MASTERY_LEVELS.length - 1];
+
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
 const ADMIN_EMAILS = ['daniyalrizvi10@gmail.com'];
 

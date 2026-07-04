@@ -536,7 +536,9 @@ function ProfileMenu(_ref3) {
     setRecommendedMode = _ref3.setRecommendedMode,
     bookmarksCount = _ref3.bookmarksCount,
     setPage = _ref3.setPage,
-    navigateTab = _ref3.navigateTab;
+    navigateTab = _ref3.navigateTab,
+    onUsedRecommendedPractice = _ref3.onUsedRecommendedPractice,
+    masteryStats = _ref3.masteryStats;
   var _useState27 = useState(false),
     _useState28 = _slicedToArray(_useState27, 2),
     open = _useState28[0],
@@ -569,20 +571,47 @@ function ProfileMenu(_ref3) {
       });
     },
     title: tab === 'settings' || tab === 'reportBug' ? 'Back to Problems' : 'Account menu',
-    className: "w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs hover:border-blue-400 transition-colors shrink-0 ".concat(avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text)
+    className: "flex items-center gap-2 shrink-0 group"
+  }, masteryStats && function () {
+    var pct = Math.min(100, Math.round(masteryStats.total_mastered / TOTAL_QUESTIONS * 100));
+    return /*#__PURE__*/React.createElement("div", {
+      className: "hidden md:flex flex-col items-end gap-1"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-none"
+    }, getMasteryLevel(pct).name), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-1.5"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "h-full bg-blue-500 rounded-full transition-all duration-500",
+      style: {
+        width: "".concat(pct, "%")
+      }
+    })), /*#__PURE__*/React.createElement("span", {
+      className: "text-[10px] font-bold tabular-nums text-slate-500 dark:text-slate-400"
+    }, pct, "%")));
+  }(), /*#__PURE__*/React.createElement("div", {
+    className: "w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs group-hover:border-blue-400 transition-colors ".concat(avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text)
   }, avatarUrl ? /*#__PURE__*/React.createElement("img", {
     src: avatarUrl,
     alt: "",
     className: "w-full h-full object-cover"
-  }) : /*#__PURE__*/React.createElement("span", null, initialsFor(authUser))), open && /*#__PURE__*/React.createElement("div", {
+  }) : /*#__PURE__*/React.createElement("span", null, initialsFor(authUser)))), open && /*#__PURE__*/React.createElement("div", {
     className: "absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg py-1.5 z-40 text-sm"
   }, /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      setOpen(false);
+      navigateTab('mastery');
+    },
+    className: "w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(tab === "mastery" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
+  }, "My Mastery"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       var next = view !== "recommended" || tab !== "problems";
       setTab("problems");
       setRecommendedMode(next);
       setView(next ? "recommended" : "list");
       setPage(1);
+      if (next) onUsedRecommendedPractice === null || onUsedRecommendedPractice === void 0 || onUsedRecommendedPractice();
       setOpen(false);
     },
     className: "w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(view === "recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
@@ -712,26 +741,30 @@ function App() {
     _useLocalStorage6 = _slicedToArray(_useLocalStorage5, 2),
     bookmarks = _useLocalStorage6[0],
     setBookmarks = _useLocalStorage6[1];
-  var _useState45 = useState(false),
+  var _useState45 = useState(null),
     _useState46 = _slicedToArray(_useState45, 2),
-    recommendedMode = _useState46[0],
-    setRecommendedMode = _useState46[1];
-  var _useState47 = useState("All"),
+    masteryStats = _useState46[0],
+    setMasteryStats = _useState46[1];
+  var _useState47 = useState(false),
     _useState48 = _slicedToArray(_useState47, 2),
-    recStatus = _useState48[0],
-    setRecStatus = _useState48[1];
-  var _useState49 = useState("Most Recent"),
+    recommendedMode = _useState48[0],
+    setRecommendedMode = _useState48[1];
+  var _useState49 = useState("All"),
     _useState50 = _slicedToArray(_useState49, 2),
-    recSort = _useState50[0],
-    setRecSort = _useState50[1];
-  var _useState51 = useState("All Types"),
+    recStatus = _useState50[0],
+    setRecStatus = _useState50[1];
+  var _useState51 = useState("Most Recent"),
     _useState52 = _slicedToArray(_useState51, 2),
-    typeFilter = _useState52[0],
-    setTypeFilter = _useState52[1];
-  var _useState53 = useState("All Sources"),
+    recSort = _useState52[0],
+    setRecSort = _useState52[1];
+  var _useState53 = useState("All Types"),
     _useState54 = _slicedToArray(_useState53, 2),
-    sourceFilter = _useState54[0],
-    setSourceFilter = _useState54[1];
+    typeFilter = _useState54[0],
+    setTypeFilter = _useState54[1];
+  var _useState55 = useState("All Sources"),
+    _useState56 = _slicedToArray(_useState55, 2),
+    sourceFilter = _useState56[0],
+    setSourceFilter = _useState56[1];
 
   // Rebuild per-question stats from the `attempts` table on login. Answers can only be
   // submitted while signed in, so server history is authoritative — this keeps the list's
@@ -766,6 +799,76 @@ function App() {
       cancelled = true;
     };
   }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
+  var loadMasteryStats = /*#__PURE__*/function () {
+    var _loadMasteryStats = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
+      var _yield$_supabase$rpc, data, error;
+      return _regenerator().w(function (_context6) {
+        while (1) switch (_context6.n) {
+          case 0:
+            if (authUser) {
+              _context6.n = 1;
+              break;
+            }
+            return _context6.a(2);
+          case 1:
+            _context6.n = 2;
+            return _supabase.rpc('get_mastery_stats');
+          case 2:
+            _yield$_supabase$rpc = _context6.v;
+            data = _yield$_supabase$rpc.data;
+            error = _yield$_supabase$rpc.error;
+            if (!error && data && data.length > 0) setMasteryStats(data[0]);
+          case 3:
+            return _context6.a(2);
+        }
+      }, _callee6);
+    }));
+    function loadMasteryStats() {
+      return _loadMasteryStats.apply(this, arguments);
+    }
+    return loadMasteryStats;
+  }();
+  useEffect(function () {
+    if (!authUser) {
+      setMasteryStats(null);
+      return;
+    }
+    loadMasteryStats();
+  }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
+  var markUsedRecommendedPractice = /*#__PURE__*/function () {
+    var _markUsedRecommendedPractice = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
+      var _yield$_supabase$from2, error;
+      return _regenerator().w(function (_context7) {
+        while (1) switch (_context7.n) {
+          case 0:
+            if (!(!authUser || masteryStats !== null && masteryStats !== void 0 && masteryStats.used_recommended_practice)) {
+              _context7.n = 1;
+              break;
+            }
+            return _context7.a(2);
+          case 1:
+            _context7.n = 2;
+            return _supabase.from('user_stats').update({
+              used_recommended_practice: true
+            }).eq('user_id', authUser.id);
+          case 2:
+            _yield$_supabase$from2 = _context7.v;
+            error = _yield$_supabase$from2.error;
+            if (!error) setMasteryStats(function (prev) {
+              return prev ? _objectSpread(_objectSpread({}, prev), {}, {
+                used_recommended_practice: true
+              }) : prev;
+            });
+          case 3:
+            return _context7.a(2);
+        }
+      }, _callee7);
+    }));
+    function markUsedRecommendedPractice() {
+      return _markUsedRecommendedPractice.apply(this, arguments);
+    }
+    return markUsedRecommendedPractice;
+  }();
 
   // ── Browser back/forward history management ───────────────────────────────
   // Push a history entry when opening a problem or switching tabs so the
@@ -842,40 +945,40 @@ function App() {
       setPage(1);
     }
   };
-  var _useState55 = useState([]),
-    _useState56 = _slicedToArray(_useState55, 2),
-    questions = _useState56[0],
-    setQuestions = _useState56[1];
-  var _useState57 = useState("loading"),
+  var _useState57 = useState([]),
     _useState58 = _slicedToArray(_useState57, 2),
-    loadState = _useState58[0],
-    setLoadState = _useState58[1]; // "loading" | "ready" | "error"
-  var _useState59 = useState(""),
+    questions = _useState58[0],
+    setQuestions = _useState58[1];
+  var _useState59 = useState("loading"),
     _useState60 = _slicedToArray(_useState59, 2),
-    loadError = _useState60[0],
-    setLoadError = _useState60[1];
+    loadState = _useState60[0],
+    setLoadState = _useState60[1]; // "loading" | "ready" | "error"
+  var _useState61 = useState(""),
+    _useState62 = _slicedToArray(_useState61, 2),
+    loadError = _useState62[0],
+    setLoadError = _useState62[1];
   useEffect(function () {
     var cancelled = false;
     function loadQuestionsFromSupabase() {
       return _loadQuestionsFromSupabase.apply(this, arguments);
     }
     function _loadQuestionsFromSupabase() {
-      _loadQuestionsFromSupabase = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
-        var _yield$_supabase$from2, data, error, normalized, _t;
-        return _regenerator().w(function (_context6) {
-          while (1) switch (_context6.p = _context6.n) {
+      _loadQuestionsFromSupabase = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8() {
+        var _yield$_supabase$from3, data, error, normalized, _t;
+        return _regenerator().w(function (_context8) {
+          while (1) switch (_context8.p = _context8.n) {
             case 0:
-              _context6.p = 0;
-              _context6.n = 1;
+              _context8.p = 0;
+              _context8.n = 1;
               return _supabase.from("public_questions").select("*").order("id", {
                 ascending: true
               });
             case 1:
-              _yield$_supabase$from2 = _context6.v;
-              data = _yield$_supabase$from2.data;
-              error = _yield$_supabase$from2.error;
+              _yield$_supabase$from3 = _context8.v;
+              data = _yield$_supabase$from3.data;
+              error = _yield$_supabase$from3.error;
               if (!error) {
-                _context6.n = 2;
+                _context8.n = 2;
                 break;
               }
               throw error;
@@ -892,19 +995,19 @@ function App() {
                 setQuestions(normalized);
                 setLoadState("ready");
               }
-              _context6.n = 4;
+              _context8.n = 4;
               break;
             case 3:
-              _context6.p = 3;
-              _t = _context6.v;
+              _context8.p = 3;
+              _t = _context8.v;
               if (!cancelled) {
                 setLoadError(_t.message || String(_t));
                 setLoadState("error");
               }
             case 4:
-              return _context6.a(2);
+              return _context8.a(2);
           }
-        }, _callee6, null, [[0, 3]]);
+        }, _callee8, null, [[0, 3]]);
       }));
       return _loadQuestionsFromSupabase.apply(this, arguments);
     }
@@ -1013,6 +1116,7 @@ function App() {
       return v + 1;
     });
     updateUserStatsOnly(authUser);
+    if (rec.correct) loadMasteryStats();
     // Accumulate persistent per-question stats
     setQStats(function (prev) {
       var cur = prev[rec.questionId] || {
@@ -1198,11 +1302,18 @@ function App() {
     setRecommendedMode: setRecommendedMode,
     bookmarksCount: bookmarks.length,
     setPage: setPage,
-    navigateTab: navigateTab
+    navigateTab: navigateTab,
+    onUsedRecommendedPractice: markUsedRecommendedPractice,
+    masteryStats: masteryStats
   }) : /*#__PURE__*/React.createElement("a", {
     href: "./index.html",
     className: "text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors whitespace-nowrap"
-  }, "Sign In")))), tab === 'leaderboard' ? /*#__PURE__*/React.createElement(LeaderboardPage, {
+  }, "Sign In")))), tab === 'mastery' ? /*#__PURE__*/React.createElement(MasteryPage, {
+    authUser: authUser,
+    masteryStats: masteryStats,
+    bookmarksCount: bookmarks.length,
+    navigateTab: navigateTab
+  }) : tab === 'leaderboard' ? /*#__PURE__*/React.createElement(LeaderboardPage, {
     authUser: authUser
   }) : tab === 'analytics' ? /*#__PURE__*/React.createElement(AnalyticsPage, {
     authUser: authUser

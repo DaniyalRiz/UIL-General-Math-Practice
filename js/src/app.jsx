@@ -266,7 +266,7 @@ function ReportBugPage({ authUser, navigateTab }) {
   );
 }
 
-function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, setPage, navigateTab }) {
+function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, setPage, navigateTab, onUsedRecommendedPractice, masteryStats }) {
   const [open, setOpen] = useState(false);
   const avatarUrl = authUser?.user_metadata?.custom_avatar_url || null;
   const menuRef = useRef(null);
@@ -288,18 +288,39 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
     <div className="relative" ref={menuRef}>
       <button onClick={() => (tab === 'settings' || tab === 'reportBug') ? navigateTab('problems') : setOpen(o => !o)}
         title={(tab === 'settings' || tab === 'reportBug') ? 'Back to Problems' : 'Account menu'}
-        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs hover:border-blue-400 transition-colors shrink-0 ${avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text}`}>
-        {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initialsFor(authUser)}</span>}
+        className="flex items-center gap-2 shrink-0 group">
+        {masteryStats && (() => {
+          const pct = Math.min(100, Math.round((masteryStats.total_mastered / TOTAL_QUESTIONS) * 100));
+          return (
+            <div className="hidden md:flex flex-col items-end gap-1">
+              <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 leading-none">{getMasteryLevel(pct).name}</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-20 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-[10px] font-bold tabular-nums text-slate-500 dark:text-slate-400">{pct}%</span>
+              </div>
+            </div>
+          );
+        })()}
+        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs group-hover:border-blue-400 transition-colors ${avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text}`}>
+          {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initialsFor(authUser)}</span>}
+        </div>
       </button>
 
       {open && (
         <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg py-1.5 z-40 text-sm">
+          <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
+            className={`w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="mastery" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            My Mastery
+          </button>
           <button onClick={() => {
               const next = view !== "recommended" || tab !== "problems";
               setTab("problems");
               setRecommendedMode(next);
               setView(next ? "recommended" : "list");
               setPage(1);
+              if (next) onUsedRecommendedPractice?.();
               setOpen(false);
             }}
             className={`w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
@@ -373,6 +394,7 @@ function App() {
   const [answerVersion, setAnswerVersion] = useState(0);
   const [qStats, setQStats] = useLocalStorage("uilmath-qstats", {});
   const [bookmarks, setBookmarks] = useLocalStorage("uilmath-bookmarks", []);
+  const [masteryStats, setMasteryStats] = useState(null);
   const [recommendedMode, setRecommendedMode] = useState(false);
   const [recStatus, setRecStatus] = useState("All");
   const [recSort, setRecSort] = useState("Most Recent");
@@ -406,6 +428,25 @@ function App() {
       });
     return () => { cancelled = true; };
   }, [authUser?.id]);
+
+  const loadMasteryStats = async () => {
+    if (!authUser) return;
+    const { data, error } = await _supabase.rpc('get_mastery_stats');
+    if (!error && data && data.length > 0) setMasteryStats(data[0]);
+  };
+
+  useEffect(() => {
+    if (!authUser) { setMasteryStats(null); return; }
+    loadMasteryStats();
+  }, [authUser?.id]);
+
+  const markUsedRecommendedPractice = async () => {
+    if (!authUser || masteryStats?.used_recommended_practice) return;
+    const { error } = await _supabase.from('user_stats')
+      .update({ used_recommended_practice: true })
+      .eq('user_id', authUser.id);
+    if (!error) setMasteryStats(prev => prev ? { ...prev, used_recommended_practice: true } : prev);
+  };
 
   // ── Browser back/forward history management ───────────────────────────────
   // Push a history entry when opening a problem or switching tabs so the
@@ -584,6 +625,7 @@ function App() {
     answersRef.current[rec.questionId] = rec;
     setAnswerVersion(v=>v+1);
     updateUserStatsOnly(authUser);
+    if (rec.correct) loadMasteryStats();
     // Accumulate persistent per-question stats
     setQStats(prev => {
       const cur = prev[rec.questionId] || { attempts:0, correct:0, bestMs:null, lastMs:null };
@@ -751,7 +793,9 @@ function App() {
               <ProfileMenu authUser={authUser} dark={dark} toggleTheme={toggleTheme} signOut={signOut}
                 view={view} setView={setView} tab={tab} setTab={setTab}
                 recommendedMode={recommendedMode} setRecommendedMode={setRecommendedMode}
-                bookmarksCount={bookmarks.length} setPage={setPage} navigateTab={navigateTab} />
+                bookmarksCount={bookmarks.length} setPage={setPage} navigateTab={navigateTab}
+                onUsedRecommendedPractice={markUsedRecommendedPractice}
+                masteryStats={masteryStats} />
             ) : (
               <a href="./index.html"
                 className="text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors whitespace-nowrap">
@@ -762,7 +806,9 @@ function App() {
         </div>
       </nav>
 
-      {tab === 'leaderboard' ? (
+      {tab === 'mastery' ? (
+        <MasteryPage authUser={authUser} masteryStats={masteryStats} bookmarksCount={bookmarks.length} navigateTab={navigateTab} />
+      ) : tab === 'leaderboard' ? (
         <LeaderboardPage authUser={authUser} />
       ) : tab === 'analytics' ? (
         <AnalyticsPage authUser={authUser} />
