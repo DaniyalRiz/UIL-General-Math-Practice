@@ -721,6 +721,13 @@ function App() {
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                 History
               </button>
+              <button onClick={()=>navigateTab('leaderboard')}
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
+                  ${tab==='leaderboard'
+                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                Leaderboard
+              </button>
               {authUser && ADMIN_EMAILS.includes(authUser.email || '') && (
                 <button onClick={()=>navigateTab('admin')}
                   className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
@@ -749,7 +756,9 @@ function App() {
         </div>
       </nav>
 
-      {tab === 'analytics' ? (
+      {tab === 'leaderboard' ? (
+        <LeaderboardPage authUser={authUser} />
+      ) : tab === 'analytics' ? (
         <AnalyticsPage authUser={authUser} />
       ) : tab === 'history' ? (
         <HistoryPage authUser={authUser} allQuestions={questions} onOpenQuestion={(id)=>{

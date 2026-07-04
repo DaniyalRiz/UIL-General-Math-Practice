@@ -1146,7 +1146,12 @@ function App() {
       return navigateTab('history');
     },
     className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'history' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
-  }, "History"), authUser && ADMIN_EMAILS.includes(authUser.email || '') && /*#__PURE__*/React.createElement("button", {
+  }, "History"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return navigateTab('leaderboard');
+    },
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'leaderboard' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+  }, "Leaderboard"), authUser && ADMIN_EMAILS.includes(authUser.email || '') && /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return navigateTab('admin');
     },
@@ -1170,7 +1175,9 @@ function App() {
   }) : /*#__PURE__*/React.createElement("a", {
     href: "./index.html",
     className: "text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors whitespace-nowrap"
-  }, "Sign In")))), tab === 'analytics' ? /*#__PURE__*/React.createElement(AnalyticsPage, {
+  }, "Sign In")))), tab === 'leaderboard' ? /*#__PURE__*/React.createElement(LeaderboardPage, {
+    authUser: authUser
+  }) : tab === 'analytics' ? /*#__PURE__*/React.createElement(AnalyticsPage, {
     authUser: authUser
   }) : tab === 'history' ? /*#__PURE__*/React.createElement(HistoryPage, {
     authUser: authUser,
