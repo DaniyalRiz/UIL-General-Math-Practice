@@ -406,7 +406,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
         <div className={`flex-1 min-h-0 overflow-y-auto overscroll-contain ${answered ? "flex flex-col lg:flex-row pb-32 sm:pb-6" : "flex flex-col pb-3"}`}>
 
           {/* ── LEFT column: question + choices + explanation + tags ── */}
-          <div className={answered ? "lg:flex-1 lg:min-w-0 flex flex-col" : "flex flex-col"}>
+          <div className={answered ? "lg:flex-1 lg:min-w-0 lg:overflow-y-auto flex flex-col" : "flex flex-col"}>
 
             {/* ── question ── */}
             <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-4">
@@ -483,30 +483,15 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
 
             {/* ── explanation (post-answer) ── */}
             {answered && (
-              <div className={`mx-4 sm:mx-6 mb-5 rounded-xl p-5 sm:p-6 border flex flex-col
+              <div className={`mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border flex flex-col
                 ${isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30"
                             : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30"}`}>
-                {/* Verdict line */}
-                <div className="flex items-center justify-between gap-3 flex-wrap mb-3 pb-3 border-b border-inherit">
-                  <span className={`text-base font-black ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
-                    {isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                  </span>
-                  {!isCorrect && correctAnswer && (
-                    <span className="text-sm text-slate-600 dark:text-slate-300">
-                      Answer: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{correctAnswer}</span>
-                    </span>
-                  )}
-                  <span className={`text-xs font-mono font-bold tabular-nums ml-auto ${isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
-                    {timer.fmt}
-                  </span>
+                <div className={`font-bold text-base mb-3 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
+                  {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{` · Time: ${timer.fmt}`}
                 </div>
-                {/* Explanation */}
-                <div className="text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed">
-                  <div className="overflow-x-auto">
-                    {explanationText
-                      ? <MathText text={explanationText} />
-                      : <span className="text-slate-400 dark:text-slate-500 italic">No explanation available for this question.</span>
-                    }
+                <div className="mt-1 text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed whitespace-normal break-words">
+                  <div className="overflow-x-auto max-w-full">
+                    <MathText text={explanationText || ""} />
                   </div>
                 </div>
               </div>

@@ -600,7 +600,7 @@ function ProblemView(_ref3) {
   }, q.title))), /*#__PURE__*/React.createElement("div", {
     className: "flex-1 min-h-0 overflow-y-auto overscroll-contain ".concat(answered ? "flex flex-col lg:flex-row pb-32 sm:pb-6" : "flex flex-col pb-3")
   }, /*#__PURE__*/React.createElement("div", {
-    className: answered ? "lg:flex-1 lg:min-w-0 flex flex-col" : "flex flex-col"
+    className: answered ? "lg:flex-1 lg:min-w-0 lg:overflow-y-auto flex flex-col" : "flex flex-col"
   }, /*#__PURE__*/React.createElement("div", {
     className: "px-4 sm:px-6 pt-4 sm:pt-5 pb-4"
   }, /*#__PURE__*/React.createElement("p", {
@@ -655,26 +655,16 @@ function ProblemView(_ref3) {
     disabled: !pending || submitting || !authUser,
     className: "w-full py-3 rounded-lg text-sm font-bold transition-all\n                    ".concat(pending && !submitting && authUser ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed")
   }, !authUser ? "Sign in to submit securely" : submitting ? "Submitting…" : pending ? "Submit Answer" : "Select an answer first")), answered && /*#__PURE__*/React.createElement("div", {
-    className: "mx-4 sm:mx-6 mb-5 rounded-xl p-5 sm:p-6 border flex flex-col\n                ".concat(isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30" : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30")
+    className: "mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border flex flex-col\n                ".concat(isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30" : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30")
   }, /*#__PURE__*/React.createElement("div", {
-    className: "flex items-center justify-between gap-3 flex-wrap mb-3 pb-3 border-b border-inherit"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-base font-black ".concat(isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300")
-  }, isCorrect ? "✓ Correct" : "✗ Incorrect"), !isCorrect && correctAnswer && /*#__PURE__*/React.createElement("span", {
-    className: "text-sm text-slate-600 dark:text-slate-300"
-  }, "Answer: ", /*#__PURE__*/React.createElement("span", {
-    className: "font-semibold text-emerald-600 dark:text-emerald-400"
-  }, correctAnswer)), /*#__PURE__*/React.createElement("span", {
-    className: "text-xs font-mono font-bold tabular-nums ml-auto ".concat(isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400")
-  }, timer.fmt)), /*#__PURE__*/React.createElement("div", {
-    className: "text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed"
+    className: "font-bold text-base mb-3 ".concat(isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300")
+  }, isCorrect ? "✓ Correct!" : "\u2717 Incorrect \u2014 Correct: ".concat(correctAnswer), " \xB7 Time: ".concat(timer.fmt)), /*#__PURE__*/React.createElement("div", {
+    className: "mt-1 text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed whitespace-normal break-words"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "overflow-x-auto"
-  }, explanationText ? /*#__PURE__*/React.createElement(MathText, {
-    text: explanationText
-  }) : /*#__PURE__*/React.createElement("span", {
-    className: "text-slate-400 dark:text-slate-500 italic"
-  }, "No explanation available for this question.")))), answered && /*#__PURE__*/React.createElement(CommunitySolutions, {
+    className: "overflow-x-auto max-w-full"
+  }, /*#__PURE__*/React.createElement(MathText, {
+    text: explanationText || ""
+  })))), answered && /*#__PURE__*/React.createElement(CommunitySolutions, {
     q: q,
     authUser: authUser,
     answered: answered
