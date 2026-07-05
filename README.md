@@ -8,53 +8,55 @@ https://daniyalriz.github.io/UIL-General-Math-Practice-/
 
 ## Features
 
-Problems
+## Features
 
-400 real UIL General Mathematics problems (District, Region, TMSCA sources)
-Filter by UIL column (Column 1 / 2 / 3)
-Filter by source (specific contest)
-Filter by attempt status (Unattempted / Correct / Incorrect) — new
-Status dots on problem rows showing attempt history
-Answer choice cross-out / elimination tool
-Bookmark problems to a "Review Later" list
-Personal notes on any problem
-Report issue button on questions
-Navigate between problems with prev/next
-Solutions & Feedback
+### Problems
+- 400 real UIL General Mathematics problems (District, Region, TMSCA sources)
+- Filter by topic (Algebra 1 & 2, Geometry, Precalculus, AP Calculus, AP Statistics)
+- Filter by UIL column (Column 1 / 2 / 3)
+- Filter by difficulty (Easy, Medium, Hard)
+- Filter by source and attempt status (Unattempted / Correct / Incorrect)
+- Status dots on each problem row showing attempt history
+- Answer choice cross-out / elimination tool
+- Bookmark problems to a "Review Later" list
+- Personal notes on any problem
+- Report issue button on questions
+- Navigate between problems with prev/next
 
-Full worked solutions rendered with KaTeX (integrals, fractions, trig, etc.)
-Live timer per problem
-Instant correct/incorrect feedback with time taken
-Recommended Practice
+### Solutions & Feedback
+- Full worked solutions rendered with KaTeX (integrals, fractions, trig, etc.)
+- Live timer per problem
+- Instant correct/incorrect feedback with time taken
 
-Algorithm-driven recommendations based on your weakest topics and UIL columns
-Prioritizes unattempted questions and appropriate difficulty
-Filterable and sortable recommended list
-History
+### Recommended Practice
+- Algorithm-driven recommendations based on your weakest topics and UIL columns
+- Prioritizes unattempted questions and appropriate difficulty
+- Filterable and sortable recommended list
 
-Full attempt history with filtering by result, topic, difficulty, date, source, type
-Community solutions: post, view, and upvote solutions on any problem
-Analytics
+### History
+- Full attempt history filterable by result, topic, difficulty, date, source, and type
+- Community solutions: post, view, and upvote solutions on any problem
 
-Performance breakdown by topic, UIL column, and difficulty with bar charts
-Accuracy, avg solve time, total time, day streak
-Insight cards: strongest topic, needs work, fastest, slowest
-Export full analytics report to PDF
-Mastery
+### Analytics
+- Performance breakdown by topic, UIL column, and difficulty with bar charts
+- Accuracy, average solve time, total time, and day streak
+- Insight cards: strongest topic, needs work, fastest, slowest
+- Export full analytics report to PDF
 
-Per-topic mastery tracking
-Overall mastery % with named levels (Beginner → Expert)
-Achievements system
-Leaderboard
+### Mastery
+- Per-topic mastery tracking
+- Overall mastery percentage with named levels (Beginner → Expert)
+- Achievements system
 
-Global leaderboard with difficulty-weighted scoring and topic variety multiplier
-Filter by time period, column, and difficulty
-Account
+### Leaderboard
+- Global leaderboard with difficulty-weighted scoring and topic variety multiplier
+- Filter by time period, column, and difficulty
 
-Google sign-in (Supabase Auth)
-Progress synced across devices
-Custom display name and avatar
-Dark mode (persisted per account)
+### Account
+- Google sign-in (Supabase Auth)
+- Progress synced across devices
+- Custom display name and avatar
+- Dark mode (persisted per account)
 
 
 ## Purpose
