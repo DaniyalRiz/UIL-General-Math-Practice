@@ -1049,10 +1049,6 @@ function App() {
   var closeProblem = function closeProblem() {
     setOpenIdx(null);
     setOpenQuestionId(null);
-    if (view === "recommended") {
-      setRecommendedMode(false);
-      setView("list");
-    }
   };
   var navigateTab = function navigateTab(t) {
     pushAppState({

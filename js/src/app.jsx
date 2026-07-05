@@ -508,7 +508,6 @@ function App() {
   const closeProblem = () => {
     setOpenIdx(null);
     setOpenQuestionId(null);
-    if (view === "recommended") { setRecommendedMode(false); setView("list"); }
   };
   const navigateTab = (t) => {
     pushAppState({ tab: t, openIdx: null, view: 'list', recommendedMode: false });
