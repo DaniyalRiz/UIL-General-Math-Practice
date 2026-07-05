@@ -1869,9 +1869,9 @@ function App() {
       className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === totalPages ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
     }, "\u203A"));
   }()), function () {
-    var currentQ = openIdx !== null && filtered[openIdx] || openQuestionId !== null && questions.find(function (q) {
+    var currentQ = openQuestionId !== null ? questions.find(function (q) {
       return q.id === openQuestionId;
-    }) || null;
+    }) || null : null;
     return tab === 'problems' && currentQ && /*#__PURE__*/React.createElement(ProblemView, {
       q: currentQ,
       prevAnswer: answersRef.current[currentQ.id],

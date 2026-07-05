@@ -1060,9 +1060,9 @@ function App() {
 
       {/* PROBLEM VIEW — only when on problems tab */}
       {(() => {
-        const currentQ = (openIdx !== null && filtered[openIdx])
-          || (openQuestionId !== null && questions.find(q => q.id === openQuestionId))
-          || null;
+        const currentQ = openQuestionId !== null
+          ? (questions.find(q => q.id === openQuestionId) || null)
+          : null;
         return tab === 'problems' && currentQ && (
         <ProblemView
           q={currentQ}
