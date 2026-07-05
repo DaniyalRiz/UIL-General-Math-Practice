@@ -311,9 +311,18 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
       </div>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg py-1.5 z-40 text-sm">
+        <div className="absolute right-0 mt-2 w-60 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg py-1.5 z-40 text-sm">
+          {/* User header */}
+          <div className="px-3.5 py-2.5 mb-1 border-b border-slate-100 dark:border-slate-800">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+              {authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || 'Account'}
+            </p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{authUser?.email}</p>
+          </div>
+
           <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
-            className={`w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="mastery" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="mastery" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             My Mastery
           </button>
           <button onClick={() => {
@@ -325,7 +334,8 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
               if (next) onUsedRecommendedPractice?.();
               setOpen(false);
             }}
-            className={`w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             Recommended Practice
           </button>
           <button onClick={() => {
@@ -335,31 +345,36 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
               setPage(1);
               setOpen(false);
             }}
-            className={`w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="review" ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
-            <span>Review Later</span>
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="review" ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            <span className="flex-1">Review Later</span>
             {bookmarksCount > 0 && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">{bookmarksCount}</span>}
           </button>
           <button onClick={() => { setOpen(false); navigateTab('reportBug'); }}
-            className={`w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="reportBug" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="reportBug" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
             Report a Bug
           </button>
 
           <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
 
           <button onClick={toggleTheme}
-            className="w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
-            <span>Appearance</span>
-            <span className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">{dark ? <SunIcon/> : <MoonIcon/>}{dark ? 'Dark' : 'Light'}</span>
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="shrink-0 opacity-60">{dark ? <SunIcon/> : <MoonIcon/>}</span>
+            <span className="flex-1">Appearance</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">{dark ? 'Dark' : 'Light'}</span>
           </button>
           <button onClick={() => { setOpen(false); navigateTab('settings'); }}
-            className={`w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="settings" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="settings" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             Settings
           </button>
 
           <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
 
           <button onClick={() => { setOpen(false); signOut(); }}
-            className="w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-600 dark:text-rose-400">
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-600 dark:text-rose-400">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
             Sign Out
           </button>
         </div>

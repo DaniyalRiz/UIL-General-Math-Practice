@@ -523,7 +523,7 @@ function ReportBugPage(_ref2) {
   }, saving ? 'Submitting…' : 'Submit'))));
 }
 function ProfileMenu(_ref3) {
-  var _authUser$user_metada2;
+  var _authUser$user_metada2, _authUser$user_metada3, _authUser$email;
   var authUser = _ref3.authUser,
     dark = _ref3.dark,
     toggleTheme = _ref3.toggleTheme,
@@ -602,14 +602,42 @@ function ProfileMenu(_ref3) {
     alt: "",
     className: "w-full h-full object-cover"
   }) : /*#__PURE__*/React.createElement("span", null, initialsFor(authUser)))), open && /*#__PURE__*/React.createElement("div", {
-    className: "absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg py-1.5 z-40 text-sm"
-  }, /*#__PURE__*/React.createElement("button", {
+    className: "absolute right-0 mt-2 w-60 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg py-1.5 z-40 text-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "px-3.5 py-2.5 mb-1 border-b border-slate-100 dark:border-slate-800"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-semibold text-slate-800 dark:text-slate-100 truncate"
+  }, (authUser === null || authUser === void 0 || (_authUser$user_metada3 = authUser.user_metadata) === null || _authUser$user_metada3 === void 0 ? void 0 : _authUser$user_metada3.display_name) || (authUser === null || authUser === void 0 || (_authUser$email = authUser.email) === null || _authUser$email === void 0 ? void 0 : _authUser$email.split('@')[0]) || 'Account'), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 dark:text-slate-500 truncate"
+  }, authUser === null || authUser === void 0 ? void 0 : authUser.email)), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       setOpen(false);
       navigateTab('mastery');
     },
-    className: "w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(tab === "mastery" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
-  }, "My Mastery"), /*#__PURE__*/React.createElement("button", {
+    className: "w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(tab === "mastery" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.75",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "shrink-0 opacity-60"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "6"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "2"
+  })), "My Mastery"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       var next = view !== "recommended" || tab !== "problems";
       setTab("problems");
@@ -619,8 +647,20 @@ function ProfileMenu(_ref3) {
       if (next) onUsedRecommendedPractice === null || onUsedRecommendedPractice === void 0 || onUsedRecommendedPractice();
       setOpen(false);
     },
-    className: "w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(view === "recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
-  }, "Recommended Practice"), /*#__PURE__*/React.createElement("button", {
+    className: "w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(view === "recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.75",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "shrink-0 opacity-60"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"
+  })), "Recommended Practice"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       setTab("problems");
       setRecommendedMode(false);
@@ -630,37 +670,97 @@ function ProfileMenu(_ref3) {
       setPage(1);
       setOpen(false);
     },
-    className: "w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(view === "review" ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-slate-700 dark:text-slate-300")
-  }, /*#__PURE__*/React.createElement("span", null, "Review Later"), bookmarksCount > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(view === "review" ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-slate-700 dark:text-slate-300")
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.75",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "shrink-0 opacity-60"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "flex-1"
+  }, "Review Later"), bookmarksCount > 0 && /*#__PURE__*/React.createElement("span", {
     className: "text-xs font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400"
   }, bookmarksCount)), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       setOpen(false);
       navigateTab('reportBug');
     },
-    className: "w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(tab === "reportBug" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
-  }, "Report a Bug"), /*#__PURE__*/React.createElement("div", {
+    className: "w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(tab === "reportBug" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.75",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "shrink-0 opacity-60"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M12 8v4M12 16h.01"
+  })), "Report a Bug"), /*#__PURE__*/React.createElement("div", {
     className: "my-1 border-t border-slate-100 dark:border-slate-800"
   }), /*#__PURE__*/React.createElement("button", {
     onClick: toggleTheme,
-    className: "w-full flex items-center justify-between px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-  }, /*#__PURE__*/React.createElement("span", null, "Appearance"), /*#__PURE__*/React.createElement("span", {
-    className: "flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500"
-  }, dark ? /*#__PURE__*/React.createElement(SunIcon, null) : /*#__PURE__*/React.createElement(MoonIcon, null), dark ? 'Dark' : 'Light')), /*#__PURE__*/React.createElement("button", {
+    className: "w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "shrink-0 opacity-60"
+  }, dark ? /*#__PURE__*/React.createElement(SunIcon, null) : /*#__PURE__*/React.createElement(MoonIcon, null)), /*#__PURE__*/React.createElement("span", {
+    className: "flex-1"
+  }, "Appearance"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400 dark:text-slate-500"
+  }, dark ? 'Dark' : 'Light')), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       setOpen(false);
       navigateTab('settings');
     },
-    className: "w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(tab === "settings" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
-  }, "Settings"), /*#__PURE__*/React.createElement("div", {
+    className: "w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ".concat(tab === "settings" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300")
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.75",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "shrink-0 opacity-60"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "3"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+  })), "Settings"), /*#__PURE__*/React.createElement("div", {
     className: "my-1 border-t border-slate-100 dark:border-slate-800"
   }), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       setOpen(false);
       signOut();
     },
-    className: "w-full flex items-center px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-600 dark:text-rose-400"
-  }, "Sign Out")));
+    className: "w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-600 dark:text-rose-400"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "15",
+    height: "15",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "1.75",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "shrink-0 opacity-70"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
+  })), "Sign Out")));
 }
 function App() {
   var _useTheme = useTheme(),
