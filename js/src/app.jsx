@@ -820,7 +820,7 @@ function App() {
       ) : tab === 'analytics' ? (
         <AnalyticsPage authUser={authUser} />
       ) : tab === 'history' ? (
-        <HistoryPage authUser={authUser} allQuestions={questions} onOpenQuestion={(id)=>{
+        <HistoryPage authUser={authUser} allQuestions={questions} navigateTab={navigateTab} onOpenQuestion={(id)=>{
           navigateTab('problems');
           setRecommendedMode(false);
           setTopic("All Topics");
@@ -927,11 +927,15 @@ function App() {
           </div>
           {bookmarks.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No bookmarks yet</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Open any problem and click "Review Later" to save it here.</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5">Open any problem and tap the bookmark icon to save it here for later review.</p>
+              <button onClick={() => setView('list')}
+                className="inline-block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+                Browse Problems
+              </button>
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">

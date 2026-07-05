@@ -325,7 +325,7 @@ function AnalyticsPage({ authUser }) {
   );
 }
 
-function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
+function HistoryPage({ authUser, allQuestions, onOpenQuestion, navigateTab }) {
   const [rows, setRows]         = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
@@ -605,15 +605,21 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion }) {
       {/* ── Table ── */}
       {sorted.length === 0 ? (
         <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+          <div className={`w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center ${rows.length === 0 ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-500 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           </div>
           <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
             {rows.length === 0 ? 'No attempts yet' : 'No results match your filters'}
           </p>
-          <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
-            {rows.length === 0 ? 'Answer some problems and they will appear here.' : 'Try adjusting your filters or search.'}
+          <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5">
+            {rows.length === 0 ? 'Answer some problems and your history will appear here.' : 'Try adjusting your filters or search.'}
           </p>
+          {rows.length === 0 && navigateTab && (
+            <button onClick={() => navigateTab('problems')}
+              className="inline-block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+              Start Practicing
+            </button>
+          )}
         </div>
       ) : (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">

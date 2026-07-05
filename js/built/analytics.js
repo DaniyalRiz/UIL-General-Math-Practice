@@ -537,7 +537,8 @@ function AnalyticsPage(_ref) {
 function HistoryPage(_ref7) {
   var authUser = _ref7.authUser,
     allQuestions = _ref7.allQuestions,
-    onOpenQuestion = _ref7.onOpenQuestion;
+    onOpenQuestion = _ref7.onOpenQuestion,
+    navigateTab = _ref7.navigateTab;
   var _useState7 = useState([]),
     _useState8 = _slicedToArray(_useState7, 2),
     rows = _useState8[0],
@@ -953,7 +954,7 @@ function HistoryPage(_ref7) {
   })), sorted.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "py-20 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
+    className: "w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center ".concat(rows.length === 0 ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-500 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500')
   }, /*#__PURE__*/React.createElement("svg", {
     width: "22",
     height: "22",
@@ -971,8 +972,13 @@ function HistoryPage(_ref7) {
   }))), /*#__PURE__*/React.createElement("p", {
     className: "font-semibold text-slate-700 dark:text-slate-300 mb-1"
   }, rows.length === 0 ? 'No attempts yet' : 'No results match your filters'), /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto"
-  }, rows.length === 0 ? 'Answer some problems and they will appear here.' : 'Try adjusting your filters or search.')) : /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5"
+  }, rows.length === 0 ? 'Answer some problems and your history will appear here.' : 'Try adjusting your filters or search.'), rows.length === 0 && navigateTab && /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return navigateTab('problems');
+    },
+    className: "inline-block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
+  }, "Start Practicing")) : /*#__PURE__*/React.createElement("div", {
     className: "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm"
   }, /*#__PURE__*/React.createElement("div", {
     className: "hidden md:grid grid-cols-[1fr_8rem_6rem_6rem_6rem_6rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500"
