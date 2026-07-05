@@ -829,23 +829,27 @@ function App() {
     _useState40 = _slicedToArray(_useState39, 2),
     openIdx = _useState40[0],
     setOpenIdx = _useState40[1];
-  var _useState41 = useState("list"),
+  var _useState41 = useState(null),
     _useState42 = _slicedToArray(_useState41, 2),
-    view = _useState42[0],
-    setView = _useState42[1];
-  var _useState43 = useState(''),
+    openQuestionId = _useState42[0],
+    setOpenQuestionId = _useState42[1];
+  var _useState43 = useState("list"),
     _useState44 = _slicedToArray(_useState43, 2),
-    jumpValue = _useState44[0],
-    setJumpValue = _useState44[1];
-  var _useState45 = useState(null),
+    view = _useState44[0],
+    setView = _useState44[1];
+  var _useState45 = useState(''),
     _useState46 = _slicedToArray(_useState45, 2),
-    jumpActive = _useState46[0],
-    setJumpActive = _useState46[1];
-  var answersRef = useRef({});
-  var _useState47 = useState(0),
+    jumpValue = _useState46[0],
+    setJumpValue = _useState46[1];
+  var _useState47 = useState(null),
     _useState48 = _slicedToArray(_useState47, 2),
-    answerVersion = _useState48[0],
-    setAnswerVersion = _useState48[1];
+    jumpActive = _useState48[0],
+    setJumpActive = _useState48[1];
+  var answersRef = useRef({});
+  var _useState49 = useState(0),
+    _useState50 = _slicedToArray(_useState49, 2),
+    answerVersion = _useState50[0],
+    setAnswerVersion = _useState50[1];
   var _useLocalStorage3 = useLocalStorage("uilmath-qstats", {}),
     _useLocalStorage4 = _slicedToArray(_useLocalStorage3, 2),
     qStats = _useLocalStorage4[0],
@@ -854,34 +858,34 @@ function App() {
     _useLocalStorage6 = _slicedToArray(_useLocalStorage5, 2),
     bookmarks = _useLocalStorage6[0],
     setBookmarks = _useLocalStorage6[1];
-  var _useState49 = useState(null),
-    _useState50 = _slicedToArray(_useState49, 2),
-    masteryStats = _useState50[0],
-    setMasteryStats = _useState50[1];
-  var _useState51 = useState(false),
+  var _useState51 = useState(null),
     _useState52 = _slicedToArray(_useState51, 2),
-    recommendedMode = _useState52[0],
-    setRecommendedMode = _useState52[1];
-  var _useState53 = useState("All"),
+    masteryStats = _useState52[0],
+    setMasteryStats = _useState52[1];
+  var _useState53 = useState(false),
     _useState54 = _slicedToArray(_useState53, 2),
-    recStatus = _useState54[0],
-    setRecStatus = _useState54[1];
-  var _useState55 = useState("Most Recent"),
+    recommendedMode = _useState54[0],
+    setRecommendedMode = _useState54[1];
+  var _useState55 = useState("All"),
     _useState56 = _slicedToArray(_useState55, 2),
-    recSort = _useState56[0],
-    setRecSort = _useState56[1];
-  var _useState57 = useState("All Types"),
+    recStatus = _useState56[0],
+    setRecStatus = _useState56[1];
+  var _useState57 = useState("Most Recent"),
     _useState58 = _slicedToArray(_useState57, 2),
-    typeFilter = _useState58[0],
-    setTypeFilter = _useState58[1];
-  var _useState59 = useState("All Sources"),
+    recSort = _useState58[0],
+    setRecSort = _useState58[1];
+  var _useState59 = useState("All Types"),
     _useState60 = _slicedToArray(_useState59, 2),
-    sourceFilter = _useState60[0],
-    setSourceFilter = _useState60[1];
-  var _useState61 = useState("All Status"),
+    typeFilter = _useState60[0],
+    setTypeFilter = _useState60[1];
+  var _useState61 = useState("All Sources"),
     _useState62 = _slicedToArray(_useState61, 2),
-    statusFilter = _useState62[0],
-    setStatusFilter = _useState62[1];
+    sourceFilter = _useState62[0],
+    setSourceFilter = _useState62[1];
+  var _useState63 = useState("All Status"),
+    _useState64 = _slicedToArray(_useState63, 2),
+    statusFilter = _useState64[0],
+    setStatusFilter = _useState64[1];
 
   // Rebuild per-question stats from the `attempts` table on login. Answers can only be
   // submitted while signed in, so server history is authoritative — this keeps the list's
@@ -1032,6 +1036,7 @@ function App() {
 
   // Navigation helpers that also push browser history
   var openProblem = function openProblem(idx) {
+    var _filtered$idx$id, _filtered$idx;
     pushAppState({
       tab: 'problems',
       openIdx: idx,
@@ -1039,9 +1044,11 @@ function App() {
       recommendedMode: recommendedMode
     });
     setOpenIdx(idx);
+    setOpenQuestionId((_filtered$idx$id = (_filtered$idx = filtered[idx]) === null || _filtered$idx === void 0 ? void 0 : _filtered$idx.id) !== null && _filtered$idx$id !== void 0 ? _filtered$idx$id : null);
   };
   var closeProblem = function closeProblem() {
     setOpenIdx(null);
+    setOpenQuestionId(null);
     if (view === "recommended") {
       setRecommendedMode(false);
       setView("list");
@@ -1065,18 +1072,18 @@ function App() {
       setPage(1);
     }
   };
-  var _useState63 = useState([]),
-    _useState64 = _slicedToArray(_useState63, 2),
-    questions = _useState64[0],
-    setQuestions = _useState64[1];
-  var _useState65 = useState("loading"),
+  var _useState65 = useState([]),
     _useState66 = _slicedToArray(_useState65, 2),
-    loadState = _useState66[0],
-    setLoadState = _useState66[1]; // "loading" | "ready" | "error"
-  var _useState67 = useState(""),
+    questions = _useState66[0],
+    setQuestions = _useState66[1];
+  var _useState67 = useState("loading"),
     _useState68 = _slicedToArray(_useState67, 2),
-    loadError = _useState68[0],
-    setLoadError = _useState68[1];
+    loadState = _useState68[0],
+    setLoadState = _useState68[1]; // "loading" | "ready" | "error"
+  var _useState69 = useState(""),
+    _useState70 = _slicedToArray(_useState69, 2),
+    loadError = _useState70[0],
+    setLoadError = _useState70[1];
   useEffect(function () {
     var cancelled = false;
     function loadQuestionsFromSupabase() {
@@ -1861,46 +1868,51 @@ function App() {
       disabled: pageClamped === totalPages,
       className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === totalPages ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
     }, "\u203A"));
-  }()), tab === 'problems' && openIdx !== null && filtered[openIdx] && /*#__PURE__*/React.createElement(ProblemView, {
-    q: filtered[openIdx],
-    prevAnswer: answersRef.current[filtered[openIdx].id],
-    stat: qStats[filtered[openIdx].id],
-    isBookmarked: bookmarks.includes(filtered[openIdx].id),
-    onToggleBookmark: function onToggleBookmark() {
-      return toggleBookmark(filtered[openIdx].id);
-    },
-    onClose: closeProblem,
-    onAnswered: recordAnswer,
-    hasPrev: openIdx > 0,
-    hasNext: openIdx < filtered.length - 1,
-    onPrev: function onPrev() {
-      return openProblem(Math.max(0, openIdx - 1));
-    },
-    onNext: function onNext() {
-      return openProblem(Math.min(filtered.length - 1, openIdx + 1));
-    },
-    authUser: authUser,
-    allQuestions: questions,
-    answeredIds: Object.keys(answersRef.current).map(Number),
-    onOpenQuestion: function onOpenQuestion(id) {
-      var idx = filtered.findIndex(function (x) {
-        return x.id === id;
-      });
-      if (idx !== -1) {
-        openProblem(idx);
-      } else {
-        setTopic("All Topics");
-        setDiff("All Difficulties");
-        setSearch("");
-        var qIdx = questions.findIndex(function (x) {
+  }()), function () {
+    var currentQ = openIdx !== null && filtered[openIdx] || openQuestionId !== null && questions.find(function (q) {
+      return q.id === openQuestionId;
+    }) || null;
+    return tab === 'problems' && currentQ && /*#__PURE__*/React.createElement(ProblemView, {
+      q: currentQ,
+      prevAnswer: answersRef.current[currentQ.id],
+      stat: qStats[currentQ.id],
+      isBookmarked: bookmarks.includes(currentQ.id),
+      onToggleBookmark: function onToggleBookmark() {
+        return toggleBookmark(currentQ.id);
+      },
+      onClose: closeProblem,
+      onAnswered: recordAnswer,
+      hasPrev: openIdx > 0,
+      hasNext: openIdx < filtered.length - 1,
+      onPrev: function onPrev() {
+        return openProblem(Math.max(0, openIdx - 1));
+      },
+      onNext: function onNext() {
+        return openProblem(Math.min(filtered.length - 1, openIdx + 1));
+      },
+      authUser: authUser,
+      allQuestions: questions,
+      answeredIds: Object.keys(answersRef.current).map(Number),
+      onOpenQuestion: function onOpenQuestion(id) {
+        var idx = filtered.findIndex(function (x) {
           return x.id === id;
         });
-        if (qIdx !== -1) setTimeout(function () {
-          return openProblem(qIdx);
-        }, 50);
+        if (idx !== -1) {
+          openProblem(idx);
+        } else {
+          setTopic("All Topics");
+          setDiff("All Difficulties");
+          setSearch("");
+          var qIdx = questions.findIndex(function (x) {
+            return x.id === id;
+          });
+          if (qIdx !== -1) setTimeout(function () {
+            return openProblem(qIdx);
+          }, 50);
+        }
       }
-    }
-  }));
+    });
+  }());
 }
 function mountApp() {
   var root = document.getElementById("root");

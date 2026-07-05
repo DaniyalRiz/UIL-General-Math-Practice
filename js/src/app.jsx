@@ -405,6 +405,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [openIdx, setOpenIdx] = useState(null);
+  const [openQuestionId, setOpenQuestionId] = useState(null);
   const [view, setView] = useState("list");
   const [jumpValue, setJumpValue] = useState('');
   const [jumpActive, setJumpActive] = useState(null);
@@ -502,9 +503,11 @@ function App() {
   const openProblem = (idx) => {
     pushAppState({ tab: 'problems', openIdx: idx, view, recommendedMode });
     setOpenIdx(idx);
+    setOpenQuestionId(filtered[idx]?.id ?? null);
   };
   const closeProblem = () => {
     setOpenIdx(null);
+    setOpenQuestionId(null);
     if (view === "recommended") { setRecommendedMode(false); setView("list"); }
   };
   const navigateTab = (t) => {
@@ -1056,14 +1059,17 @@ function App() {
       )}
 
       {/* PROBLEM VIEW — only when on problems tab */}
-
-      {tab === 'problems' && openIdx !== null && filtered[openIdx] && (
+      {(() => {
+        const currentQ = (openIdx !== null && filtered[openIdx])
+          || (openQuestionId !== null && questions.find(q => q.id === openQuestionId))
+          || null;
+        return tab === 'problems' && currentQ && (
         <ProblemView
-          q={filtered[openIdx]}
-          prevAnswer={answersRef.current[filtered[openIdx].id]}
-          stat={qStats[filtered[openIdx].id]}
-          isBookmarked={bookmarks.includes(filtered[openIdx].id)}
-          onToggleBookmark={()=>toggleBookmark(filtered[openIdx].id)}
+          q={currentQ}
+          prevAnswer={answersRef.current[currentQ.id]}
+          stat={qStats[currentQ.id]}
+          isBookmarked={bookmarks.includes(currentQ.id)}
+          onToggleBookmark={()=>toggleBookmark(currentQ.id)}
           onClose={closeProblem}
           onAnswered={recordAnswer}
           hasPrev={openIdx>0}
@@ -1083,7 +1089,8 @@ function App() {
             }
           }}
         />
-      )}
+        );
+      })()}
     </div>
   );
 }
