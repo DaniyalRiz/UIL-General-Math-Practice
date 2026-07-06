@@ -8,8 +8,6 @@ https://daniyalriz.github.io/UIL-General-Math-Practice/
 
 ## Features
 
-## Features
-
 ### Problems
 - 400 real UIL General Mathematics problems (District, Region, TMSCA sources)
 - Filter by topic (Algebra 1 & 2, Geometry, Precalculus, AP Calculus, AP Statistics)
