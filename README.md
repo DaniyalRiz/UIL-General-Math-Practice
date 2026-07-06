@@ -4,7 +4,7 @@ A practice platform for UIL General Mathematics competitors with topic filtering
 
 ## Live Website
 
-https://daniyalriz.github.io/UIL-General-Math-Practice-/
+https://daniyalriz.github.io/UIL-General-Math-Practice/
 
 ## Features
 
