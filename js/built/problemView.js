@@ -255,6 +255,7 @@ function ProblemView(_ref3) {
     setShowReportIssue = _useState22[1];
   var timer = useTimer();
   var startRef = useRef(Date.now());
+  var submittingForRef = useRef(null);
 
   // Reset per-question interaction state whenever the question itself changes.
   useEffect(function () {
@@ -267,6 +268,7 @@ function ProblemView(_ref3) {
     setSubmitError("");
     setServerResult(null);
     setSubmitting(false);
+    submittingForRef.current = null;
     timer.reset();
     timer.start();
     startRef.current = Date.now();
@@ -396,12 +398,13 @@ function ProblemView(_ref3) {
             return _context3.a(2);
           case 1:
             if (authUser) {
-              _context3.n = 5;
+              _context3.n = 6;
               break;
             }
             _timeMs = Date.now() - startRef.current;
             setSubmitting(true);
             setSubmitError("");
+            submittingForRef.current = q.id;
             _context3.n = 2;
             return _supabase.rpc("guest_check_answer", {
               p_question_id: q.id,
@@ -411,22 +414,28 @@ function ProblemView(_ref3) {
             _yield$_supabase$rpc = _context3.v;
             _data = _yield$_supabase$rpc.data;
             _error = _yield$_supabase$rpc.error;
+            if (!(submittingForRef.current !== q.id)) {
+              _context3.n = 3;
+              break;
+            }
+            return _context3.a(2);
+          case 3:
             setSubmitting(false);
             if (!_error) {
-              _context3.n = 3;
+              _context3.n = 4;
               break;
             }
             setSubmitError(_error.message || "Could not check answer.");
             return _context3.a(2);
-          case 3:
+          case 4:
             _result = Array.isArray(_data) ? _data[0] : _data;
             if (!(!_result || _result.error)) {
-              _context3.n = 4;
+              _context3.n = 5;
               break;
             }
             setSubmitError((_result === null || _result === void 0 ? void 0 : _result.error) || "No result returned.");
             return _context3.a(2);
-          case 4:
+          case 5:
             setSelected(pending);
             setAnswered(true);
             timer.stop();
@@ -449,44 +458,51 @@ function ProblemView(_ref3) {
               tags: q.tags || []
             });
             return _context3.a(2);
-          case 5:
+          case 6:
             if (attemptSessionId) {
-              _context3.n = 6;
+              _context3.n = 7;
               break;
             }
             setSubmitError("Question session is not ready yet. Wait a moment and try again.");
             return _context3.a(2);
-          case 6:
+          case 7:
             timeMs = Date.now() - startRef.current;
             setSubmitting(true);
             setSubmitError("");
-            _context3.n = 7;
+            submittingForRef.current = q.id;
+            _context3.n = 8;
             return _supabase.rpc("submit_answer", {
               p_session_id: attemptSessionId,
               p_question_id: q.id,
               p_selected_answer: pending,
               p_time_taken_ms: timeMs
             });
-          case 7:
+          case 8:
             _yield$_supabase$rpc2 = _context3.v;
             data = _yield$_supabase$rpc2.data;
             error = _yield$_supabase$rpc2.error;
+            if (!(submittingForRef.current !== q.id)) {
+              _context3.n = 9;
+              break;
+            }
+            return _context3.a(2);
+          case 9:
             setSubmitting(false);
             if (!error) {
-              _context3.n = 8;
+              _context3.n = 10;
               break;
             }
             setSubmitError(error.message || "Could not submit answer.");
             return _context3.a(2);
-          case 8:
+          case 10:
             result = Array.isArray(data) ? data[0] : data;
             if (result) {
-              _context3.n = 9;
+              _context3.n = 11;
               break;
             }
             setSubmitError("No result returned from Supabase.");
             return _context3.a(2);
-          case 9:
+          case 11:
             setSelected(pending);
             setAnswered(true);
             timer.stop();
@@ -504,7 +520,7 @@ function ProblemView(_ref3) {
               explanation: result.explanation || null,
               tags: q.tags || []
             });
-          case 10:
+          case 12:
             return _context3.a(2);
         }
       }, _callee3);
@@ -764,14 +780,15 @@ function ProblemView(_ref3) {
     className: "grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-950 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: onPrev,
-    disabled: !hasPrev,
-    className: "w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ".concat(hasPrev ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700" : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed")
+    disabled: !hasPrev || submitting,
+    className: "w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ".concat(hasPrev && !submitting ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700" : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed")
   }, "\u2190 Prev"), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
-    className: "w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
+    disabled: submitting,
+    className: "w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ".concat(submitting ? 'text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-slate-900 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700')
   }, "Close"), /*#__PURE__*/React.createElement("button", {
     onClick: onNext,
-    disabled: !hasNext,
-    className: "w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ".concat(hasNext ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed")
+    disabled: !hasNext || submitting,
+    className: "w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ".concat(hasNext && !submitting ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed")
   }, "Next \u2192"))));
 }

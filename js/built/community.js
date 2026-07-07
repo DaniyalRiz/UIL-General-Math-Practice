@@ -395,12 +395,7 @@ function CommunitySolutions(_ref2) {
     className: "shrink-0 text-sm font-semibold text-blue-600 dark:text-blue-400"
   }, open ? 'Hide' : 'Show')), open ? /*#__PURE__*/React.createElement("div", {
     className: "border-t border-slate-200 dark:border-slate-800 p-4 space-y-4 bg-white dark:bg-slate-900 rounded-b-2xl"
-  }, !authUser ? /*#__PURE__*/React.createElement("p", {
-    className: "text-sm text-slate-500 dark:text-slate-400"
-  }, /*#__PURE__*/React.createElement("a", {
-    href: "./index.html",
-    className: "text-blue-600 dark:text-blue-400 hover:underline"
-  }, "Sign in"), " to view or post community solutions.") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, authUser ? /*#__PURE__*/React.createElement("div", {
     className: "pt-1"
   }, /*#__PURE__*/React.createElement("p", {
     className: "text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2"
@@ -422,8 +417,13 @@ function CommunitySolutions(_ref2) {
     className: "w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-semibold ".concat(text.trim() && !saving ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed')
   }, saving ? 'Posting…' : 'Post Solution')), message && /*#__PURE__*/React.createElement("p", {
     className: "mt-2 text-xs ".concat(message.includes('posted') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')
-  }, message)), /*#__PURE__*/React.createElement("div", {
-    className: "border-t border-slate-200 dark:border-slate-800 pt-4"
+  }, message)) : /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500 dark:text-slate-400 pt-1"
+  }, /*#__PURE__*/React.createElement("a", {
+    href: "./index.html",
+    className: "text-blue-600 dark:text-blue-400 hover:underline"
+  }, "Sign in"), " to post a community solution."), /*#__PURE__*/React.createElement("div", {
+    className: authUser ? "border-t border-slate-200 dark:border-slate-800 pt-4" : ""
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex flex-wrap items-center justify-between gap-2 mb-3"
   }, /*#__PURE__*/React.createElement("p", {
@@ -455,7 +455,7 @@ function CommunitySolutions(_ref2) {
     d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
   }))), /*#__PURE__*/React.createElement("p", {
     className: "text-sm font-semibold text-slate-600 dark:text-slate-400 mb-0.5"
-  }, "No solutions yet"), /*#__PURE__*/React.createElement("p", {
+  }, "No solutions yet"), authUser && /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-slate-400 dark:text-slate-500"
   }, "Be the first to add one above.")) : sorted.map(function (s) {
     return /*#__PURE__*/React.createElement("div", {
@@ -465,9 +465,10 @@ function CommunitySolutions(_ref2) {
       className: "flex items-start gap-3"
     }, /*#__PURE__*/React.createElement("button", {
       onClick: function onClick() {
-        return toggleVote(s.id);
+        return authUser && toggleVote(s.id);
       },
-      className: "shrink-0 px-2 py-1 rounded-lg text-xs font-bold border transition-colors ".concat(votes.includes(s.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400')
+      title: !authUser ? "Sign in to vote" : undefined,
+      className: "shrink-0 px-2 py-1 rounded-lg text-xs font-bold border transition-colors ".concat(!authUser ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 cursor-default' : votes.includes(s.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400')
     }, "\u25B2 ", s.upvotes || 0), /*#__PURE__*/React.createElement("div", {
       className: "flex-1 min-w-0"
     }, /*#__PURE__*/React.createElement("p", {
@@ -481,5 +482,5 @@ function CommunitySolutions(_ref2) {
     }, /*#__PURE__*/React.createElement(MathText, {
       text: s.solution_text
     })))));
-  }))))) : null);
+  })))) : null);
 }
