@@ -786,6 +786,11 @@ function App() {
     var _supabase$auth$onAuth = _supabase.auth.onAuthStateChange(function (_e, session) {
         var _session$user2;
         setAuthUser((_session$user2 = session === null || session === void 0 ? void 0 : session.user) !== null && _session$user2 !== void 0 ? _session$user2 : null);
+        if (!session) {
+          setQStats({});
+          setBookmarks([]);
+          answersRef.current = {};
+        }
       }),
       subscription = _supabase$auth$onAuth.data.subscription;
     return function () {
