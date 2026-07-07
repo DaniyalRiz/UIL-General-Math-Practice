@@ -381,10 +381,11 @@ function ProblemView(_ref3) {
     });
   };
 
-  // Submit button handler — answer checking happens securely in Supabase.
+  // Submit button handler — answer checking happens securely in Supabase for signed-in users,
+  // or client-side for guests (no persistence).
   var handleSubmit = /*#__PURE__*/function () {
     var _handleSubmit = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
-      var timeMs, _yield$_supabase$rpc, data, error, result;
+      var _timeMs, _isCorrect, timeMs, _yield$_supabase$rpc, data, error, result;
       return _regenerator().w(function (_context3) {
         while (1) switch (_context3.n) {
           case 0:
@@ -398,7 +399,29 @@ function ProblemView(_ref3) {
               _context3.n = 2;
               break;
             }
-            setSubmitError("Please sign in to submit answers securely.");
+            _timeMs = Date.now() - startRef.current;
+            _isCorrect = answerMatches(pending, q.answer);
+            setSelected(pending);
+            setAnswered(true);
+            timer.stop();
+            setServerResult({
+              is_correct: _isCorrect,
+              correct_answer: q.answer,
+              explanation: q.explanation || null
+            });
+            onAnswered && onAnswered({
+              questionId: q.id,
+              questionTitle: q.title || null,
+              questionText: q.question || null,
+              topic: q.topic,
+              difficulty: q.difficulty,
+              selected: pending,
+              correctAnswer: q.answer,
+              correct: _isCorrect,
+              timeMs: _timeMs,
+              explanation: q.explanation || null,
+              tags: q.tags || []
+            });
             return _context3.a(2);
           case 2:
             if (attemptSessionId) {
@@ -656,9 +679,9 @@ function ProblemView(_ref3) {
     className: "mb-2 text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-lg px-3 py-2"
   }, submitError), /*#__PURE__*/React.createElement("button", {
     onClick: handleSubmit,
-    disabled: !pending || submitting || !authUser,
-    className: "w-full py-3 rounded-lg text-sm font-bold transition-all\n                    ".concat(pending && !submitting && authUser ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed")
-  }, !authUser ? "Sign in to submit securely" : submitting ? "Submitting…" : pending ? "Submit Answer" : "Select an answer first")), answered && /*#__PURE__*/React.createElement("div", {
+    disabled: !pending || submitting,
+    className: "w-full py-3 rounded-lg text-sm font-bold transition-all\n                    ".concat(pending && !submitting ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed")
+  }, submitting ? "Submitting…" : pending ? "Submit Answer" : "Select an answer first")), answered && /*#__PURE__*/React.createElement("div", {
     className: "mx-4 sm:mx-6 mb-5 rounded-2xl p-6 sm:p-8 border flex flex-col shrink-0\n                ".concat(isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30" : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30")
   }, /*#__PURE__*/React.createElement("div", {
     className: "font-bold text-base mb-3 ".concat(isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300")
