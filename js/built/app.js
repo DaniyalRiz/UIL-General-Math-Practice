@@ -800,6 +800,10 @@ function App() {
             _context5.n = 1;
             return _supabase.auth.signOut();
           case 1:
+            setQStats({});
+            setBookmarks([]);
+            answersRef.current = {};
+          case 2:
             return _context5.a(2);
         }
       }, _callee5);
