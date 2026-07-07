@@ -19,7 +19,9 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function AnalyticsPage(_ref) {
-  var authUser = _ref.authUser;
+  var authUser = _ref.authUser,
+    sessionAnswers = _ref.sessionAnswers,
+    questions = _ref.questions;
   var _useState = useState(null),
     _useState2 = _slicedToArray(_useState, 2),
     data = _useState2[0],
@@ -34,6 +36,16 @@ function AnalyticsPage(_ref) {
     setError = _useState6[1];
   useEffect(function () {
     if (!authUser) {
+      var rows = (sessionAnswers || []).map(function (r) {
+        return {
+          topic: r.topic,
+          difficulty: r.difficulty,
+          is_correct: r.is_correct,
+          time_taken_ms: r.time_taken_ms,
+          created_at: r.created_at
+        };
+      });
+      setData(rows);
       setLoading(false);
       return;
     }
@@ -51,48 +63,7 @@ function AnalyticsPage(_ref) {
       setData(rows || []);
       setLoading(false);
     });
-  }, [authUser]);
-  if (!authUser) return /*#__PURE__*/React.createElement("div", {
-    className: "max-w-6xl mx-auto px-4 py-16 text-center"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "26",
-    height: "26",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "1.5",
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-  }, /*#__PURE__*/React.createElement("line", {
-    x1: "18",
-    y1: "20",
-    x2: "18",
-    y2: "10"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "12",
-    y1: "20",
-    x2: "12",
-    y2: "4"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "6",
-    y1: "20",
-    x2: "6",
-    y2: "14"
-  }), /*#__PURE__*/React.createElement("line", {
-    x1: "2",
-    y1: "20",
-    x2: "22",
-    y2: "20"
-  }))), /*#__PURE__*/React.createElement("p", {
-    className: "font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2"
-  }, "Analytics"), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-500 dark:text-slate-400 mb-6"
-  }, "Sign in to see your personal performance analytics."), /*#__PURE__*/React.createElement("a", {
-    href: "./index.html",
-    className: "inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-  }, "Sign In"));
+  }, [authUser, sessionAnswers]);
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-32"
   }, /*#__PURE__*/React.createElement("div", {
@@ -338,7 +309,38 @@ function AnalyticsPage(_ref) {
   };
   return /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-4 py-8"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, !authUser && /*#__PURE__*/React.createElement("div", {
+    className: "mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "text-blue-500 shrink-0"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "8",
+    x2: "12",
+    y2: "12"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "16",
+    x2: "12.01",
+    y2: "16"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-800 dark:text-blue-200"
+  }, "Showing this session only. ", /*#__PURE__*/React.createElement("a", {
+    href: "./index.html",
+    className: "font-semibold underline"
+  }, "Sign in"), " to save your progress.")), /*#__PURE__*/React.createElement("div", {
     className: "mb-6 flex items-start justify-between gap-4"
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1"
@@ -537,6 +539,7 @@ function AnalyticsPage(_ref) {
 function HistoryPage(_ref7) {
   var authUser = _ref7.authUser,
     allQuestions = _ref7.allQuestions,
+    sessionAnswers = _ref7.sessionAnswers,
     onOpenQuestion = _ref7.onOpenQuestion,
     navigateTab = _ref7.navigateTab;
   var _useState7 = useState([]),
@@ -620,6 +623,7 @@ function HistoryPage(_ref7) {
   }, [rows, questionSourceMap, filterType]);
   useEffect(function () {
     if (!authUser) {
+      setRows(sessionAnswers || []);
       setLoading(false);
       return;
     }
@@ -637,7 +641,10 @@ function HistoryPage(_ref7) {
       setRows(data || []);
       setLoading(false);
     });
-  }, [authUser]);
+  }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
+  useEffect(function () {
+    if (!authUser) setRows(sessionAnswers || []);
+  }, [authUser, sessionAnswers]);
   useEffect(function () {
     if (!authUser) return;
     _supabase.from('community_solutions').select('id,user_id,question_id,solution_text,created_at,updated_at,hidden').eq('user_id', authUser.id).order('created_at', {
@@ -692,32 +699,6 @@ function HistoryPage(_ref7) {
       };
     }());
   }, [authUser]);
-  if (!authUser) return /*#__PURE__*/React.createElement("div", {
-    className: "max-w-6xl mx-auto px-4 py-16 text-center"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500"
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "26",
-    height: "26",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "1.5",
-    strokeLinecap: "round"
-  }, /*#__PURE__*/React.createElement("circle", {
-    cx: "12",
-    cy: "12",
-    r: "10"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M12 6v6l4 2"
-  }))), /*#__PURE__*/React.createElement("p", {
-    className: "font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2"
-  }, "History"), /*#__PURE__*/React.createElement("p", {
-    className: "text-slate-500 dark:text-slate-400 mb-6"
-  }, "Sign in to see your attempt history."), /*#__PURE__*/React.createElement("a", {
-    href: "./index.html",
-    className: "inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-  }, "Sign In"));
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-32"
   }, /*#__PURE__*/React.createElement("div", {
@@ -787,7 +768,38 @@ function HistoryPage(_ref7) {
   };
   return /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-4 py-8"
-  }, /*#__PURE__*/React.createElement("div", {
+  }, !authUser && /*#__PURE__*/React.createElement("div", {
+    className: "mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm"
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: "text-blue-500 shrink-0"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "12",
+    cy: "12",
+    r: "10"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "8",
+    x2: "12",
+    y2: "12"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "12",
+    y1: "16",
+    x2: "12.01",
+    y2: "16"
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-800 dark:text-blue-200"
+  }, "Showing this session only. ", /*#__PURE__*/React.createElement("a", {
+    href: "./index.html",
+    className: "font-semibold underline"
+  }, "Sign in"), " to save your history.")), /*#__PURE__*/React.createElement("div", {
     className: "mb-6"
   }, /*#__PURE__*/React.createElement("h1", {
     className: "font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1"
@@ -800,7 +812,7 @@ function HistoryPage(_ref7) {
       return setHistorySubTab('attempts');
     },
     className: "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ".concat(historySubTab === 'attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200')
-  }, "Attempts"), /*#__PURE__*/React.createElement("button", {
+  }, "Attempts"), authUser && /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
       return setHistorySubTab('solutions');
     },

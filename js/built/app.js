@@ -790,6 +790,7 @@ function App() {
           setQStats({});
           setBookmarks([]);
           answersRef.current = {};
+          setSessionAnswers([]);
         }
       }),
       subscription = _supabase$auth$onAuth.data.subscription;
@@ -808,6 +809,7 @@ function App() {
             setQStats({});
             setBookmarks([]);
             answersRef.current = {};
+            setSessionAnswers([]);
           case 2:
             return _context5.a(2);
         }
@@ -859,6 +861,10 @@ function App() {
     _useState50 = _slicedToArray(_useState49, 2),
     answerVersion = _useState50[0],
     setAnswerVersion = _useState50[1];
+  var _useState51 = useState([]),
+    _useState52 = _slicedToArray(_useState51, 2),
+    sessionAnswers = _useState52[0],
+    setSessionAnswers = _useState52[1];
   var _useLocalStorage3 = useLocalStorage("uilmath-qstats", {}),
     _useLocalStorage4 = _slicedToArray(_useLocalStorage3, 2),
     qStats = _useLocalStorage4[0],
@@ -867,34 +873,34 @@ function App() {
     _useLocalStorage6 = _slicedToArray(_useLocalStorage5, 2),
     bookmarks = _useLocalStorage6[0],
     setBookmarks = _useLocalStorage6[1];
-  var _useState51 = useState(null),
-    _useState52 = _slicedToArray(_useState51, 2),
-    masteryStats = _useState52[0],
-    setMasteryStats = _useState52[1];
-  var _useState53 = useState(false),
+  var _useState53 = useState(null),
     _useState54 = _slicedToArray(_useState53, 2),
-    recommendedMode = _useState54[0],
-    setRecommendedMode = _useState54[1];
-  var _useState55 = useState("All"),
+    masteryStats = _useState54[0],
+    setMasteryStats = _useState54[1];
+  var _useState55 = useState(false),
     _useState56 = _slicedToArray(_useState55, 2),
-    recStatus = _useState56[0],
-    setRecStatus = _useState56[1];
-  var _useState57 = useState("Most Recent"),
+    recommendedMode = _useState56[0],
+    setRecommendedMode = _useState56[1];
+  var _useState57 = useState("All"),
     _useState58 = _slicedToArray(_useState57, 2),
-    recSort = _useState58[0],
-    setRecSort = _useState58[1];
-  var _useState59 = useState("All Types"),
+    recStatus = _useState58[0],
+    setRecStatus = _useState58[1];
+  var _useState59 = useState("Most Recent"),
     _useState60 = _slicedToArray(_useState59, 2),
-    typeFilter = _useState60[0],
-    setTypeFilter = _useState60[1];
-  var _useState61 = useState("All Sources"),
+    recSort = _useState60[0],
+    setRecSort = _useState60[1];
+  var _useState61 = useState("All Types"),
     _useState62 = _slicedToArray(_useState61, 2),
-    sourceFilter = _useState62[0],
-    setSourceFilter = _useState62[1];
-  var _useState63 = useState("All Status"),
+    typeFilter = _useState62[0],
+    setTypeFilter = _useState62[1];
+  var _useState63 = useState("All Sources"),
     _useState64 = _slicedToArray(_useState63, 2),
-    statusFilter = _useState64[0],
-    setStatusFilter = _useState64[1];
+    sourceFilter = _useState64[0],
+    setSourceFilter = _useState64[1];
+  var _useState65 = useState("All Status"),
+    _useState66 = _slicedToArray(_useState65, 2),
+    statusFilter = _useState66[0],
+    setStatusFilter = _useState66[1];
 
   // Rebuild per-question stats from the `attempts` table on login. Answers can only be
   // submitted while signed in, so server history is authoritative — this keeps the list's
@@ -965,6 +971,29 @@ function App() {
     }
     loadMasteryStats();
   }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
+  var guestMasteryStats = useMemo(function () {
+    if (authUser) return null;
+    var mastered_by_topic = {};
+    var total_mastered = 0;
+    Object.entries(qStats).forEach(function (_ref6) {
+      var _ref7 = _slicedToArray(_ref6, 2),
+        id = _ref7[0],
+        s = _ref7[1];
+      if (s.correct > 0) {
+        total_mastered++;
+        var q = questions.find(function (q) {
+          return q.id === Number(id);
+        });
+        if (q) mastered_by_topic[q.topic] = (mastered_by_topic[q.topic] || 0) + 1;
+      }
+    });
+    return {
+      total_mastered: total_mastered,
+      mastered_by_topic: mastered_by_topic,
+      used_recommended_practice: false,
+      has_resolved_bug_report: false
+    };
+  }, [authUser, qStats, questions]);
   var markUsedRecommendedPractice = /*#__PURE__*/function () {
     var _markUsedRecommendedPractice = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
       var _yield$_supabase$from2, error;
@@ -1077,18 +1106,18 @@ function App() {
       setPage(1);
     }
   };
-  var _useState65 = useState([]),
-    _useState66 = _slicedToArray(_useState65, 2),
-    questions = _useState66[0],
-    setQuestions = _useState66[1];
-  var _useState67 = useState("loading"),
+  var _useState67 = useState([]),
     _useState68 = _slicedToArray(_useState67, 2),
-    loadState = _useState68[0],
-    setLoadState = _useState68[1]; // "loading" | "ready" | "error"
-  var _useState69 = useState(""),
+    questions = _useState68[0],
+    setQuestions = _useState68[1];
+  var _useState69 = useState("loading"),
     _useState70 = _slicedToArray(_useState69, 2),
-    loadError = _useState70[0],
-    setLoadError = _useState70[1];
+    loadState = _useState70[0],
+    setLoadState = _useState70[1]; // "loading" | "ready" | "error"
+  var _useState71 = useState(""),
+    _useState72 = _slicedToArray(_useState71, 2),
+    loadError = _useState72[0],
+    setLoadError = _useState72[1];
   useEffect(function () {
     var cancelled = false;
     function loadQuestionsFromSupabase() {
@@ -1171,9 +1200,9 @@ function App() {
         return q.id;
       }));
     }
-    var attemptedIds = new Set(answeredEntries.map(function (_ref6) {
-      var _ref7 = _slicedToArray(_ref6, 1),
-        id = _ref7[0];
+    var attemptedIds = new Set(answeredEntries.map(function (_ref8) {
+      var _ref9 = _slicedToArray(_ref8, 1),
+        id = _ref9[0];
       return Number(id);
     }));
     var topicStats = {};
@@ -1268,6 +1297,24 @@ function App() {
         lastMs: rec.timeMs
       };
       return _objectSpread(_objectSpread({}, prev), {}, _defineProperty({}, rec.questionId, next));
+    });
+    // Track session history for guest analytics/history
+    setSessionAnswers(function (prev) {
+      return [{
+        id: "session-".concat(Date.now(), "-").concat(rec.questionId),
+        question_id: rec.questionId,
+        question_title: rec.questionTitle,
+        question_text: rec.questionText,
+        topic: rec.topic,
+        difficulty: rec.difficulty,
+        selected_answer: rec.selected,
+        correct_answer: rec.correctAnswer,
+        is_correct: rec.correct,
+        time_taken_ms: rec.timeMs,
+        explanation: rec.explanation,
+        tags: rec.tags || [],
+        created_at: new Date().toISOString()
+      }].concat(_toConsumableArray(prev));
     });
   };
 
@@ -1446,16 +1493,19 @@ function App() {
     className: "text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors whitespace-nowrap"
   }, "Sign In")))), tab === 'mastery' ? /*#__PURE__*/React.createElement(MasteryPage, {
     authUser: authUser,
-    masteryStats: masteryStats,
+    masteryStats: authUser ? masteryStats : guestMasteryStats,
     bookmarksCount: bookmarks.length,
     navigateTab: navigateTab
   }) : tab === 'leaderboard' ? /*#__PURE__*/React.createElement(LeaderboardPage, {
     authUser: authUser
   }) : tab === 'analytics' ? /*#__PURE__*/React.createElement(AnalyticsPage, {
-    authUser: authUser
+    authUser: authUser,
+    sessionAnswers: sessionAnswers,
+    questions: questions
   }) : tab === 'history' ? /*#__PURE__*/React.createElement(HistoryPage, {
     authUser: authUser,
     allQuestions: questions,
+    sessionAnswers: sessionAnswers,
     navigateTab: navigateTab,
     onOpenQuestion: function onOpenQuestion(id) {
       navigateTab('problems');
