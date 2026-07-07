@@ -255,7 +255,9 @@ function ProblemView(_ref3) {
     setShowReportIssue = _useState22[1];
   var timer = useTimer();
   var startRef = useRef(Date.now());
-  var submittingForRef = useRef(null);
+  // Updated synchronously on every render so async RPC callbacks can detect stale results.
+  var activeQuestionIdRef = useRef(q.id);
+  activeQuestionIdRef.current = q.id;
 
   // Reset per-question interaction state whenever the question itself changes.
   useEffect(function () {
@@ -268,7 +270,6 @@ function ProblemView(_ref3) {
     setSubmitError("");
     setServerResult(null);
     setSubmitting(false);
-    submittingForRef.current = null;
     timer.reset();
     timer.start();
     startRef.current = Date.now();
@@ -387,7 +388,7 @@ function ProblemView(_ref3) {
   // or client-side for guests (no persistence).
   var handleSubmit = /*#__PURE__*/function () {
     var _handleSubmit = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
-      var _timeMs, _yield$_supabase$rpc, _data, _error, _result, timeMs, _yield$_supabase$rpc2, data, error, result;
+      var _timeMs, _submittedForId, _yield$_supabase$rpc, _data, _error, _result, timeMs, submittedForId, _yield$_supabase$rpc2, data, error, result;
       return _regenerator().w(function (_context3) {
         while (1) switch (_context3.n) {
           case 0:
@@ -404,7 +405,7 @@ function ProblemView(_ref3) {
             _timeMs = Date.now() - startRef.current;
             setSubmitting(true);
             setSubmitError("");
-            submittingForRef.current = q.id;
+            _submittedForId = q.id;
             _context3.n = 2;
             return _supabase.rpc("guest_check_answer", {
               p_question_id: q.id,
@@ -414,7 +415,7 @@ function ProblemView(_ref3) {
             _yield$_supabase$rpc = _context3.v;
             _data = _yield$_supabase$rpc.data;
             _error = _yield$_supabase$rpc.error;
-            if (!(submittingForRef.current !== q.id)) {
+            if (!(activeQuestionIdRef.current !== _submittedForId)) {
               _context3.n = 3;
               break;
             }
@@ -469,7 +470,7 @@ function ProblemView(_ref3) {
             timeMs = Date.now() - startRef.current;
             setSubmitting(true);
             setSubmitError("");
-            submittingForRef.current = q.id;
+            submittedForId = q.id;
             _context3.n = 8;
             return _supabase.rpc("submit_answer", {
               p_session_id: attemptSessionId,
@@ -481,7 +482,7 @@ function ProblemView(_ref3) {
             _yield$_supabase$rpc2 = _context3.v;
             data = _yield$_supabase$rpc2.data;
             error = _yield$_supabase$rpc2.error;
-            if (!(submittingForRef.current !== q.id)) {
+            if (!(activeQuestionIdRef.current !== submittedForId)) {
               _context3.n = 9;
               break;
             }
