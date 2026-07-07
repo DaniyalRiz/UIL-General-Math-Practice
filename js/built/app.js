@@ -981,29 +981,6 @@ function App() {
     }
     loadMasteryStats();
   }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
-  var guestMasteryStats = useMemo(function () {
-    if (authUser) return null;
-    var mastered_by_topic = {};
-    var total_mastered = 0;
-    Object.entries(qStats).forEach(function (_ref6) {
-      var _ref7 = _slicedToArray(_ref6, 2),
-        id = _ref7[0],
-        s = _ref7[1];
-      if (s.correct > 0) {
-        total_mastered++;
-        var q = questions.find(function (q) {
-          return q.id === Number(id);
-        });
-        if (q) mastered_by_topic[q.topic] = (mastered_by_topic[q.topic] || 0) + 1;
-      }
-    });
-    return {
-      total_mastered: total_mastered,
-      mastered_by_topic: mastered_by_topic,
-      used_recommended_practice: false,
-      has_resolved_bug_report: false
-    };
-  }, [authUser, qStats, questions]);
   var markUsedRecommendedPractice = /*#__PURE__*/function () {
     var _markUsedRecommendedPractice = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
       var _yield$_supabase$from2, error;
@@ -1187,6 +1164,29 @@ function App() {
       cancelled = true;
     };
   }, []);
+  var guestMasteryStats = useMemo(function () {
+    if (authUser) return null;
+    var mastered_by_topic = {};
+    var total_mastered = 0;
+    Object.entries(qStats).forEach(function (_ref6) {
+      var _ref7 = _slicedToArray(_ref6, 2),
+        id = _ref7[0],
+        s = _ref7[1];
+      if (s.correct > 0) {
+        total_mastered++;
+        var q = questions.find(function (q) {
+          return q.id === Number(id);
+        });
+        if (q) mastered_by_topic[q.topic] = (mastered_by_topic[q.topic] || 0) + 1;
+      }
+    });
+    return {
+      total_mastered: total_mastered,
+      mastered_by_topic: mastered_by_topic,
+      used_recommended_practice: false,
+      has_resolved_bug_report: false
+    };
+  }, [authUser, qStats, questions]);
   var toggleBookmark = function toggleBookmark(id) {
     setBookmarks(function (prev) {
       return prev.includes(id) ? prev.filter(function (x) {
