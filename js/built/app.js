@@ -1985,12 +1985,19 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
     _classCallCheck(this, ErrorBoundary);
     _this = _callSuper(this, ErrorBoundary, [props]);
     _this.state = {
-      crashed: false
+      crashed: false,
+      errorMsg: '',
+      errorStack: ''
     };
     return _this;
   }
   _inherits(ErrorBoundary, _React$Component);
   return _createClass(ErrorBoundary, [{
+    key: "componentDidCatch",
+    value: function componentDidCatch(err, info) {
+      console.error('[UIL Math] Render error:', err, info === null || info === void 0 ? void 0 : info.componentStack);
+    }
+  }, {
     key: "render",
     value: function render() {
       var _this2 = this;
@@ -1999,7 +2006,7 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
           style: {
             padding: '48px 32px',
             fontFamily: 'sans-serif',
-            maxWidth: '520px',
+            maxWidth: '620px',
             margin: '0 auto',
             textAlign: 'center'
           }
@@ -2017,7 +2024,9 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
         }, "Refresh the page to continue. Your session data will be restored if you were signed in."), /*#__PURE__*/React.createElement("button", {
           onClick: function onClick() {
             return _this2.setState({
-              crashed: false
+              crashed: false,
+              errorMsg: '',
+              errorStack: ''
             });
           },
           style: {
@@ -2030,15 +2039,43 @@ var ErrorBoundary = /*#__PURE__*/function (_React$Component) {
             cursor: 'pointer',
             fontWeight: '600'
           }
-        }, "Try to recover"));
+        }, "Try to recover"), this.state.errorMsg && /*#__PURE__*/React.createElement("details", {
+          style: {
+            marginTop: '20px',
+            textAlign: 'left'
+          }
+        }, /*#__PURE__*/React.createElement("summary", {
+          style: {
+            cursor: 'pointer',
+            color: '#94a3b8',
+            fontSize: '12px',
+            userSelect: 'none'
+          }
+        }, "Error details (for bug reports)"), /*#__PURE__*/React.createElement("pre", {
+          style: {
+            marginTop: '8px',
+            padding: '12px',
+            background: '#f1f5f9',
+            borderRadius: '8px',
+            fontSize: '11px',
+            color: '#475569',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            overflowY: 'auto',
+            maxHeight: '200px',
+            textAlign: 'left'
+          }
+        }, this.state.errorMsg, '\n\n', this.state.errorStack)));
       }
       return this.props.children;
     }
   }], [{
     key: "getDerivedStateFromError",
-    value: function getDerivedStateFromError() {
+    value: function getDerivedStateFromError(err) {
       return {
-        crashed: true
+        crashed: true,
+        errorMsg: (err === null || err === void 0 ? void 0 : err.message) || String(err),
+        errorStack: (err === null || err === void 0 ? void 0 : err.stack) || ''
       };
     }
   }]);
