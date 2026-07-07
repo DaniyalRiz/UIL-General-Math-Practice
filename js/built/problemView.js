@@ -385,7 +385,7 @@ function ProblemView(_ref3) {
   // or client-side for guests (no persistence).
   var handleSubmit = /*#__PURE__*/function () {
     var _handleSubmit = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
-      var _timeMs, _isCorrect, timeMs, _yield$_supabase$rpc, data, error, result;
+      var _timeMs, _yield$_supabase$rpc, _data, _error, _result, timeMs, _yield$_supabase$rpc2, data, error, result;
       return _regenerator().w(function (_context3) {
         while (1) switch (_context3.n) {
           case 0:
@@ -396,18 +396,44 @@ function ProblemView(_ref3) {
             return _context3.a(2);
           case 1:
             if (authUser) {
-              _context3.n = 2;
+              _context3.n = 5;
               break;
             }
             _timeMs = Date.now() - startRef.current;
-            _isCorrect = answerMatches(pending, q.answer);
+            setSubmitting(true);
+            setSubmitError("");
+            _context3.n = 2;
+            return _supabase.rpc("guest_check_answer", {
+              p_question_id: q.id,
+              p_selected: pending
+            });
+          case 2:
+            _yield$_supabase$rpc = _context3.v;
+            _data = _yield$_supabase$rpc.data;
+            _error = _yield$_supabase$rpc.error;
+            setSubmitting(false);
+            if (!_error) {
+              _context3.n = 3;
+              break;
+            }
+            setSubmitError(_error.message || "Could not check answer.");
+            return _context3.a(2);
+          case 3:
+            _result = Array.isArray(_data) ? _data[0] : _data;
+            if (!(!_result || _result.error)) {
+              _context3.n = 4;
+              break;
+            }
+            setSubmitError((_result === null || _result === void 0 ? void 0 : _result.error) || "No result returned.");
+            return _context3.a(2);
+          case 4:
             setSelected(pending);
             setAnswered(true);
             timer.stop();
             setServerResult({
-              is_correct: _isCorrect,
-              correct_answer: q.answer,
-              explanation: q.explanation || null
+              is_correct: _result.is_correct,
+              correct_answer: _result.correct_answer,
+              explanation: _result.explanation || null
             });
             onAnswered && onAnswered({
               questionId: q.id,
@@ -416,51 +442,51 @@ function ProblemView(_ref3) {
               topic: q.topic,
               difficulty: q.difficulty,
               selected: pending,
-              correctAnswer: q.answer,
-              correct: _isCorrect,
+              correctAnswer: _result.correct_answer,
+              correct: !!_result.is_correct,
               timeMs: _timeMs,
-              explanation: q.explanation || null,
+              explanation: _result.explanation || null,
               tags: q.tags || []
             });
             return _context3.a(2);
-          case 2:
+          case 5:
             if (attemptSessionId) {
-              _context3.n = 3;
+              _context3.n = 6;
               break;
             }
             setSubmitError("Question session is not ready yet. Wait a moment and try again.");
             return _context3.a(2);
-          case 3:
+          case 6:
             timeMs = Date.now() - startRef.current;
             setSubmitting(true);
             setSubmitError("");
-            _context3.n = 4;
+            _context3.n = 7;
             return _supabase.rpc("submit_answer", {
               p_session_id: attemptSessionId,
               p_question_id: q.id,
               p_selected_answer: pending,
               p_time_taken_ms: timeMs
             });
-          case 4:
-            _yield$_supabase$rpc = _context3.v;
-            data = _yield$_supabase$rpc.data;
-            error = _yield$_supabase$rpc.error;
+          case 7:
+            _yield$_supabase$rpc2 = _context3.v;
+            data = _yield$_supabase$rpc2.data;
+            error = _yield$_supabase$rpc2.error;
             setSubmitting(false);
             if (!error) {
-              _context3.n = 5;
+              _context3.n = 8;
               break;
             }
             setSubmitError(error.message || "Could not submit answer.");
             return _context3.a(2);
-          case 5:
+          case 8:
             result = Array.isArray(data) ? data[0] : data;
             if (result) {
-              _context3.n = 6;
+              _context3.n = 9;
               break;
             }
             setSubmitError("No result returned from Supabase.");
             return _context3.a(2);
-          case 6:
+          case 9:
             setSelected(pending);
             setAnswered(true);
             timer.stop();
@@ -478,7 +504,7 @@ function ProblemView(_ref3) {
               explanation: result.explanation || null,
               tags: q.tags || []
             });
-          case 7:
+          case 10:
             return _context3.a(2);
         }
       }, _callee3);
