@@ -150,6 +150,10 @@
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Leaderboard
         </a>
+        <a id="nav-admin-tab" href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('admin'))"
+          class="hidden px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Admin
+        </a>
       </div>
     </div>
     <div class="flex items-center gap-2 flex-shrink-0">
@@ -424,13 +428,17 @@ document.addEventListener('DOMContentLoaded', function () {
       if (el) { el.textContent = ''; el.classList.add('hidden'); }
     });
   }
+  const ADMIN_EMAILS = ['daniyalrizvi10@gmail.com'];
+
   function setNavState(user) {
     const loggedIn = !!user;
+    const isAdmin = loggedIn && ADMIN_EMAILS.includes(user.email || '');
     document.getElementById('nav-loggedout').classList.toggle('hidden', loggedIn);
     document.getElementById('nav-loggedin').classList.toggle('hidden', !loggedIn);
     document.getElementById('hero-create-btn').classList.toggle('hidden', loggedIn);
     document.getElementById('cta-create-btn').classList.toggle('hidden', loggedIn);
     document.getElementById('cta-browse-btn').textContent = loggedIn ? 'Browse Problems' : 'Browse Problems First';
+    document.getElementById('nav-admin-tab').classList.toggle('hidden', !isAdmin);
     if (loggedIn) {
       const name = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
       document.getElementById('nav-username').textContent = `Hi, ${name}`;
