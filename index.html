@@ -125,14 +125,30 @@
         <img src="./assets/logo-icon.svg" alt="" aria-hidden="true" class="h-7 sm:h-8 w-auto">
         <span class="font-display font-black text-sm sm:text-lg text-slate-900 dark:text-white whitespace-nowrap">UIL Math Practice</span>
       </a>
-      <div class="hidden sm:flex items-center gap-1">
+      <div class="hidden sm:flex items-center gap-0.5 overflow-x-auto" style="-ms-overflow-style:none;scrollbar-width:none;">
         <a href="./index.html"
-          class="px-3 py-1.5 rounded-lg text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100">
           Home
         </a>
-        <a href="./app.html"
-          class="px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('problems'))"
+          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Problems
+        </a>
+        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('analytics'))"
+          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Analytics
+        </a>
+        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('history'))"
+          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          History
+        </a>
+        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('mastery'))"
+          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Mastery
+        </a>
+        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('leaderboard'))"
+          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Leaderboard
         </a>
       </div>
     </div>
@@ -180,11 +196,11 @@
     </p>
 
     <div class="fade-up-3 flex flex-col sm:flex-row gap-4 justify-center">
-      <button onclick="openAuth('signup')"
+      <button id="hero-create-btn" onclick="openAuth('signup')"
         class="px-8 py-4 bg-white text-blue-700 font-bold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-lg">
         Create an Account
       </button>
-      <a href="./app.html"
+      <a id="hero-browse-btn" href="./app.html"
         class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base rounded-xl transition-colors border border-white/20">
         Browse Problems →
       </a>
@@ -345,11 +361,11 @@
     <h2 class="font-display text-4xl sm:text-5xl font-black text-white mb-6">Ready to compete?</h2>
     <p class="text-blue-200 text-lg mb-10">Create an account and start tracking your progress today.</p>
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <button onclick="openAuth('signup')"
+      <button id="cta-create-btn" onclick="openAuth('signup')"
         class="px-8 py-4 bg-white text-blue-700 font-bold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-lg">
         Create an Account
       </button>
-      <a href="./app.html"
+      <a id="cta-browse-btn" href="./app.html"
         class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base rounded-xl transition-colors border border-white/20">
         Browse Problems First
       </a>
@@ -409,14 +425,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
   function setNavState(user) {
-    if (user) {
-      document.getElementById('nav-loggedout').classList.add('hidden');
-      document.getElementById('nav-loggedin').classList.remove('hidden');
+    const loggedIn = !!user;
+    document.getElementById('nav-loggedout').classList.toggle('hidden', loggedIn);
+    document.getElementById('nav-loggedin').classList.toggle('hidden', !loggedIn);
+    document.getElementById('hero-create-btn').classList.toggle('hidden', loggedIn);
+    document.getElementById('cta-create-btn').classList.toggle('hidden', loggedIn);
+    document.getElementById('cta-browse-btn').textContent = loggedIn ? 'Browse Problems' : 'Browse Problems First';
+    if (loggedIn) {
       const name = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
       document.getElementById('nav-username').textContent = `Hi, ${name}`;
-    } else {
-      document.getElementById('nav-loggedout').classList.remove('hidden');
-      document.getElementById('nav-loggedin').classList.add('hidden');
     }
   }
 
