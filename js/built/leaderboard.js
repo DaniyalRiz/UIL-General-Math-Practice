@@ -1,3 +1,7 @@
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -7,8 +11,9 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 // ── Leaderboard ───────────────────────────────────────────────────────────────
 
 var LB_DAY_OPTIONS = ['All Time', 'Last 30 Days', 'Last 7 Days'];
-var LB_TOPIC_OPTIONS = ['All Topics', 'Column 1', 'Column 2', 'Column 3'];
+var LB_TOPIC_OPTIONS = ['All Topics', 'Algebra 1 & 2', 'Geometry', 'Precalculus', 'AP Calculus', 'AP Statistics'];
 var LB_DIFF_OPTIONS = ['All Difficulties', 'Easy', 'Medium', 'Hard'];
+var LB_TYPE_OPTIONS = ['All Types', 'TMSCA', 'Invitationals', 'District', 'Region', 'State'];
 
 // 5 distinct topics in the question bank
 var LB_TOTAL_TOPICS = 5;
@@ -74,6 +79,28 @@ function LeaderboardPage(_ref3) {
     _useState10 = _slicedToArray(_useState1, 2),
     diffFilter = _useState10[0],
     setDiffFilter = _useState10[1];
+  var _useState11 = useState('All Types'),
+    _useState12 = _slicedToArray(_useState11, 2),
+    typeFilter = _useState12[0],
+    setTypeFilter = _useState12[1];
+  var _useState13 = useState('All Sources'),
+    _useState14 = _slicedToArray(_useState13, 2),
+    sourceFilter = _useState14[0],
+    setSourceFilter = _useState14[1];
+  var _useState15 = useState(['All Sources']),
+    _useState16 = _slicedToArray(_useState15, 2),
+    availableSources = _useState16[0],
+    setAvailableSources = _useState16[1];
+  useEffect(function () {
+    _supabase.from('public_questions').select('source').then(function (_ref4) {
+      var data = _ref4.data;
+      if (!data) return;
+      var sources = _toConsumableArray(new Set(data.map(function (q) {
+        return q.source;
+      }).filter(Boolean))).sort();
+      setAvailableSources(['All Sources'].concat(_toConsumableArray(sources)));
+    });
+  }, []);
   useEffect(function () {
     var cancelled = false;
     setLoading(true);
@@ -81,13 +108,18 @@ function LeaderboardPage(_ref3) {
     var pDays = dayFilter === 'Last 30 Days' ? 30 : dayFilter === 'Last 7 Days' ? 7 : null;
     var pTopic = topicFilter === 'All Topics' ? null : topicFilter;
     var pDiff = diffFilter === 'All Difficulties' ? null : diffFilter;
-    _supabase.rpc('get_leaderboard', {
+    var pType = typeFilter === 'All Types' ? null : typeFilter;
+    var pSource = sourceFilter === 'All Sources' ? null : sourceFilter;
+    var params = {
       p_days: pDays,
       p_topic: pTopic,
       p_difficulty: pDiff
-    }).then(function (_ref4) {
-      var data = _ref4.data,
-        err = _ref4.error;
+    };
+    if (pType) params.p_source_type = pType;
+    if (pSource) params.p_source = pSource;
+    _supabase.rpc('get_leaderboard', params).then(function (_ref5) {
+      var data = _ref5.data,
+        err = _ref5.error;
       if (cancelled) return;
       if (err) {
         setError(err.message);
@@ -99,7 +131,7 @@ function LeaderboardPage(_ref3) {
     return function () {
       cancelled = true;
     };
-  }, [dayFilter, topicFilter, diffFilter]);
+  }, [dayFilter, topicFilter, diffFilter, typeFilter, sourceFilter]);
   var myEntry = entries.find(function (e) {
     return e.is_current_user;
   });
@@ -140,6 +172,14 @@ function LeaderboardPage(_ref3) {
     value: diffFilter,
     options: LB_DIFF_OPTIONS,
     onChange: setDiffFilter
+  }), /*#__PURE__*/React.createElement(Dropdown, {
+    value: typeFilter,
+    options: LB_TYPE_OPTIONS,
+    onChange: setTypeFilter
+  }), /*#__PURE__*/React.createElement(Dropdown, {
+    value: sourceFilter,
+    options: availableSources,
+    onChange: setSourceFilter
   })), myEntry && /*#__PURE__*/React.createElement("div", {
     className: "mb-5 flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-4 py-3"
   }, /*#__PURE__*/React.createElement("div", {

@@ -4071,10 +4071,26 @@ function AdminQuestionManager(_ref23) {
     _useState100 = _slicedToArray(_useState99, 2),
     questionSearch = _useState100[0],
     setQuestionSearch = _useState100[1];
-  var _useState101 = useState(false),
+  var _useState101 = useState('All Topics'),
     _useState102 = _slicedToArray(_useState101, 2),
-    editingExisting = _useState102[0],
-    setEditingExisting = _useState102[1];
+    filterTopic = _useState102[0],
+    setFilterTopic = _useState102[1];
+  var _useState103 = useState('All Difficulties'),
+    _useState104 = _slicedToArray(_useState103, 2),
+    filterDiff = _useState104[0],
+    setFilterDiff = _useState104[1];
+  var _useState105 = useState('All Types'),
+    _useState106 = _slicedToArray(_useState105, 2),
+    filterType = _useState106[0],
+    setFilterType = _useState106[1];
+  var _useState107 = useState('All Sources'),
+    _useState108 = _slicedToArray(_useState107, 2),
+    filterSource = _useState108[0],
+    setFilterSource = _useState108[1];
+  var _useState109 = useState(false),
+    _useState110 = _slicedToArray(_useState109, 2),
+    editingExisting = _useState110[0],
+    setEditingExisting = _useState110[1];
 
   // Auto-generate next question ID when switching to Question Manager tab
   useEffect(function () {
@@ -4115,10 +4131,10 @@ function AdminQuestionManager(_ref23) {
   // (completed/needs_attention) that nobody has opened Review Imports for
   // yet. Polled so it stays current even if this dashboard tab is left open
   // while the cron-driven pipeline finishes work in the background.
-  var _useState103 = useState(0),
-    _useState104 = _slicedToArray(_useState103, 2),
-    pendingReviewCount = _useState104[0],
-    setPendingReviewCount = _useState104[1];
+  var _useState111 = useState(0),
+    _useState112 = _slicedToArray(_useState111, 2),
+    pendingReviewCount = _useState112[0],
+    setPendingReviewCount = _useState112[1];
   var refreshPendingReviewCount = function refreshPendingReviewCount() {
     if (!authUser) return;
     _supabase.from('import_batches').select('id', {
@@ -4449,6 +4465,26 @@ function AdminQuestionManager(_ref23) {
     },
     placeholder: "Search by title, question text, topic, source, tags, or ID...",
     className: "w-full pl-3 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2 mt-3"
+  }, /*#__PURE__*/React.createElement(Dropdown, {
+    value: filterTopic,
+    options: ['All Topics', 'Algebra 1 & 2', 'Geometry', 'Precalculus', 'AP Calculus', 'AP Statistics'],
+    onChange: setFilterTopic
+  }), /*#__PURE__*/React.createElement(Dropdown, {
+    value: filterDiff,
+    options: DIFFICULTIES,
+    onChange: setFilterDiff
+  }), /*#__PURE__*/React.createElement(Dropdown, {
+    value: filterType,
+    options: SOURCE_TYPES,
+    onChange: setFilterType
+  }), /*#__PURE__*/React.createElement(Dropdown, {
+    value: filterSource,
+    options: ['All Sources'].concat(_toConsumableArray(_toConsumableArray(new Set(questionList.map(function (q) {
+      return q.source;
+    }).filter(Boolean))).sort())),
+    onChange: setFilterSource
   }))), questionListLoading ? /*#__PURE__*/React.createElement("div", {
     className: "py-20 text-center"
   }, /*#__PURE__*/React.createElement("div", {
@@ -4459,10 +4495,14 @@ function AdminQuestionManager(_ref23) {
     className: "divide-y divide-slate-100 dark:divide-slate-800 max-h-[70vh] overflow-y-auto"
   }, questionList.filter(function (q) {
     var s = questionSearch.toLowerCase().trim();
-    if (!s) return true;
-    return String(q.id || '').includes(s) || String(q.title || '').toLowerCase().includes(s) || String(q.question || '').toLowerCase().includes(s) || String(q.topic || '').toLowerCase().includes(s) || String(q.source || '').toLowerCase().includes(s) || (q.tags || []).some(function (t) {
+    var textMatch = !s || String(q.id || '').includes(s) || String(q.title || '').toLowerCase().includes(s) || String(q.question || '').toLowerCase().includes(s) || String(q.topic || '').toLowerCase().includes(s) || String(q.source || '').toLowerCase().includes(s) || (q.tags || []).some(function (t) {
       return String(t).toLowerCase().includes(s);
     });
+    var topicMatch = filterTopic === 'All Topics' || q.topic === filterTopic;
+    var diffMatch = filterDiff === 'All Difficulties' || q.difficulty === filterDiff;
+    var typeMatch = filterType === 'All Types' || getSourceType(q.source) === filterType;
+    var sourceMatch = filterSource === 'All Sources' || q.source === filterSource;
+    return textMatch && topicMatch && diffMatch && typeMatch && sourceMatch;
   }).map(function (q) {
     return /*#__PURE__*/React.createElement("button", {
       key: q.id,

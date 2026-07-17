@@ -1,8 +1,9 @@
 // ── Leaderboard ───────────────────────────────────────────────────────────────
 
 const LB_DAY_OPTIONS   = ['All Time', 'Last 30 Days', 'Last 7 Days'];
-const LB_TOPIC_OPTIONS = ['All Topics', 'Column 1', 'Column 2', 'Column 3'];
+const LB_TOPIC_OPTIONS = ['All Topics', 'Algebra 1 & 2', 'Geometry', 'Precalculus', 'AP Calculus', 'AP Statistics'];
 const LB_DIFF_OPTIONS  = ['All Difficulties', 'Easy', 'Medium', 'Hard'];
+const LB_TYPE_OPTIONS  = ['All Types', 'TMSCA', 'Invitationals', 'District', 'Region', 'State'];
 
 // 5 distinct topics in the question bank
 const LB_TOTAL_TOPICS = 5;
@@ -45,25 +46,40 @@ function LBRankBadge({ rank }) {
 }
 
 function LeaderboardPage({ authUser }) {
-  const [entries, setEntries]         = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
-  const [dayFilter, setDayFilter]     = useState('All Time');
-  const [topicFilter, setTopicFilter] = useState('All Topics');
-  const [diffFilter, setDiffFilter]   = useState('All Difficulties');
+  const [entries, setEntries]               = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState(null);
+  const [dayFilter, setDayFilter]           = useState('All Time');
+  const [topicFilter, setTopicFilter]       = useState('All Topics');
+  const [diffFilter, setDiffFilter]         = useState('All Difficulties');
+  const [typeFilter, setTypeFilter]         = useState('All Types');
+  const [sourceFilter, setSourceFilter]     = useState('All Sources');
+  const [availableSources, setAvailableSources] = useState(['All Sources']);
+
+  useEffect(() => {
+    _supabase.from('public_questions').select('source').then(({ data }) => {
+      if (!data) return;
+      const sources = [...new Set(data.map(q => q.source).filter(Boolean))].sort();
+      setAvailableSources(['All Sources', ...sources]);
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
 
-    const pDays  = dayFilter   === 'Last 30 Days'      ? 30 : dayFilter === 'Last 7 Days' ? 7 : null;
-    const pTopic = topicFilter === 'All Topics'         ? null : topicFilter;
-    const pDiff  = diffFilter  === 'All Difficulties'  ? null : diffFilter;
+    const pDays   = dayFilter    === 'Last 30 Days'    ? 30 : dayFilter === 'Last 7 Days' ? 7 : null;
+    const pTopic  = topicFilter  === 'All Topics'       ? null : topicFilter;
+    const pDiff   = diffFilter   === 'All Difficulties' ? null : diffFilter;
+    const pType   = typeFilter   === 'All Types'        ? null : typeFilter;
+    const pSource = sourceFilter === 'All Sources'      ? null : sourceFilter;
 
-    _supabase.rpc('get_leaderboard', {
-      p_days: pDays, p_topic: pTopic, p_difficulty: pDiff,
-    }).then(({ data, error: err }) => {
+    const params = { p_days: pDays, p_topic: pTopic, p_difficulty: pDiff };
+    if (pType)   params.p_source_type = pType;
+    if (pSource) params.p_source = pSource;
+
+    _supabase.rpc('get_leaderboard', params).then(({ data, error: err }) => {
       if (cancelled) return;
       if (err) { setError(err.message); }
       else     { setEntries(data || []); }
@@ -71,7 +87,7 @@ function LeaderboardPage({ authUser }) {
     });
 
     return () => { cancelled = true; };
-  }, [dayFilter, topicFilter, diffFilter]);
+  }, [dayFilter, topicFilter, diffFilter, typeFilter, sourceFilter]);
 
   const myEntry = entries.find(e => e.is_current_user);
 
@@ -106,9 +122,11 @@ function LeaderboardPage({ authUser }) {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <Dropdown value={dayFilter}   options={LB_DAY_OPTIONS}   onChange={setDayFilter}   />
-        <Dropdown value={topicFilter} options={LB_TOPIC_OPTIONS} onChange={setTopicFilter} />
-        <Dropdown value={diffFilter}  options={LB_DIFF_OPTIONS}  onChange={setDiffFilter}  />
+        <Dropdown value={dayFilter}    options={LB_DAY_OPTIONS}   onChange={setDayFilter}    />
+        <Dropdown value={topicFilter}  options={LB_TOPIC_OPTIONS} onChange={setTopicFilter}  />
+        <Dropdown value={diffFilter}   options={LB_DIFF_OPTIONS}  onChange={setDiffFilter}   />
+        <Dropdown value={typeFilter}   options={LB_TYPE_OPTIONS}  onChange={setTypeFilter}   />
+        <Dropdown value={sourceFilter} options={availableSources} onChange={setSourceFilter} />
       </div>
 
       {/* My rank badge */}

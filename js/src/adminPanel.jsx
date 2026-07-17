@@ -2244,6 +2244,10 @@ function AdminQuestionManager({ authUser }) {
   const [questionList, setQuestionList] = useState([]);
   const [questionListLoading, setQuestionListLoading] = useState(false);
   const [questionSearch, setQuestionSearch] = useState('');
+  const [filterTopic, setFilterTopic]       = useState('All Topics');
+  const [filterDiff, setFilterDiff]         = useState('All Difficulties');
+  const [filterType, setFilterType]         = useState('All Types');
+  const [filterSource, setFilterSource]     = useState('All Sources');
   const [editingExisting, setEditingExisting] = useState(false);
 
   // Auto-generate next question ID when switching to Question Manager tab
@@ -2513,6 +2517,12 @@ function AdminQuestionManager({ authUser }) {
                 placeholder="Search by title, question text, topic, source, tags, or ID..."
                 className="w-full pl-3 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Dropdown value={filterTopic}  options={['All Topics','Algebra 1 & 2','Geometry','Precalculus','AP Calculus','AP Statistics']} onChange={setFilterTopic}  />
+              <Dropdown value={filterDiff}   options={DIFFICULTIES}  onChange={setFilterDiff}   />
+              <Dropdown value={filterType}   options={SOURCE_TYPES}  onChange={setFilterType}   />
+              <Dropdown value={filterSource} options={['All Sources',...[...new Set(questionList.map(q=>q.source).filter(Boolean))].sort()]} onChange={setFilterSource} />
+            </div>
           </div>
 
           {questionListLoading ? (
@@ -2525,8 +2535,7 @@ function AdminQuestionManager({ authUser }) {
               {questionList
                 .filter(q => {
                   const s = questionSearch.toLowerCase().trim();
-                  if (!s) return true;
-                  return (
+                  const textMatch = !s || (
                     String(q.id || '').includes(s) ||
                     String(q.title || '').toLowerCase().includes(s) ||
                     String(q.question || '').toLowerCase().includes(s) ||
@@ -2534,6 +2543,11 @@ function AdminQuestionManager({ authUser }) {
                     String(q.source || '').toLowerCase().includes(s) ||
                     (q.tags || []).some(t => String(t).toLowerCase().includes(s))
                   );
+                  const topicMatch  = filterTopic  === 'All Topics'       || q.topic === filterTopic;
+                  const diffMatch   = filterDiff   === 'All Difficulties'  || q.difficulty === filterDiff;
+                  const typeMatch   = filterType   === 'All Types'         || getSourceType(q.source) === filterType;
+                  const sourceMatch = filterSource === 'All Sources'       || q.source === filterSource;
+                  return textMatch && topicMatch && diffMatch && typeMatch && sourceMatch;
                 })
                 .map(q => (
                   <button key={q.id} onClick={()=>loadQuestionForEditing(q)}
