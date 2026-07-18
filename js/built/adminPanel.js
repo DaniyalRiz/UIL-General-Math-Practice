@@ -2983,6 +2983,10 @@ function ReviewImportsPanel(_ref17) {
     }
     return uploadDraftDiagram;
   }();
+  var removeDraftDiagram = function removeDraftDiagram(rowKey) {
+    updateRow(rowKey, 'image', '');
+    updateRow(rowKey, '_imageUploadMsg', 'Diagram removed.');
+  };
 
   // Re-solves exactly one question in place (e.g. to fix a bad LaTeX
   // delimiter or an answer-key mismatch) without rerunning the whole batch.
@@ -3931,8 +3935,10 @@ function ReviewImportsPanel(_ref17) {
       src: r.image,
       alt: r.image_alt || 'Diagram preview',
       className: "max-w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white"
-    }), /*#__PURE__*/React.createElement("label", {
-      className: "mt-2 inline-block text-xs font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "mt-2 flex items-center gap-3"
+    }, /*#__PURE__*/React.createElement("label", {
+      className: "inline-block text-xs font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline"
     }, "Replace image", /*#__PURE__*/React.createElement("input", {
       type: "file",
       accept: "image/*",
@@ -3941,7 +3947,12 @@ function ReviewImportsPanel(_ref17) {
         var _e$target$files4;
         return uploadDraftDiagram(r._key, (_e$target$files4 = e.target.files) === null || _e$target$files4 === void 0 ? void 0 : _e$target$files4[0]);
       }
-    })), r._imageUploadMsg && /*#__PURE__*/React.createElement("p", {
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return removeDraftDiagram(r._key);
+      },
+      className: "text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline"
+    }, "Remove image")), r._imageUploadMsg && /*#__PURE__*/React.createElement("p", {
       className: "text-xs text-slate-500 dark:text-slate-400 mt-1"
     }, r._imageUploadMsg)) : r.needs_image ? /*#__PURE__*/React.createElement("div", {
       className: "rounded-xl border border-dashed border-amber-300 dark:border-amber-700 p-3 bg-amber-50 dark:bg-amber-500/10"

@@ -1536,6 +1536,11 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     updateRow(rowKey, '_imageUploadMsg', 'Diagram uploaded and attached.');
   };
 
+  const removeDraftDiagram = (rowKey) => {
+    updateRow(rowKey, 'image', '');
+    updateRow(rowKey, '_imageUploadMsg', 'Diagram removed.');
+  };
+
   // Re-solves exactly one question in place (e.g. to fix a bad LaTeX
   // delimiter or an answer-key mismatch) without rerunning the whole batch.
   // Only applies to rows that came from the automatic PDF pipeline -- only
@@ -2159,10 +2164,16 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                     <div className="rounded-xl border border-emerald-300 dark:border-emerald-700 p-3 bg-emerald-50 dark:bg-emerald-500/10">
                       <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 mb-2">✓ Diagram attached</p>
                       <img src={r.image} alt={r.image_alt || 'Diagram preview'} className="max-w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />
-                      <label className="mt-2 inline-block text-xs font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
-                        Replace image
-                        <input type="file" accept="image/*" className="hidden" onChange={e=>uploadDraftDiagram(r._key, e.target.files?.[0])} />
-                      </label>
+                      <div className="mt-2 flex items-center gap-3">
+                        <label className="inline-block text-xs font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                          Replace image
+                          <input type="file" accept="image/*" className="hidden" onChange={e=>uploadDraftDiagram(r._key, e.target.files?.[0])} />
+                        </label>
+                        <button onClick={()=>removeDraftDiagram(r._key)}
+                          className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline">
+                          Remove image
+                        </button>
+                      </div>
                       {r._imageUploadMsg && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{r._imageUploadMsg}</p>}
                     </div>
                   ) : r.needs_image ? (
