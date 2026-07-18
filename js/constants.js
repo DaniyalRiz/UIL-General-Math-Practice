@@ -83,15 +83,9 @@ const avatarColorFor = (user) => {
 };
 
 // ─── MASTERY ──────────────────────────────────────────────────────────────────
-const TOTAL_QUESTIONS = 400;
-
-const TOPIC_TOTALS = {
-  'Algebra 1 & 2': 85,
-  'AP Calculus':   89,
-  'AP Statistics': 57,
-  'Geometry':      102,
-  'Precalculus':   67,
-};
+// Total question count and per-topic totals are computed live from the loaded
+// questions list (see app.jsx) instead of being hardcoded here, so they can't
+// drift out of sync with what's actually in the Problems section.
 
 const MASTERY_LEVELS = [
   { min: 100, name: 'Full Mastery',     color: 'text-amber-500 dark:text-amber-400',   bar: 'bg-amber-400'  },

@@ -266,7 +266,7 @@ function ReportBugPage({ authUser, navigateTab }) {
   );
 }
 
-function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, setPage, navigateTab, onUsedRecommendedPractice, masteryStats }) {
+function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, setPage, navigateTab, onUsedRecommendedPractice, masteryStats, totalQuestions }) {
   const [open, setOpen] = useState(false);
   const avatarUrl = authUser?.user_metadata?.custom_avatar_url || null;
   const menuRef = useRef(null);
@@ -287,8 +287,8 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
   return (
     <div className="relative" ref={menuRef}>
       <div className="flex items-center gap-4 shrink-0">
-        {masteryStats && (() => {
-          const pct = Math.min(100, Math.round((masteryStats.total_mastered / TOTAL_QUESTIONS) * 100));
+        {masteryStats && totalQuestions > 0 && (() => {
+          const pct = Math.min(100, Math.round((masteryStats.total_mastered / totalQuestions) * 100));
           const lvl = getMasteryLevel(pct);
           return (
             <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
@@ -574,6 +574,13 @@ function App() {
     loadQuestionsFromSupabase();
     return () => { cancelled = true; };
   }, []);
+
+  const totalQuestions = questions.length;
+  const topicTotals = useMemo(() => {
+    const totals = {};
+    questions.forEach(q => { totals[q.topic] = (totals[q.topic] || 0) + 1; });
+    return totals;
+  }, [questions]);
 
   const guestMasteryStats = useMemo(() => {
     if (authUser) return null;
@@ -862,7 +869,7 @@ function App() {
                 recommendedMode={recommendedMode} setRecommendedMode={setRecommendedMode}
                 bookmarksCount={bookmarks.length} setPage={setPage} navigateTab={navigateTab}
                 onUsedRecommendedPractice={markUsedRecommendedPractice}
-                masteryStats={masteryStats} />
+                masteryStats={masteryStats} totalQuestions={totalQuestions} />
             ) : (
               <a href="./index.html"
                 className="text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors whitespace-nowrap">
@@ -874,7 +881,7 @@ function App() {
       </nav>
 
       {tab === 'mastery' ? (
-        <MasteryPage authUser={authUser} masteryStats={authUser ? masteryStats : guestMasteryStats} bookmarksCount={bookmarks.length} navigateTab={navigateTab} />
+        <MasteryPage authUser={authUser} masteryStats={authUser ? masteryStats : guestMasteryStats} bookmarksCount={bookmarks.length} navigateTab={navigateTab} totalQuestions={totalQuestions} topicTotals={topicTotals} />
       ) : tab === 'leaderboard' ? (
         <LeaderboardPage authUser={authUser} />
       ) : tab === 'analytics' ? (

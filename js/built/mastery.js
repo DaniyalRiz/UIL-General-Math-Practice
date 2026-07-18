@@ -10,148 +10,150 @@ function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) 
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-var ACHIEVEMENTS_DEF = [{
-  id: 'first_correct',
-  name: 'First Correct Answer',
-  icon: '✓',
-  description: 'Get your first question right.',
-  numeric: true,
-  max: 1,
-  val: function val(s) {
-    return s.total_mastered;
-  }
-}, {
-  id: 'getting_started',
-  name: 'Getting Started',
-  icon: '🚀',
-  description: 'Master 10 unique questions.',
-  numeric: true,
-  max: 10,
-  val: function val(s) {
-    return s.total_mastered;
-  }
-}, {
-  id: 'review_mindset',
-  name: 'Review Mindset',
-  icon: '🔖',
-  description: 'Bookmark at least one question for later.',
-  numeric: false,
-  check: function check(_s, bm) {
-    return bm > 0;
-  }
-}, {
-  id: 'on_the_path',
-  name: 'On the Path',
-  icon: '🗺️',
-  description: 'Use the Recommended Practice feature.',
-  numeric: false,
-  check: function check(s) {
-    return s.used_recommended_practice;
-  }
-}, {
-  id: 'accuracy_builder',
-  name: 'Accuracy Builder',
-  icon: '🎯',
-  description: 'Master 20 unique questions.',
-  numeric: true,
-  max: 20,
-  val: function val(s) {
-    return s.total_mastered;
-  }
-}, {
-  id: 'consistent',
-  name: 'Consistent Practice',
-  icon: '📅',
-  description: 'Master 25 unique questions.',
-  numeric: true,
-  max: 25,
-  val: function val(s) {
-    return s.total_mastered;
-  }
-}, {
-  id: 'serious_comp',
-  name: 'Serious Competitor',
-  icon: '⚡',
-  description: 'Master 50 unique questions.',
-  numeric: true,
-  max: 50,
-  val: function val(s) {
-    return s.total_mastered;
-  }
-}, {
-  id: 'uil_grinder',
-  name: 'UIL Grinder',
-  icon: '💪',
-  description: 'Master 100 unique questions.',
-  numeric: true,
-  max: 100,
-  val: function val(s) {
-    return s.total_mastered;
-  }
-}, {
-  id: 'region_ready',
-  name: 'Region Ready',
-  icon: '🌟',
-  description: 'Reach 25% overall mastery.',
-  numeric: true,
-  max: 25,
-  val: function val(_s, pct) {
-    return pct;
-  }
-}, {
-  id: 'state_ready',
-  name: 'State Ready',
-  icon: '🏆',
-  description: 'Reach 50% overall mastery.',
-  numeric: true,
-  max: 50,
-  val: function val(_s, pct) {
-    return pct;
-  }
-}, {
-  id: 'medalist',
-  name: 'Medalist Mindset',
-  icon: '🥇',
-  description: 'Reach 75% overall mastery.',
-  numeric: true,
-  max: 75,
-  val: function val(_s, pct) {
-    return pct;
-  }
-}, {
-  id: 'full_mastery_ach',
-  name: 'Full Mastery',
-  icon: '👑',
-  description: 'Master all 400 questions.',
-  numeric: true,
-  max: 100,
-  val: function val(_s, pct) {
-    return pct;
-  }
-}, {
-  id: 'topic_specialist',
-  name: 'Topic Specialist',
-  icon: '🔬',
-  description: 'Reach 50% mastery in any single topic.',
-  numeric: false,
-  check: function check(s) {
-    return Object.entries(TOPIC_TOTALS).some(function (_ref) {
-      var _ref2 = _slicedToArray(_ref, 2),
-        t = _ref2[0],
-        n = _ref2[1];
-      return (s.mastered_by_topic[t] || 0) >= n * 0.5;
-    });
-  }
-}, {
-  id: 'sharp_eye',
-  name: 'Sharp Eye',
-  icon: '🔍',
-  description: 'Submit a bug report that gets resolved.',
-  numeric: false,
-  check: function check(s) {
-    return s.has_resolved_bug_report;
-  }
-}];
+var getAchievementsDef = function getAchievementsDef(totalQuestions, topicTotals) {
+  return [{
+    id: 'first_correct',
+    name: 'First Correct Answer',
+    icon: '✓',
+    description: 'Get your first question right.',
+    numeric: true,
+    max: 1,
+    val: function val(s) {
+      return s.total_mastered;
+    }
+  }, {
+    id: 'getting_started',
+    name: 'Getting Started',
+    icon: '🚀',
+    description: 'Master 10 unique questions.',
+    numeric: true,
+    max: 10,
+    val: function val(s) {
+      return s.total_mastered;
+    }
+  }, {
+    id: 'review_mindset',
+    name: 'Review Mindset',
+    icon: '🔖',
+    description: 'Bookmark at least one question for later.',
+    numeric: false,
+    check: function check(_s, bm) {
+      return bm > 0;
+    }
+  }, {
+    id: 'on_the_path',
+    name: 'On the Path',
+    icon: '🗺️',
+    description: 'Use the Recommended Practice feature.',
+    numeric: false,
+    check: function check(s) {
+      return s.used_recommended_practice;
+    }
+  }, {
+    id: 'accuracy_builder',
+    name: 'Accuracy Builder',
+    icon: '🎯',
+    description: 'Master 20 unique questions.',
+    numeric: true,
+    max: 20,
+    val: function val(s) {
+      return s.total_mastered;
+    }
+  }, {
+    id: 'consistent',
+    name: 'Consistent Practice',
+    icon: '📅',
+    description: 'Master 25 unique questions.',
+    numeric: true,
+    max: 25,
+    val: function val(s) {
+      return s.total_mastered;
+    }
+  }, {
+    id: 'serious_comp',
+    name: 'Serious Competitor',
+    icon: '⚡',
+    description: 'Master 50 unique questions.',
+    numeric: true,
+    max: 50,
+    val: function val(s) {
+      return s.total_mastered;
+    }
+  }, {
+    id: 'uil_grinder',
+    name: 'UIL Grinder',
+    icon: '💪',
+    description: 'Master 100 unique questions.',
+    numeric: true,
+    max: 100,
+    val: function val(s) {
+      return s.total_mastered;
+    }
+  }, {
+    id: 'region_ready',
+    name: 'Region Ready',
+    icon: '🌟',
+    description: 'Reach 25% overall mastery.',
+    numeric: true,
+    max: 25,
+    val: function val(_s, pct) {
+      return pct;
+    }
+  }, {
+    id: 'state_ready',
+    name: 'State Ready',
+    icon: '🏆',
+    description: 'Reach 50% overall mastery.',
+    numeric: true,
+    max: 50,
+    val: function val(_s, pct) {
+      return pct;
+    }
+  }, {
+    id: 'medalist',
+    name: 'Medalist Mindset',
+    icon: '🥇',
+    description: 'Reach 75% overall mastery.',
+    numeric: true,
+    max: 75,
+    val: function val(_s, pct) {
+      return pct;
+    }
+  }, {
+    id: 'full_mastery_ach',
+    name: 'Full Mastery',
+    icon: '👑',
+    description: "Master all ".concat(totalQuestions, " questions."),
+    numeric: true,
+    max: 100,
+    val: function val(_s, pct) {
+      return pct;
+    }
+  }, {
+    id: 'topic_specialist',
+    name: 'Topic Specialist',
+    icon: '🔬',
+    description: 'Reach 50% mastery in any single topic.',
+    numeric: false,
+    check: function check(s) {
+      return Object.entries(topicTotals).some(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+          t = _ref2[0],
+          n = _ref2[1];
+        return (s.mastered_by_topic[t] || 0) >= n * 0.5;
+      });
+    }
+  }, {
+    id: 'sharp_eye',
+    name: 'Sharp Eye',
+    icon: '🔍',
+    description: 'Submit a bug report that gets resolved.',
+    numeric: false,
+    check: function check(s) {
+      return s.has_resolved_bug_report;
+    }
+  }];
+};
 function AchievementCard(_ref3) {
   var a = _ref3.a,
     state = _ref3.state;
@@ -191,12 +193,14 @@ function MasteryPage(_ref4) {
   var authUser = _ref4.authUser,
     masteryStats = _ref4.masteryStats,
     bookmarksCount = _ref4.bookmarksCount,
-    navigateTab = _ref4.navigateTab;
+    navigateTab = _ref4.navigateTab,
+    totalQuestions = _ref4.totalQuestions,
+    topicTotals = _ref4.topicTotals;
   var _useState = useState('overview'),
     _useState2 = _slicedToArray(_useState, 2),
     subtab = _useState2[0],
     setSubtab = _useState2[1];
-  if (!masteryStats) {
+  if (!masteryStats || !totalQuestions) {
     return /*#__PURE__*/React.createElement("div", {
       className: "min-h-[50vh] flex items-center justify-center"
     }, /*#__PURE__*/React.createElement("div", {
@@ -208,15 +212,15 @@ function MasteryPage(_ref4) {
     }, "Loading mastery data\u2026")));
   }
   var s = masteryStats;
-  var masteryPct = Math.min(100, Math.round(s.total_mastered / TOTAL_QUESTIONS * 100));
+  var masteryPct = Math.min(100, Math.round(s.total_mastered / totalQuestions * 100));
   var level = getMasteryLevel(masteryPct);
   var levelIdx = MASTERY_LEVELS.findIndex(function (l) {
     return l.name === level.name;
   });
   var nextLevel = levelIdx > 0 ? MASTERY_LEVELS[levelIdx - 1] : null;
-  var nextLevelNeeded = nextLevel ? Math.ceil(nextLevel.min * TOTAL_QUESTIONS / 100) : null;
+  var nextLevelNeeded = nextLevel ? Math.ceil(nextLevel.min * totalQuestions / 100) : null;
   var toNextLevel = nextLevelNeeded ? Math.max(0, nextLevelNeeded - s.total_mastered) : 0;
-  var achievementsData = ACHIEVEMENTS_DEF.map(function (a) {
+  var achievementsData = getAchievementsDef(totalQuestions, topicTotals).map(function (a) {
     var earned, current, hasProgress;
     if (a.numeric) {
       current = Math.min(a.val(s, masteryPct), a.max);
@@ -305,7 +309,7 @@ function MasteryPage(_ref4) {
     className: "font-bold text-slate-900 dark:text-white tabular-nums text-lg"
   }, s.total_mastered), /*#__PURE__*/React.createElement("span", {
     className: "text-slate-400 dark:text-slate-600"
-  }, " / ", TOTAL_QUESTIONS), /*#__PURE__*/React.createElement("span", {
+  }, " / ", totalQuestions), /*#__PURE__*/React.createElement("span", {
     className: "ml-1"
   }, "questions mastered")), /*#__PURE__*/React.createElement("span", {
     className: "text-3xl font-black tabular-nums text-slate-900 dark:text-white leading-none"
@@ -324,13 +328,13 @@ function MasteryPage(_ref4) {
     className: "font-semibold"
   }, nextLevel.name)) : /*#__PURE__*/React.createElement("p", {
     className: "text-xs font-semibold text-emerald-500"
-  }, "You've reached Full Mastery \u2014 all 400 questions!")), /*#__PURE__*/React.createElement("div", {
+  }, "You've reached Full Mastery \u2014 all ", totalQuestions, " questions!")), /*#__PURE__*/React.createElement("div", {
     className: "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-5"
   }, "Progress by Topic"), /*#__PURE__*/React.createElement("div", {
     className: "space-y-5"
-  }, Object.entries(TOPIC_TOTALS).map(function (_ref5) {
+  }, Object.entries(topicTotals).map(function (_ref5) {
     var _ref6 = _slicedToArray(_ref5, 2),
       topic = _ref6[0],
       total = _ref6[1];

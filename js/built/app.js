@@ -548,7 +548,8 @@ function ProfileMenu(_ref3) {
     setPage = _ref3.setPage,
     navigateTab = _ref3.navigateTab,
     onUsedRecommendedPractice = _ref3.onUsedRecommendedPractice,
-    masteryStats = _ref3.masteryStats;
+    masteryStats = _ref3.masteryStats,
+    totalQuestions = _ref3.totalQuestions;
   var _useState27 = useState(false),
     _useState28 = _slicedToArray(_useState27, 2),
     open = _useState28[0],
@@ -576,8 +577,8 @@ function ProfileMenu(_ref3) {
     ref: menuRef
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-4 shrink-0"
-  }, masteryStats && function () {
-    var pct = Math.min(100, Math.round(masteryStats.total_mastered / TOTAL_QUESTIONS * 100));
+  }, masteryStats && totalQuestions > 0 && function () {
+    var pct = Math.min(100, Math.round(masteryStats.total_mastered / totalQuestions * 100));
     var lvl = getMasteryLevel(pct);
     return /*#__PURE__*/React.createElement("button", {
       onClick: function onClick() {
@@ -1164,6 +1165,14 @@ function App() {
       cancelled = true;
     };
   }, []);
+  var totalQuestions = questions.length;
+  var topicTotals = useMemo(function () {
+    var totals = {};
+    questions.forEach(function (q) {
+      totals[q.topic] = (totals[q.topic] || 0) + 1;
+    });
+    return totals;
+  }, [questions]);
   var guestMasteryStats = useMemo(function () {
     if (authUser) return null;
     var mastered_by_topic = {};
@@ -1497,7 +1506,8 @@ function App() {
     setPage: setPage,
     navigateTab: navigateTab,
     onUsedRecommendedPractice: markUsedRecommendedPractice,
-    masteryStats: masteryStats
+    masteryStats: masteryStats,
+    totalQuestions: totalQuestions
   }) : /*#__PURE__*/React.createElement("a", {
     href: "./index.html",
     className: "text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors whitespace-nowrap"
@@ -1505,7 +1515,9 @@ function App() {
     authUser: authUser,
     masteryStats: authUser ? masteryStats : guestMasteryStats,
     bookmarksCount: bookmarks.length,
-    navigateTab: navigateTab
+    navigateTab: navigateTab,
+    totalQuestions: totalQuestions,
+    topicTotals: topicTotals
   }) : tab === 'leaderboard' ? /*#__PURE__*/React.createElement(LeaderboardPage, {
     authUser: authUser
   }) : tab === 'analytics' ? /*#__PURE__*/React.createElement(AnalyticsPage, {

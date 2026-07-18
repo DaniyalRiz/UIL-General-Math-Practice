@@ -1,5 +1,5 @@
 
-const ACHIEVEMENTS_DEF = [
+const getAchievementsDef = (totalQuestions, topicTotals) => [
   {
     id: 'first_correct',
     name: 'First Correct Answer',
@@ -92,7 +92,7 @@ const ACHIEVEMENTS_DEF = [
     id: 'full_mastery_ach',
     name: 'Full Mastery',
     icon: '👑',
-    description: 'Master all 400 questions.',
+    description: `Master all ${totalQuestions} questions.`,
     numeric: true, max: 100,
     val: (_s, pct) => pct,
   },
@@ -102,7 +102,7 @@ const ACHIEVEMENTS_DEF = [
     icon: '🔬',
     description: 'Reach 50% mastery in any single topic.',
     numeric: false,
-    check: (s) => Object.entries(TOPIC_TOTALS).some(([t, n]) => (s.mastered_by_topic[t] || 0) >= n * 0.5),
+    check: (s) => Object.entries(topicTotals).some(([t, n]) => (s.mastered_by_topic[t] || 0) >= n * 0.5),
   },
   {
     id: 'sharp_eye',
@@ -167,10 +167,10 @@ function AchievementCard({ a, state }) {
   );
 }
 
-function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab }) {
+function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, totalQuestions, topicTotals }) {
   const [subtab, setSubtab] = useState('overview');
 
-  if (!masteryStats) {
+  if (!masteryStats || !totalQuestions) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center">
@@ -182,15 +182,15 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab }) {
   }
 
   const s = masteryStats;
-  const masteryPct = Math.min(100, Math.round((s.total_mastered / TOTAL_QUESTIONS) * 100));
+  const masteryPct = Math.min(100, Math.round((s.total_mastered / totalQuestions) * 100));
   const level = getMasteryLevel(masteryPct);
 
   const levelIdx = MASTERY_LEVELS.findIndex(l => l.name === level.name);
   const nextLevel = levelIdx > 0 ? MASTERY_LEVELS[levelIdx - 1] : null;
-  const nextLevelNeeded = nextLevel ? Math.ceil(nextLevel.min * TOTAL_QUESTIONS / 100) : null;
+  const nextLevelNeeded = nextLevel ? Math.ceil(nextLevel.min * totalQuestions / 100) : null;
   const toNextLevel = nextLevelNeeded ? Math.max(0, nextLevelNeeded - s.total_mastered) : 0;
 
-  const achievementsData = ACHIEVEMENTS_DEF.map(a => {
+  const achievementsData = getAchievementsDef(totalQuestions, topicTotals).map(a => {
     let earned, current, hasProgress;
     if (a.numeric) {
       current = Math.min(a.val(s, masteryPct), a.max);
@@ -251,7 +251,7 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab }) {
             <div className="flex items-end justify-between mb-2">
               <span className="text-sm text-slate-500 dark:text-slate-400">
                 <span className="font-bold text-slate-900 dark:text-white tabular-nums text-lg">{s.total_mastered}</span>
-                <span className="text-slate-400 dark:text-slate-600"> / {TOTAL_QUESTIONS}</span>
+                <span className="text-slate-400 dark:text-slate-600"> / {totalQuestions}</span>
                 <span className="ml-1">questions mastered</span>
               </span>
               <span className="text-3xl font-black tabular-nums text-slate-900 dark:text-white leading-none">{masteryPct}%</span>
@@ -267,7 +267,7 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab }) {
                 <span className="tabular-nums font-semibold text-slate-600 dark:text-slate-400">{toNextLevel}</span> more question{toNextLevel !== 1 ? 's' : ''} to reach <span className="font-semibold">{nextLevel.name}</span>
               </p>
             ) : (
-              <p className="text-xs font-semibold text-emerald-500">You've reached Full Mastery — all 400 questions!</p>
+              <p className="text-xs font-semibold text-emerald-500">You've reached Full Mastery — all {totalQuestions} questions!</p>
             )}
           </div>
 
@@ -275,7 +275,7 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab }) {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-5">Progress by Topic</h2>
             <div className="space-y-5">
-              {Object.entries(TOPIC_TOTALS).map(([topic, total]) => {
+              {Object.entries(topicTotals).map(([topic, total]) => {
                 const mastered = s.mastered_by_topic[topic] || 0;
                 const pct = Math.round((mastered / total) * 100);
                 const dotClass = TOPIC_DOT[topic] || 'bg-slate-400';
