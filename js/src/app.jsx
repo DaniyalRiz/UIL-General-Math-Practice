@@ -395,11 +395,23 @@ function App() {
     });
     const { data: { subscription } } = _supabase.auth.onAuthStateChange((_e, session) => {
       setAuthUser(session?.user ?? null);
+      if (!session) {
+        setQStats({});
+        setBookmarks([]);
+        answersRef.current = {};
+        setSessionAnswers([]);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = async () => { await _supabase.auth.signOut(); };
+  const signOut = async () => {
+    await _supabase.auth.signOut();
+    setQStats({});
+    setBookmarks([]);
+    answersRef.current = {};
+    setSessionAnswers([]);
+  };
   const [topic, setTopic] = useState("All Topics");
   const [diff, setDiff] = useState("All Difficulties");
   const [search, setSearch] = useState("");
@@ -412,6 +424,7 @@ function App() {
 
   const answersRef = useRef({});
   const [answerVersion, setAnswerVersion] = useState(0);
+  const [sessionAnswers, setSessionAnswers] = useState([]);
   const [qStats, setQStats] = useLocalStorage("uilmath-qstats", {});
   const [bookmarks, setBookmarks] = useLocalStorage("uilmath-bookmarks", []);
   const [masteryStats, setMasteryStats] = useState(null);
@@ -562,6 +575,20 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
+  const guestMasteryStats = useMemo(() => {
+    if (authUser) return null;
+    const mastered_by_topic = {};
+    let total_mastered = 0;
+    Object.entries(qStats).forEach(([id, s]) => {
+      if (s.correct > 0) {
+        total_mastered++;
+        const q = questions.find(q => q.id === Number(id));
+        if (q) mastered_by_topic[q.topic] = (mastered_by_topic[q.topic] || 0) + 1;
+      }
+    });
+    return { total_mastered, mastered_by_topic, used_recommended_practice: false, has_resolved_bug_report: false };
+  }, [authUser, qStats, questions]);
+
   const toggleBookmark = (id) => {
     setBookmarks(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
@@ -661,6 +688,22 @@ function App() {
       };
       return { ...prev, [rec.questionId]: next };
     });
+    // Track session history for guest analytics/history
+    setSessionAnswers(prev => [{
+      id: `session-${Date.now()}-${rec.questionId}`,
+      question_id: rec.questionId,
+      question_title: rec.questionTitle,
+      question_text: rec.questionText,
+      topic: rec.topic,
+      difficulty: rec.difficulty,
+      selected_answer: rec.selected,
+      correct_answer: rec.correctAnswer,
+      is_correct: rec.correct,
+      time_taken_ms: rec.timeMs,
+      explanation: rec.explanation,
+      tags: rec.tags || [],
+      created_at: new Date().toISOString(),
+    }, ...prev]);
   };
 
 
@@ -831,13 +874,13 @@ function App() {
       </nav>
 
       {tab === 'mastery' ? (
-        <MasteryPage authUser={authUser} masteryStats={masteryStats} bookmarksCount={bookmarks.length} navigateTab={navigateTab} />
+        <MasteryPage authUser={authUser} masteryStats={authUser ? masteryStats : guestMasteryStats} bookmarksCount={bookmarks.length} navigateTab={navigateTab} />
       ) : tab === 'leaderboard' ? (
         <LeaderboardPage authUser={authUser} />
       ) : tab === 'analytics' ? (
-        <AnalyticsPage authUser={authUser} />
+        <AnalyticsPage authUser={authUser} sessionAnswers={sessionAnswers} questions={questions} />
       ) : tab === 'history' ? (
-        <HistoryPage authUser={authUser} allQuestions={questions} navigateTab={navigateTab} onOpenQuestion={(id)=>{
+        <HistoryPage authUser={authUser} allQuestions={questions} sessionAnswers={sessionAnswers} navigateTab={navigateTab} onOpenQuestion={(id)=>{
           navigateTab('problems');
           setRecommendedMode(false);
           setTopic("All Topics");
@@ -1094,11 +1137,43 @@ function App() {
   );
 }
 
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { crashed: false, errorMsg: '', errorStack: '' }; }
+  static getDerivedStateFromError(err) {
+    return { crashed: true, errorMsg: err?.message || String(err), errorStack: err?.stack || '' };
+  }
+  componentDidCatch(err, info) {
+    console.error('[UIL Math] Render error:', err, info?.componentStack);
+  }
+  render() {
+    if (this.state.crashed) {
+      return (
+        <div style={{ padding: '48px 32px', fontFamily: 'sans-serif', maxWidth: '620px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontWeight: 'bold', fontSize: '18px', color: '#b91c1c' }}>Something went wrong.</p>
+          <p style={{ color: '#64748b', marginTop: '8px' }}>Refresh the page to continue. Your session data will be restored if you were signed in.</p>
+          <button
+            onClick={() => this.setState({ crashed: false, errorMsg: '', errorStack: '' })}
+            style={{ marginTop: '20px', padding: '10px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>
+            Try to recover
+          </button>
+          {this.state.errorMsg && (
+            <details style={{ marginTop: '20px', textAlign: 'left' }}>
+              <summary style={{ cursor: 'pointer', color: '#94a3b8', fontSize: '12px', userSelect: 'none' }}>Error details (for bug reports)</summary>
+              <pre style={{ marginTop: '8px', padding: '12px', background: '#f1f5f9', borderRadius: '8px', fontSize: '11px', color: '#475569', whiteSpace: 'pre-wrap', wordBreak: 'break-all', overflowY: 'auto', maxHeight: '200px', textAlign: 'left' }}>{this.state.errorMsg}{'\n\n'}{this.state.errorStack}</pre>
+            </details>
+          )}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function mountApp() {
   const root = document.getElementById("root");
   if (!root) return;
   root.dataset.loaded = "1";
-  ReactDOM.createRoot(root).render(<App />);
+  ReactDOM.createRoot(root).render(<ErrorBoundary><App /></ErrorBoundary>);
 }
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", mountApp);

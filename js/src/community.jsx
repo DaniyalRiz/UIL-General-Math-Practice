@@ -215,74 +215,73 @@ function CommunitySolutions({ q, authUser, answered }) {
 
       {open ? (
         <div className="border-t border-slate-200 dark:border-slate-800 p-4 space-y-4 bg-white dark:bg-slate-900 rounded-b-2xl">
-          {!authUser ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              <a href="./index.html" className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</a> to view or post community solutions.
-            </p>
+          {authUser ? (
+            <div className="pt-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Add your solution or comment</p>
+              <textarea value={text} onChange={e=>setText(e.target.value)}
+                placeholder="Type your method, shortcut, or question. Use \\(x^2\\), \\frac{a}{b}, \\sqrt{x}, etc. for math."
+                rows={4}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 resize-y min-h-[110px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+              <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
+                <p className="text-xs text-slate-400 dark:text-slate-500 flex-1">Tip: write math as <code>\\(x^2+1\\)</code>.</p>
+                <button onClick={saveSolution} disabled={saving || !text.trim()}
+                  className={`w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-semibold ${text.trim() && !saving ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'}`}>
+                  {saving ? 'Posting…' : 'Post Solution'}
+                </button>
+              </div>
+              {message && <p className={`mt-2 text-xs ${message.includes('posted') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{message}</p>}
+            </div>
           ) : (
-            <>
-              <div className="pt-1">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Add your solution or comment</p>
-                <textarea value={text} onChange={e=>setText(e.target.value)}
-                  placeholder="Type your method, shortcut, or question. Use \\(x^2\\), \\frac{a}{b}, \\sqrt{x}, etc. for math."
-                  rows={4}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 resize-y min-h-[110px] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
-                <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
-                  <p className="text-xs text-slate-400 dark:text-slate-500 flex-1">Tip: write math as <code>\\(x^2+1\\)</code>.</p>
-                  <button onClick={saveSolution} disabled={saving || !text.trim()}
-                    className={`w-full sm:w-auto px-4 py-2.5 rounded-lg text-sm font-semibold ${text.trim() && !saving ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'}`}>
-                    {saving ? 'Posting…' : 'Post Solution'}
-                  </button>
-                </div>
-                {message && <p className={`mt-2 text-xs ${message.includes('posted') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{message}</p>}
-              </div>
-
-              <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                    {loading ? 'Loading solutions…' : `${solutions.length} solution${solutions.length!==1?'s':''}`}
-                  </p>
-                  <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
-                    <option>Most Upvotes</option>
-                    <option>Most Recent</option>
-                    <option>Oldest First</option>
-                  </select>
-                </div>
-
-                <div className="space-y-3">
-                  {loading ? (
-                    <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">Loading community solutions…</p>
-                  ) : sorted.length === 0 ? (
-                    <div className="py-8 text-center">
-                      <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                      </div>
-                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-0.5">No solutions yet</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500">Be the first to add one above.</p>
-                    </div>
-                  ) : sorted.map(s => (
-                    <div key={s.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-3">
-                      <div className="flex items-start gap-3">
-                        <button onClick={()=>toggleVote(s.id)}
-                          className={`shrink-0 px-2 py-1 rounded-lg text-xs font-bold border transition-colors ${votes.includes(s.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400'}`}>
-                          ▲ {s.upvotes || 0}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
-                            {s.display_name || 'User'} · {new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-                          </p>
-                          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                            <MathText text={s.solution_text} />
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
+            <p className="text-sm text-slate-500 dark:text-slate-400 pt-1">
+              <a href="./index.html" className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</a> to post a community solution.
+            </p>
           )}
+
+          <div className={authUser ? "border-t border-slate-200 dark:border-slate-800 pt-4" : ""}>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                {loading ? 'Loading solutions…' : `${solutions.length} solution${solutions.length!==1?'s':''}`}
+              </p>
+              <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
+                <option>Most Upvotes</option>
+                <option>Most Recent</option>
+                <option>Oldest First</option>
+              </select>
+            </div>
+
+            <div className="space-y-3">
+              {loading ? (
+                <p className="text-sm text-slate-400 dark:text-slate-500 py-4 text-center">Loading community solutions…</p>
+              ) : sorted.length === 0 ? (
+                <div className="py-8 text-center">
+                  <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-0.5">No solutions yet</p>
+                  {authUser && <p className="text-xs text-slate-400 dark:text-slate-500">Be the first to add one above.</p>}
+                </div>
+              ) : sorted.map(s => (
+                <div key={s.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-3">
+                  <div className="flex items-start gap-3">
+                    <button onClick={()=>authUser && toggleVote(s.id)}
+                      title={!authUser ? "Sign in to vote" : undefined}
+                      className={`shrink-0 px-2 py-1 rounded-lg text-xs font-bold border transition-colors ${!authUser ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 cursor-default' : votes.includes(s.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400'}`}>
+                      ▲ {s.upvotes || 0}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
+                        {s.display_name || 'User'} · {new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+                      </p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        <MathText text={s.solution_text} />
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

@@ -142,6 +142,9 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
   const [showReportIssue, setShowReportIssue] = useState(false);
   const timer = useTimer();
   const startRef = useRef(Date.now());
+  // Updated synchronously on every render so async RPC callbacks can detect stale results.
+  const activeQuestionIdRef = useRef(q.id);
+  activeQuestionIdRef.current = q.id;
 
   // Reset per-question interaction state whenever the question itself changes.
   useEffect(() => {
@@ -216,12 +219,42 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
     setCrossed(prev => ({ ...prev, [choice]: !prev[choice] }));
   };
 
-  // Submit button handler — answer checking happens securely in Supabase.
+  // Submit button handler — answer checking happens securely in Supabase for signed-in users,
+  // or client-side for guests (no persistence).
   const handleSubmit = async () => {
     if (answered || !pending || submitting) return;
 
     if (!authUser) {
-      setSubmitError("Please sign in to submit answers securely.");
+      const timeMs = Date.now() - startRef.current;
+      setSubmitting(true);
+      setSubmitError("");
+      const submittedForId = q.id;
+      const { data, error } = await _supabase.rpc("guest_check_answer", {
+        p_question_id: q.id,
+        p_selected: pending,
+      });
+      if (activeQuestionIdRef.current !== submittedForId) return;
+      setSubmitting(false);
+      if (error) { setSubmitError(error.message || "Could not check answer."); return; }
+      const result = Array.isArray(data) ? data[0] : data;
+      if (!result || result.error) { setSubmitError(result?.error || "No result returned."); return; }
+      setSelected(pending);
+      setAnswered(true);
+      timer.stop();
+      setServerResult({ is_correct: result.is_correct, correct_answer: result.correct_answer, explanation: result.explanation || null });
+      onAnswered && onAnswered({
+        questionId:    q.id,
+        questionTitle: q.title || null,
+        questionText:  q.question || null,
+        topic:         q.topic,
+        difficulty:    q.difficulty,
+        selected:      pending,
+        correctAnswer: result.correct_answer,
+        correct:       !!result.is_correct,
+        timeMs,
+        explanation:   result.explanation || null,
+        tags:          q.tags || [],
+      });
       return;
     }
 
@@ -233,6 +266,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
     const timeMs = Date.now() - startRef.current;
     setSubmitting(true);
     setSubmitError("");
+    const submittedForId = q.id;
 
     const { data, error } = await _supabase.rpc("submit_answer", {
       p_session_id: attemptSessionId,
@@ -241,6 +275,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
       p_time_taken_ms: timeMs,
     });
 
+    if (activeQuestionIdRef.current !== submittedForId) return;
     setSubmitting(false);
 
     if (error) {
@@ -475,12 +510,12 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
                     {submitError}
                   </p>
                 )}
-                <button onClick={handleSubmit} disabled={!pending || submitting || !authUser}
+                <button onClick={handleSubmit} disabled={!pending || submitting}
                   className={`w-full py-3 rounded-lg text-sm font-bold transition-all
-                    ${pending && !submitting && authUser
+                    ${pending && !submitting
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"}`}>
-                  {!authUser ? "Sign in to submit securely" : submitting ? "Submitting…" : pending ? "Submit Answer" : "Select an answer first"}
+                  {submitting ? "Submitting…" : pending ? "Submit Answer" : "Select an answer first"}
                 </button>
               </div>
             )}
@@ -536,13 +571,13 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
 
         {/* ── nav footer ── */}
         <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-950 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-          <button onClick={onPrev} disabled={!hasPrev}
-            className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasPrev
+          <button onClick={onPrev} disabled={!hasPrev || submitting}
+            className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasPrev && !submitting
               ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed"}`}>← Prev</button>
-          <button onClick={onClose} className="w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700">Close</button>
-          <button onClick={onNext} disabled={!hasNext}
-            className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasNext
+          <button onClick={onClose} disabled={submitting} className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${submitting ? 'text-slate-400 dark:text-slate-600 bg-slate-50 dark:bg-slate-900 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>Close</button>
+          <button onClick={onNext} disabled={!hasNext || submitting}
+            className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasNext && !submitting
               ? "bg-blue-600 hover:bg-blue-700 text-white"
               : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed"}`}>Next →</button>
         </div>

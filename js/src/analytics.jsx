@@ -1,10 +1,18 @@
-function AnalyticsPage({ authUser }) {
+function AnalyticsPage({ authUser, sessionAnswers, questions }) {
   const [data, setData]     = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState(null);
 
   useEffect(() => {
-    if (!authUser) { setLoading(false); return; }
+    if (!authUser) {
+      const rows = (sessionAnswers || []).map(r => ({
+        topic: r.topic, difficulty: r.difficulty,
+        is_correct: r.is_correct, time_taken_ms: r.time_taken_ms, created_at: r.created_at,
+      }));
+      setData(rows);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     _supabase
       .from('attempts')
@@ -16,18 +24,7 @@ function AnalyticsPage({ authUser }) {
         setData(rows || []);
         setLoading(false);
       });
-  }, [authUser]);
-
-  if (!authUser) return (
-    <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-      <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-      </div>
-      <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">Analytics</p>
-      <p className="text-slate-500 dark:text-slate-400 mb-6">Sign in to see your personal performance analytics.</p>
-      <a href="./index.html" className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">Sign In</a>
-    </div>
-  );
+  }, [authUser, sessionAnswers]);
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">
@@ -181,6 +178,12 @@ function AnalyticsPage({ authUser }) {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {!authUser && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <a href="./index.html" className="font-semibold underline">Sign in</a> to save your progress.</span>
+        </div>
+      )}
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Analytics</h1>
@@ -325,7 +328,7 @@ function AnalyticsPage({ authUser }) {
   );
 }
 
-function HistoryPage({ authUser, allQuestions, onOpenQuestion, navigateTab }) {
+function HistoryPage({ authUser, allQuestions, sessionAnswers, onOpenQuestion, navigateTab }) {
   const [rows, setRows]         = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
@@ -363,7 +366,7 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion, navigateTab }) {
   }, [rows, questionSourceMap, filterType]);
 
   useEffect(() => {
-    if (!authUser) { setLoading(false); return; }
+    if (!authUser) { setRows(sessionAnswers || []); setLoading(false); return; }
     setLoading(true);
     _supabase
       .from('attempts')
@@ -375,7 +378,11 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion, navigateTab }) {
         setRows(data || []);
         setLoading(false);
       });
-  }, [authUser]);
+  }, [authUser?.id]);
+
+  useEffect(() => {
+    if (!authUser) setRows(sessionAnswers || []);
+  }, [authUser, sessionAnswers]);
 
   useEffect(() => {
     if (!authUser) return;
@@ -403,16 +410,6 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion, navigateTab }) {
       });
   }, [authUser]);
 
-  if (!authUser) return (
-    <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-      <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      </div>
-      <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">History</p>
-      <p className="text-slate-500 dark:text-slate-400 mb-6">Sign in to see your attempt history.</p>
-      <a href="./index.html" className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">Sign In</a>
-    </div>
-  );
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">
@@ -487,6 +484,12 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion, navigateTab }) {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {!authUser && (
+        <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <a href="./index.html" className="font-semibold underline">Sign in</a> to save your history.</span>
+        </div>
+      )}
       <div className="mb-6">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">History</h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm">{historySubTab === 'attempts' ? `${rows.length} total attempt${rows.length !== 1 ? 's' : ''} · showing ${sorted.length}` : `${mySolutions.length} community solution${mySolutions.length !== 1 ? 's' : ''}`}</p>
@@ -495,10 +498,12 @@ function HistoryPage({ authUser, allQuestions, onOpenQuestion, navigateTab }) {
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${historySubTab==='attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             Attempts
           </button>
+          {authUser && (
           <button onClick={()=>setHistorySubTab('solutions')}
             className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${historySubTab==='solutions' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             My Community Solutions
           </button>
+          )}
         </div>
       </div>
 
