@@ -211,7 +211,11 @@
     </div>
 
     <!-- Stats row -->
-    <div class="mt-16 flex items-center justify-center divide-x divide-white/10 max-w-lg mx-auto">
+    <div class="mt-16 flex items-center justify-center divide-x divide-white/10 max-w-2xl mx-auto">
+      <div class="flex-1 text-center px-4">
+        <p id="stat-users" class="text-3xl font-black text-white">&mdash;</p>
+        <p class="text-blue-300 text-xs font-semibold mt-1">Users</p>
+      </div>
       <div class="flex-1 text-center px-4">
         <p id="stat-problems" class="text-3xl font-black text-white">&mdash;</p>
         <p class="text-blue-300 text-xs font-semibold mt-1">Problems</p>
@@ -501,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setNavState(session?.user ?? null);
   });
 
-  // ─── LIVE STATS (Problems / Topics / Real Tests) ──────────────────────────
+  // ─── LIVE STATS (Users / Problems / Topics / Real Tests) ──────────────────
   supabase.from('public_questions').select('topic, source').limit(5000).then(({ data, error }) => {
     if (error || !data) return;
     const topics = new Set(data.map(q => q.topic).filter(Boolean));
@@ -509,6 +513,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('stat-problems').textContent = data.length;
     document.getElementById('stat-topics').textContent = topics.size;
     document.getElementById('stat-tests').textContent = tests.size;
+  });
+  supabase.rpc('get_user_count').then(({ data, error }) => {
+    if (error || data == null) return;
+    document.getElementById('stat-users').textContent = data;
   });
 
   // Close modal on backdrop click
