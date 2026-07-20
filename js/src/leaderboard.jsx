@@ -19,15 +19,15 @@ function lbRelTime(ts) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function LBAvatar({ name }) {
+function LBAvatar({ name, avatarUrl }) {
   const str = name || 'U';
   const initial = str.trim().charAt(0).toUpperCase();
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
   const c = AVATAR_COLORS[hash % AVATAR_COLORS.length];
   return (
-    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${c.bg} ${c.text}`}>
-      {initial}
+    <div className={`w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold shrink-0 ${avatarUrl ? '' : c.bg + ' ' + c.text}`}>
+      {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initial}</span>}
     </div>
   );
 }
@@ -179,7 +179,7 @@ function LeaderboardPage({ authUser }) {
 
               {/* Name + mobile summary */}
               <div className="flex items-center gap-2.5 min-w-0">
-                <LBAvatar name={e.display_name} />
+                <LBAvatar name={e.display_name} avatarUrl={e.avatar_url} />
                 <div className="min-w-0">
                   <p className={`text-sm font-semibold truncate ${e.is_current_user ? 'text-blue-700 dark:text-blue-300' : 'text-slate-800 dark:text-slate-100'}`}>
                     {e.display_name}

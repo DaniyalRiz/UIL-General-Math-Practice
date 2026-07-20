@@ -28,15 +28,20 @@ function lbRelTime(ts) {
   return "".concat(Math.floor(h / 24), "d ago");
 }
 function LBAvatar(_ref) {
-  var name = _ref.name;
+  var name = _ref.name,
+    avatarUrl = _ref.avatarUrl;
   var str = name || 'U';
   var initial = str.trim().charAt(0).toUpperCase();
   var hash = 0;
   for (var i = 0; i < str.length; i++) hash = hash * 31 + str.charCodeAt(i) >>> 0;
   var c = AVATAR_COLORS[hash % AVATAR_COLORS.length];
   return /*#__PURE__*/React.createElement("div", {
-    className: "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ".concat(c.bg, " ").concat(c.text)
-  }, initial);
+    className: "w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-xs font-bold shrink-0 ".concat(avatarUrl ? '' : c.bg + ' ' + c.text)
+  }, avatarUrl ? /*#__PURE__*/React.createElement("img", {
+    src: avatarUrl,
+    alt: "",
+    className: "w-full h-full object-cover"
+  }) : /*#__PURE__*/React.createElement("span", null, initial));
 }
 function LBRankBadge(_ref2) {
   var rank = _ref2.rank;
@@ -244,7 +249,8 @@ function LeaderboardPage(_ref3) {
     })), /*#__PURE__*/React.createElement("div", {
       className: "flex items-center gap-2.5 min-w-0"
     }, /*#__PURE__*/React.createElement(LBAvatar, {
-      name: e.display_name
+      name: e.display_name,
+      avatarUrl: e.avatar_url
     }), /*#__PURE__*/React.createElement("div", {
       className: "min-w-0"
     }, /*#__PURE__*/React.createElement("p", {
