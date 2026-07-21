@@ -250,9 +250,9 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, tota
 
             <div className="flex items-end justify-between mb-2">
               <span className="text-sm text-slate-500 dark:text-slate-400">
-                <span className="font-bold text-slate-900 dark:text-white tabular-nums text-lg">{s.total_mastered}</span>
-                <span className="text-slate-400 dark:text-slate-600"> / {totalQuestions}</span>
-                <span className="ml-1">questions mastered</span>
+                <span className="font-black text-2xl text-blue-600 dark:text-blue-400 tabular-nums">{s.total_mastered}</span>
+                <span className="font-semibold text-base text-slate-500 dark:text-slate-400 tabular-nums"> / {totalQuestions}</span>
+                <span className="ml-1.5 text-xs text-slate-400 dark:text-slate-500">questions mastered</span>
               </span>
               <span className="text-3xl font-black tabular-nums text-slate-900 dark:text-white leading-none">{masteryPct}%</span>
             </div>
@@ -286,8 +286,8 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, tota
                         <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${dotClass}`} />
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{topic}</span>
                       </div>
-                      <span className="text-xs tabular-nums text-slate-400 dark:text-slate-500">
-                        {mastered}<span className="text-slate-300 dark:text-slate-700">/{total}</span>
+                      <span className="text-sm tabular-nums">
+                        <span className="font-bold text-slate-700 dark:text-slate-200">{mastered}</span><span className="text-slate-400 dark:text-slate-600">/{total}</span>
                         <span className="ml-1.5 font-semibold text-slate-600 dark:text-slate-400">{pct}%</span>
                       </span>
                     </div>

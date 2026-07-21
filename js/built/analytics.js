@@ -399,7 +399,7 @@ function AnalyticsPage(_ref) {
         text: 'text-emerald-700 dark:text-emerald-400',
         border: 'border-emerald-200 dark:border-emerald-800/60'
       },
-      'Needs Work': {
+      'Weakest Topic': {
         dot: 'bg-rose-500',
         text: 'text-rose-700 dark:text-rose-400',
         border: 'border-rose-200 dark:border-rose-800/60'
@@ -422,7 +422,7 @@ function AnalyticsPage(_ref) {
       value: strongest === null || strongest === void 0 ? void 0 : strongest.topic,
       sub: (strongest === null || strongest === void 0 ? void 0 : strongest.accuracy) + '% accuracy'
     }, {
-      label: 'Needs Work',
+      label: 'Weakest Topic',
       value: weakest === null || weakest === void 0 ? void 0 : weakest.topic,
       sub: (weakest === null || weakest === void 0 ? void 0 : weakest.accuracy) + '% accuracy'
     }, {

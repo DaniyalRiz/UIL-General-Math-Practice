@@ -306,11 +306,11 @@ function MasteryPage(_ref4) {
   }, /*#__PURE__*/React.createElement("span", {
     className: "text-sm text-slate-500 dark:text-slate-400"
   }, /*#__PURE__*/React.createElement("span", {
-    className: "font-bold text-slate-900 dark:text-white tabular-nums text-lg"
+    className: "font-black text-2xl text-blue-600 dark:text-blue-400 tabular-nums"
   }, s.total_mastered), /*#__PURE__*/React.createElement("span", {
-    className: "text-slate-400 dark:text-slate-600"
+    className: "font-semibold text-base text-slate-500 dark:text-slate-400 tabular-nums"
   }, " / ", totalQuestions), /*#__PURE__*/React.createElement("span", {
-    className: "ml-1"
+    className: "ml-1.5 text-xs text-slate-400 dark:text-slate-500"
   }, "questions mastered")), /*#__PURE__*/React.createElement("span", {
     className: "text-3xl font-black tabular-nums text-slate-900 dark:text-white leading-none"
   }, masteryPct, "%")), /*#__PURE__*/React.createElement("div", {
@@ -352,9 +352,11 @@ function MasteryPage(_ref4) {
     }), /*#__PURE__*/React.createElement("span", {
       className: "text-sm font-medium text-slate-700 dark:text-slate-300"
     }, topic)), /*#__PURE__*/React.createElement("span", {
-      className: "text-xs tabular-nums text-slate-400 dark:text-slate-500"
-    }, mastered, /*#__PURE__*/React.createElement("span", {
-      className: "text-slate-300 dark:text-slate-700"
+      className: "text-sm tabular-nums"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-bold text-slate-700 dark:text-slate-200"
+    }, mastered), /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-400 dark:text-slate-600"
     }, "/", total), /*#__PURE__*/React.createElement("span", {
       className: "ml-1.5 font-semibold text-slate-600 dark:text-slate-400"
     }, pct, "%"))), /*#__PURE__*/React.createElement("div", {

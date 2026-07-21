@@ -303,8 +303,8 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
             </button>
           );
         })()}
-        <button onClick={() => (tab === 'settings' || tab === 'reportBug') ? navigateTab('problems') : setOpen(o => !o)}
-          title={(tab === 'settings' || tab === 'reportBug') ? 'Back to Problems' : 'Account menu'}
+        <button onClick={() => setOpen(o => !o)}
+          title="Account menu"
           className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold text-xs hover:border-blue-400 transition-colors shrink-0 ${avatarUrl ? '' : avatarColor.bg + ' ' + avatarColor.text}`}>
           {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : <span>{initialsFor(authUser)}</span>}
         </button>
@@ -349,6 +349,16 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
             <span className="flex-1">Review Later</span>
             {bookmarksCount > 0 && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">{bookmarksCount}</span>}
+          </button>
+          <button onClick={() => { setOpen(false); navigateTab('analytics'); }}
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="analytics" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" className="shrink-0 opacity-60"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+            Analytics
+          </button>
+          <button onClick={() => { setOpen(false); navigateTab('history'); }}
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="history" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            History
           </button>
           <button onClick={() => { setOpen(false); navigateTab('reportBug'); }}
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="reportBug" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>

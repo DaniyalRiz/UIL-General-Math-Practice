@@ -218,7 +218,7 @@ function AnalyticsPage({ authUser, sessionAnswers, questions }) {
       {topicsWithData.length > 1 && (() => {
         const INSIGHT_STYLE = {
           'Strongest Topic': { dot:'bg-emerald-500', text:'text-emerald-700 dark:text-emerald-400', border:'border-emerald-200 dark:border-emerald-800/60' },
-          'Needs Work':      { dot:'bg-rose-500',    text:'text-rose-700 dark:text-rose-400',       border:'border-rose-200 dark:border-rose-800/60' },
+          'Weakest Topic':      { dot:'bg-rose-500',    text:'text-rose-700 dark:text-rose-400',       border:'border-rose-200 dark:border-rose-800/60' },
           'Fastest Topic':   { dot:'bg-blue-500',    text:'text-blue-700 dark:text-blue-400',       border:'border-blue-200 dark:border-blue-800/60' },
           'Slowest Topic':   { dot:'bg-amber-500',   text:'text-amber-700 dark:text-amber-400',     border:'border-amber-200 dark:border-amber-800/60' },
         };
@@ -226,7 +226,7 @@ function AnalyticsPage({ authUser, sessionAnswers, questions }) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
             {[
               { label:'Strongest Topic', value: strongest?.topic, sub: strongest?.accuracy + '% accuracy' },
-              { label:'Needs Work',      value: weakest?.topic,   sub: weakest?.accuracy + '% accuracy' },
+              { label:'Weakest Topic',      value: weakest?.topic,   sub: weakest?.accuracy + '% accuracy' },
               { label:'Fastest Topic',   value: fastest?.topic,   sub: fmtTime(fastest?.avgMs) + ' avg' },
               { label:'Slowest Topic',   value: slowest?.topic,   sub: fmtTime(slowest?.avgMs) + ' avg' },
             ].map(({ label, value, sub }) => {
