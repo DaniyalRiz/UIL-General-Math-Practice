@@ -59,7 +59,7 @@ function LeaderboardPage({ authUser }) {
   useEffect(() => {
     _supabase.from('public_questions').select('source').then(({ data }) => {
       if (!data) return;
-      const sources = [...new Set(data.map(q => q.source).filter(Boolean))].sort();
+      const sources = sortSources([...new Set(data.map(q => q.source).filter(Boolean))]);
       setAvailableSources(['All Sources', ...sources]);
     });
   }, []);

@@ -619,7 +619,7 @@ function HistoryPage(_ref7) {
     }).map(function (r) {
       return questionSourceMap[r.question_id] || '';
     }).filter(Boolean));
-    return ['All Sources'].concat(_toConsumableArray(_toConsumableArray(srcs).sort()));
+    return ['All Sources'].concat(_toConsumableArray(sortSources(_toConsumableArray(srcs))));
   }, [rows, questionSourceMap, filterType]);
   useEffect(function () {
     if (!authUser) {

@@ -100,9 +100,9 @@ function LeaderboardPage(_ref3) {
     _supabase.from('public_questions').select('source').then(function (_ref4) {
       var data = _ref4.data;
       if (!data) return;
-      var sources = _toConsumableArray(new Set(data.map(function (q) {
+      var sources = sortSources(_toConsumableArray(new Set(data.map(function (q) {
         return q.source;
-      }).filter(Boolean))).sort();
+      }).filter(Boolean))));
       setAvailableSources(['All Sources'].concat(_toConsumableArray(sources)));
     });
   }, []);

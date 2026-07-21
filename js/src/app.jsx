@@ -737,7 +737,7 @@ function App() {
         .map(q => q.source || '')
         .filter(Boolean)
     );
-    return ['All Sources', ...[...srcs].sort()];
+    return ['All Sources', ...sortSources([...srcs])];
   }, [questions, typeFilter]);
 
   const onFilter = (setter,val)=>{ setter(val); setPage(1); };

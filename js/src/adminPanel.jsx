@@ -2532,7 +2532,7 @@ function AdminQuestionManager({ authUser }) {
               <Dropdown value={filterTopic}  options={['All Topics','Algebra 1 & 2','Geometry','Precalculus','AP Calculus','AP Statistics']} onChange={setFilterTopic}  />
               <Dropdown value={filterDiff}   options={DIFFICULTIES}  onChange={setFilterDiff}   />
               <Dropdown value={filterType}   options={SOURCE_TYPES}  onChange={setFilterType}   />
-              <Dropdown value={filterSource} options={['All Sources',...[...new Set(questionList.map(q=>q.source).filter(Boolean))].sort()]} onChange={setFilterSource} />
+              <Dropdown value={filterSource} options={['All Sources',...sortSources([...new Set(questionList.map(q=>q.source).filter(Boolean))])]} onChange={setFilterSource} />
             </div>
           </div>
 

@@ -4492,9 +4492,9 @@ function AdminQuestionManager(_ref23) {
     onChange: setFilterType
   }), /*#__PURE__*/React.createElement(Dropdown, {
     value: filterSource,
-    options: ['All Sources'].concat(_toConsumableArray(_toConsumableArray(new Set(questionList.map(function (q) {
+    options: ['All Sources'].concat(_toConsumableArray(sortSources(_toConsumableArray(new Set(questionList.map(function (q) {
       return q.source;
-    }).filter(Boolean))).sort())),
+    }).filter(Boolean)))))),
     onChange: setFilterSource
   }))), questionListLoading ? /*#__PURE__*/React.createElement("div", {
     className: "py-20 text-center"

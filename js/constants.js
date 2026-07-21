@@ -42,6 +42,22 @@ const getSourceType = (source) => {
   return '';
 };
 
+// Orders source names the way tests are actually organized: TMSCA, then
+// Invitationals, District, Region, State (matching SOURCE_TYPES), and
+// numeric-aware alphabetically within each group (so "TMSCA 2" sorts before
+// "TMSCA 10").
+const SOURCE_CATEGORY_ORDER = ['TMSCA', 'Invitationals', 'District', 'Region', 'State'];
+const sortSources = (sources) => {
+  return [...sources].sort((a, b) => {
+    const rankA = SOURCE_CATEGORY_ORDER.indexOf(getSourceType(a));
+    const rankB = SOURCE_CATEGORY_ORDER.indexOf(getSourceType(b));
+    const orderA = rankA === -1 ? SOURCE_CATEGORY_ORDER.length : rankA;
+    const orderB = rankB === -1 ? SOURCE_CATEGORY_ORDER.length : rankB;
+    if (orderA !== orderB) return orderA - orderB;
+    return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+  });
+};
+
 const sourceDisplay = (q) => {
   if (!q) return "";
   const source = q.source || q.original_test || "";

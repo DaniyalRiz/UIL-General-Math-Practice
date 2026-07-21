@@ -1368,7 +1368,7 @@ function App() {
     }).map(function (q) {
       return q.source || '';
     }).filter(Boolean));
-    return ['All Sources'].concat(_toConsumableArray(_toConsumableArray(srcs).sort()));
+    return ['All Sources'].concat(_toConsumableArray(sortSources(_toConsumableArray(srcs))));
   }, [questions, typeFilter]);
   var onFilter = function onFilter(setter, val) {
     setter(val);

@@ -362,7 +362,7 @@ function HistoryPage({ authUser, allQuestions, sessionAnswers, onOpenQuestion, n
         .map(r => questionSourceMap[r.question_id] || '')
         .filter(Boolean)
     );
-    return ['All Sources', ...[...srcs].sort()];
+    return ['All Sources', ...sortSources([...srcs])];
   }, [rows, questionSourceMap, filterType]);
 
   useEffect(() => {
