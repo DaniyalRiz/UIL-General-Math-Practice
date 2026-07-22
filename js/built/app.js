@@ -579,7 +579,7 @@ function ProfileMenu(_ref3) {
     className: "flex items-center gap-4 shrink-0"
   }, masteryStats && totalQuestions > 0 && function () {
     var pct = Math.min(100, Math.round(masteryStats.total_mastered / totalQuestions * 100));
-    var lvl = getMasteryLevel(pct);
+    var lvl = getMasteryLevel(masteryStats.total_mastered);
     return /*#__PURE__*/React.createElement("button", {
       onClick: function onClick() {
         setOpen(false);

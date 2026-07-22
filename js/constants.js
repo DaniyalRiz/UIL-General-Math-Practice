@@ -103,17 +103,32 @@ const avatarColorFor = (user) => {
 // questions list (see app.jsx) instead of being hardcoded here, so they can't
 // drift out of sync with what's actually in the Problems section.
 
+// Ladder is keyed off mastered-question COUNT (minQuestions), not percentage --
+// the platform has a fixed catalog of thresholds (1,000 questions today) that
+// shouldn't shift if the question bank grows. `percentage` is the reference
+// figure at the current 1,000-question bank size; anywhere it's displayed in
+// the UI it's recomputed live as minQuestions / totalQuestions so it stays
+// accurate if the bank size changes.
 const MASTERY_LEVELS = [
-  { min: 100, name: 'Full Mastery',     color: 'text-amber-500 dark:text-amber-400',   bar: 'bg-amber-400'  },
-  { min: 75,  name: 'State Medalist',   color: 'text-indigo-500 dark:text-indigo-400', bar: 'bg-indigo-500' },
-  { min: 50,  name: 'State Qualifier',  color: 'text-blue-500 dark:text-blue-400',     bar: 'bg-blue-500'   },
-  { min: 25,  name: 'Region Qualifier', color: 'text-green-500 dark:text-green-400',   bar: 'bg-green-500'  },
-  { min: 10,  name: 'Competitor',       color: 'text-orange-500 dark:text-orange-400', bar: 'bg-orange-500' },
-  { min: 0,   name: 'Beginner',         color: 'text-teal-500 dark:text-teal-400',     bar: 'bg-teal-500'   },
+  { name: 'Beginner',       minQuestions: 0,    percentage: 0,   color: 'text-teal-500 dark:text-teal-400',     bar: 'bg-teal-500',   description: 'Just getting started on your mastery journey.' },
+  { name: 'Learner',        minQuestions: 20,   percentage: 2,   color: 'text-cyan-500 dark:text-cyan-400',     bar: 'bg-cyan-500',   description: 'Building foundational skills across topics.' },
+  { name: 'Competitor',     minQuestions: 50,   percentage: 5,   color: 'text-orange-500 dark:text-orange-400', bar: 'bg-orange-500', description: 'Sharpening skills for competition-level problems.' },
+  { name: 'District Ready', minQuestions: 150,  percentage: 15,  color: 'text-sky-500 dark:text-sky-400',       bar: 'bg-sky-500',    description: 'Prepared to compete at the district level.' },
+  { name: 'Region Ready',   minQuestions: 250,  percentage: 25,  color: 'text-green-500 dark:text-green-400',   bar: 'bg-green-500',  description: 'Prepared to compete at the region level.' },
+  { name: 'State Ready',    minQuestions: 500,  percentage: 50,  color: 'text-blue-500 dark:text-blue-400',     bar: 'bg-blue-500',   description: 'Prepared to compete at the state level.' },
+  { name: 'Medalist',       minQuestions: 750,  percentage: 75,  color: 'text-indigo-500 dark:text-indigo-400', bar: 'bg-indigo-500', description: 'Performing at a medal-worthy level.' },
+  { name: 'State Champion', minQuestions: 900,  percentage: 90,  color: 'text-violet-500 dark:text-violet-400', bar: 'bg-violet-500', description: 'Elite mastery — championship-caliber performance.' },
+  { name: 'Full Mastery',   minQuestions: 1000, percentage: 100, color: 'text-amber-500 dark:text-amber-400',   bar: 'bg-amber-400',  description: 'Complete mastery of the entire question bank.' },
 ];
 
-const getMasteryLevel = (pct) =>
-  MASTERY_LEVELS.find(l => pct >= l.min) || MASTERY_LEVELS[MASTERY_LEVELS.length - 1];
+// Resolves the level for a mastered-question count. Levels are ordered
+// ascending, so we walk from the top down and return the first threshold met.
+const getMasteryLevel = (masteredCount) => {
+  for (let i = MASTERY_LEVELS.length - 1; i >= 0; i--) {
+    if (masteredCount >= MASTERY_LEVELS[i].minQuestions) return MASTERY_LEVELS[i];
+  }
+  return MASTERY_LEVELS[0];
+};
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
 const ADMIN_EMAILS = ['daniyalrizvi10@gmail.com'];

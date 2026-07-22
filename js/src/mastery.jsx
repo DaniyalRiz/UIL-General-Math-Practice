@@ -65,6 +65,14 @@ const getAchievementsDef = (totalQuestions, topicTotals) => [
     val: (s) => s.total_mastered,
   },
   {
+    id: 'district_ready',
+    name: 'District Ready',
+    icon: '🎓',
+    description: 'Reach 15% overall mastery.',
+    numeric: true, max: 15,
+    val: (_s, pct) => pct,
+  },
+  {
     id: 'region_ready',
     name: 'Region Ready',
     icon: '🌟',
@@ -86,6 +94,14 @@ const getAchievementsDef = (totalQuestions, topicTotals) => [
     icon: '🥇',
     description: 'Reach 75% overall mastery.',
     numeric: true, max: 75,
+    val: (_s, pct) => pct,
+  },
+  {
+    id: 'state_champion',
+    name: 'State Champion',
+    icon: '🎖️',
+    description: 'Reach 90% overall mastery.',
+    numeric: true, max: 90,
     val: (_s, pct) => pct,
   },
   {
@@ -183,12 +199,11 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, tota
 
   const s = masteryStats;
   const masteryPct = Math.min(100, Math.round((s.total_mastered / totalQuestions) * 100));
-  const level = getMasteryLevel(masteryPct);
+  const level = getMasteryLevel(s.total_mastered);
 
   const levelIdx = MASTERY_LEVELS.findIndex(l => l.name === level.name);
-  const nextLevel = levelIdx > 0 ? MASTERY_LEVELS[levelIdx - 1] : null;
-  const nextLevelNeeded = nextLevel ? Math.ceil(nextLevel.min * totalQuestions / 100) : null;
-  const toNextLevel = nextLevelNeeded ? Math.max(0, nextLevelNeeded - s.total_mastered) : 0;
+  const nextLevel = levelIdx < MASTERY_LEVELS.length - 1 ? MASTERY_LEVELS[levelIdx + 1] : null;
+  const toNextLevel = nextLevel ? Math.max(0, nextLevel.minQuestions - s.total_mastered) : 0;
 
   const achievementsData = getAchievementsDef(totalQuestions, topicTotals).map(a => {
     let earned, current, hasProgress;
@@ -267,7 +282,7 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, tota
                 <span className="tabular-nums font-semibold text-slate-600 dark:text-slate-400">{toNextLevel}</span> more question{toNextLevel !== 1 ? 's' : ''} to reach <span className="font-semibold">{nextLevel.name}</span>
               </p>
             ) : (
-              <p className="text-xs font-semibold text-emerald-500">You've reached Full Mastery — all {totalQuestions} questions!</p>
+              <p className="text-xs font-semibold text-emerald-500">You have mastered the complete question bank.</p>
             )}
           </div>
 
@@ -295,6 +310,52 @@ function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, tota
                       <div className={`h-full rounded-full transition-all duration-500 ${dotClass}`}
                         style={{ width: `${pct}%` }} />
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mastery Levels ladder */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-5">Mastery Levels</h2>
+            <div className="space-y-3">
+              {MASTERY_LEVELS.map((lvl, idx) => {
+                const status = idx < levelIdx ? 'completed' : idx === levelIdx ? 'current' : idx === levelIdx + 1 ? 'next' : 'locked';
+                const livePct = totalQuestions > 0 ? Math.round((lvl.minQuestions / totalQuestions) * 100) : lvl.percentage;
+                const remaining = Math.max(0, lvl.minQuestions - s.total_mastered);
+                return (
+                  <div key={lvl.name} className={`flex items-center gap-4 rounded-xl border p-3.5 transition-colors ${
+                    status === 'current'
+                      ? 'border-blue-300 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10'
+                      : status === 'locked'
+                        ? 'border-slate-100 dark:border-slate-800 opacity-50'
+                        : 'border-slate-100 dark:border-slate-800'
+                  }`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
+                      status === 'completed' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
+                      status === 'current' ? `${lvl.bar} text-white` :
+                      'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
+                    }`}>
+                      {status === 'completed' ? '✓' : idx + 1}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <span className={`text-sm font-bold ${status === 'current' ? lvl.color : status === 'locked' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                          {lvl.name}
+                        </span>
+                        <span className="text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500 flex-shrink-0">
+                          {lvl.minQuestions} questions · {livePct}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 leading-snug">{lvl.description}</p>
+                      {status === 'next' && (
+                        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">{remaining} more question{remaining !== 1 ? 's' : ''} needed</p>
+                      )}
+                    </div>
+                    {status === 'current' && (
+                      <span className="flex-shrink-0 text-[10px] font-bold px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 uppercase tracking-wide">Current</span>
+                    )}
                   </div>
                 );
               })}

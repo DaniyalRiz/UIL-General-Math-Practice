@@ -289,7 +289,7 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
       <div className="flex items-center gap-4 shrink-0">
         {masteryStats && totalQuestions > 0 && (() => {
           const pct = Math.min(100, Math.round((masteryStats.total_mastered / totalQuestions) * 100));
-          const lvl = getMasteryLevel(pct);
+          const lvl = getMasteryLevel(masteryStats.total_mastered);
           return (
             <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
               className="hidden md:flex flex-col items-end gap-1 hover:opacity-75 transition-opacity">

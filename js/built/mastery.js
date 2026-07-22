@@ -90,6 +90,16 @@ var getAchievementsDef = function getAchievementsDef(totalQuestions, topicTotals
       return s.total_mastered;
     }
   }, {
+    id: 'district_ready',
+    name: 'District Ready',
+    icon: '🎓',
+    description: 'Reach 15% overall mastery.',
+    numeric: true,
+    max: 15,
+    val: function val(_s, pct) {
+      return pct;
+    }
+  }, {
     id: 'region_ready',
     name: 'Region Ready',
     icon: '🌟',
@@ -116,6 +126,16 @@ var getAchievementsDef = function getAchievementsDef(totalQuestions, topicTotals
     description: 'Reach 75% overall mastery.',
     numeric: true,
     max: 75,
+    val: function val(_s, pct) {
+      return pct;
+    }
+  }, {
+    id: 'state_champion',
+    name: 'State Champion',
+    icon: '🎖️',
+    description: 'Reach 90% overall mastery.',
+    numeric: true,
+    max: 90,
     val: function val(_s, pct) {
       return pct;
     }
@@ -213,13 +233,12 @@ function MasteryPage(_ref4) {
   }
   var s = masteryStats;
   var masteryPct = Math.min(100, Math.round(s.total_mastered / totalQuestions * 100));
-  var level = getMasteryLevel(masteryPct);
+  var level = getMasteryLevel(s.total_mastered);
   var levelIdx = MASTERY_LEVELS.findIndex(function (l) {
     return l.name === level.name;
   });
-  var nextLevel = levelIdx > 0 ? MASTERY_LEVELS[levelIdx - 1] : null;
-  var nextLevelNeeded = nextLevel ? Math.ceil(nextLevel.min * totalQuestions / 100) : null;
-  var toNextLevel = nextLevelNeeded ? Math.max(0, nextLevelNeeded - s.total_mastered) : 0;
+  var nextLevel = levelIdx < MASTERY_LEVELS.length - 1 ? MASTERY_LEVELS[levelIdx + 1] : null;
+  var toNextLevel = nextLevel ? Math.max(0, nextLevel.minQuestions - s.total_mastered) : 0;
   var achievementsData = getAchievementsDef(totalQuestions, topicTotals).map(function (a) {
     var earned, current, hasProgress;
     if (a.numeric) {
@@ -328,7 +347,7 @@ function MasteryPage(_ref4) {
     className: "font-semibold"
   }, nextLevel.name)) : /*#__PURE__*/React.createElement("p", {
     className: "text-xs font-semibold text-emerald-500"
-  }, "You've reached Full Mastery \u2014 all ", totalQuestions, " questions!")), /*#__PURE__*/React.createElement("div", {
+  }, "You have mastered the complete question bank.")), /*#__PURE__*/React.createElement("div", {
     className: "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-5"
@@ -367,6 +386,36 @@ function MasteryPage(_ref4) {
         width: "".concat(pct, "%")
       }
     })));
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-5"
+  }, "Mastery Levels"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, MASTERY_LEVELS.map(function (lvl, idx) {
+    var status = idx < levelIdx ? 'completed' : idx === levelIdx ? 'current' : idx === levelIdx + 1 ? 'next' : 'locked';
+    var livePct = totalQuestions > 0 ? Math.round(lvl.minQuestions / totalQuestions * 100) : lvl.percentage;
+    var remaining = Math.max(0, lvl.minQuestions - s.total_mastered);
+    return /*#__PURE__*/React.createElement("div", {
+      key: lvl.name,
+      className: "flex items-center gap-4 rounded-xl border p-3.5 transition-colors ".concat(status === 'current' ? 'border-blue-300 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10' : status === 'locked' ? 'border-slate-100 dark:border-slate-800 opacity-50' : 'border-slate-100 dark:border-slate-800')
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ".concat(status === 'completed' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : status === 'current' ? "".concat(lvl.bar, " text-white") : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500')
+    }, status === 'completed' ? '✓' : idx + 1), /*#__PURE__*/React.createElement("div", {
+      className: "min-w-0 flex-1"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between gap-2 mb-0.5"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-sm font-bold ".concat(status === 'current' ? lvl.color : status === 'locked' ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200')
+    }, lvl.name), /*#__PURE__*/React.createElement("span", {
+      className: "text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500 flex-shrink-0"
+    }, lvl.minQuestions, " questions \xB7 ", livePct, "%")), /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-slate-400 dark:text-slate-500 leading-snug"
+    }, lvl.description), status === 'next' && /*#__PURE__*/React.createElement("p", {
+      className: "text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1"
+    }, remaining, " more question", remaining !== 1 ? 's' : '', " needed")), status === 'current' && /*#__PURE__*/React.createElement("span", {
+      className: "flex-shrink-0 text-[10px] font-bold px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 uppercase tracking-wide"
+    }, "Current"));
   })))) : /*#__PURE__*/React.createElement("div", {
     className: "space-y-8"
   }, earnedAch.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
