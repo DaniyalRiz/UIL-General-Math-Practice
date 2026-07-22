@@ -25,16 +25,25 @@
   /* Auth modal */
   #auth-modal { display:none; }
   #auth-modal.open { display:flex; }
-  /* Contact links: underline fades in/out on hover, no background/box */
+  /* Contact links: underline grows in from the left on hover, no background/box */
   .contact-link {
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    text-underline-offset: 4px;
-    text-decoration-thickness: 2px;
-    transition: text-decoration-color 0.2s ease;
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+    outline: none;
   }
-  .contact-link:hover, .contact-link:focus-visible {
-    text-decoration-color: #2563eb;
+  .contact-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 0;
+    height: 2px;
+    background-color: #2563eb;
+    transition: width 0.25s ease;
+  }
+  .contact-link:hover::after, .contact-link:focus-visible::after {
+    width: 100%;
   }
 </style>
 </head>
@@ -389,22 +398,27 @@
         Browse Problems First
       </a>
     </div>
+  </div>
+</section>
 
-    <div class="mt-14 pt-10 border-t border-white/10">
-      <p class="text-xs font-bold uppercase tracking-wider text-blue-300/70 mb-5">Contact</p>
-      <div class="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
-        <div class="text-center">
-          <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">Email</p>
-          <a href="mailto:daniyalrizvi10@gmail.com" class="contact-link text-white font-semibold">daniyalrizvi10@gmail.com</a>
-        </div>
-        <div class="text-center">
-          <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">Discord</p>
-          <button type="button" id="discord-tag-btn" onclick="copyDiscordTag()" class="contact-link text-white font-semibold">daniyal7216</button>
-        </div>
-        <div class="text-center">
-          <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">GitHub</p>
-          <a href="https://github.com/DaniyalRiz/UIL-General-Math-Practice" target="_blank" rel="noopener" class="contact-link text-white font-semibold">DaniyalRiz/UIL-General-Math-Practice</a>
-        </div>
+<!-- ═══════════════════════════════════════════════════════
+     CONTACT
+═══════════════════════════════════════════════════════ -->
+<section class="hero-gradient py-16 px-6 text-center border-t border-white/10">
+  <div class="max-w-2xl mx-auto">
+    <p class="text-xs font-bold uppercase tracking-wider text-blue-300/70 mb-5">Contact</p>
+    <div class="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
+      <div class="text-center">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">Email</p>
+        <a href="mailto:daniyalrizvi10@gmail.com" class="contact-link text-white font-semibold">daniyalrizvi10@gmail.com</a>
+      </div>
+      <div class="text-center">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">Discord</p>
+        <button type="button" id="discord-tag-btn" onclick="copyDiscordTag()" class="contact-link text-white font-semibold">daniyal7216</button>
+      </div>
+      <div class="text-center">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">GitHub</p>
+        <a href="https://github.com/DaniyalRiz/UIL-General-Math-Practice" target="_blank" rel="noopener" class="contact-link text-white font-semibold">DaniyalRiz/UIL-General-Math-Practice</a>
       </div>
     </div>
   </div>
