@@ -82,8 +82,15 @@
           <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Password</label>
           <input id="signin-password" type="password" placeholder="••••••••"
             class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+          <div class="mt-1.5 text-right">
+            <button type="button" onclick="handleForgotPassword()"
+              class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+              Forgot password?
+            </button>
+          </div>
         </div>
         <div id="signin-error" class="hidden text-rose-600 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2"></div>
+        <div id="signin-success" class="hidden text-emerald-600 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2"></div>
         <button onclick="handleSignIn()"
           class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm">
           Sign In
@@ -486,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
     el.textContent = msg; el.classList.remove('hidden');
   }
   function clearErrors() {
-    ['signin-error','signup-error','signup-success'].forEach(id => {
+    ['signin-error','signin-success','signup-error','signup-success'].forEach(id => {
       const el = document.getElementById(id);
       if (el) { el.textContent = ''; el.classList.add('hidden'); }
     });
@@ -537,6 +544,19 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('signup-success').textContent = 'Account created! You can now sign in.';
       document.getElementById('signup-success').classList.remove('hidden');
     }
+  };
+
+  window.handleForgotPassword = async function() {
+    clearErrors();
+    const email = document.getElementById('signin-email').value.trim();
+    if (!email) return showError('signin-error', 'Type your email in the field above, then click "Forgot password?" again.');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://daniyalriz.github.io/UIL-General-Math-Practice/reset-password.html'
+    });
+    if (error) return showError('signin-error', error.message);
+    const el = document.getElementById('signin-success');
+    el.textContent = 'If an account exists for that email, a password reset link is on its way. Check your inbox.';
+    el.classList.remove('hidden');
   };
 
   window.handleGoogleAuth = async function() {
