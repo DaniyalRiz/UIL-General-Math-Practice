@@ -294,7 +294,7 @@ function ReportBugPage({ authUser, navigateTab }) {
   );
 }
 
-function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, missesCount, setPage, navigateTab, onUsedRecommendedPractice, masteryStats, totalQuestions }) {
+function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, missesCount, dayStreak, setPage, navigateTab, onUsedRecommendedPractice, masteryStats, totalQuestions }) {
   const [open, setOpen] = useState(false);
   const avatarUrl = authUser?.user_metadata?.custom_avatar_url || null;
   const menuRef = useRef(null);
@@ -323,6 +323,13 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
               className="hidden md:flex flex-col items-end gap-1 hover:opacity-75 transition-opacity">
               <span className={`text-xs font-bold uppercase tracking-wide leading-none ${lvl.color}`}>{lvl.name}</span>
               <div className="flex items-center gap-1.5">
+                {dayStreak >= 1 && (
+                  <span title={`You've practiced ${dayStreak} day${dayStreak !== 1 ? 's' : ''} in a row`}
+                    className="flex items-center gap-1 mr-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                    <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                    {dayStreak} day{dayStreak !== 1 ? 's' : ''}
+                  </span>
+                )}
                 <div className="w-24 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div className={`h-full rounded-full transition-all duration-500 ${lvl.bar}`} style={{ width: `${pct}%` }} />
                 </div>
@@ -748,11 +755,10 @@ function App() {
       .sort((a, b) => (missCount[b.id] - missCount[a.id]) || (lastMissAt[b.id] - lastMissAt[a.id]));
   }, [allAttempts, questions]);
 
-  const filtered = useMemo(() => questions.filter(q => {
-    if (recommendedMode && !recommendedIds.has(q.id)) return false;
-    if (statusFilter === "Unattempted" && qStats[q.id]?.attempts > 0) return false;
-    if (statusFilter === "Correct" && !(qStats[q.id]?.correct > 0)) return false;
-    if (statusFilter === "Incorrect" && !(qStats[q.id]?.attempts > 0 && qStats[q.id]?.correct === 0)) return false;
+  // Topic/difficulty/type/source/search predicate shared by the main list and
+  // the Redo Misses view (which adds no status filter -- everything in the
+  // queue is missed by definition).
+  const matchesBaseFilters = (q) => {
     if (topic !== "All Topics") {
       const col = getColumnCategory(q);
       if (["Column 1","Column 2","Column 3"].includes(topic)) {
@@ -767,7 +773,20 @@ function App() {
       return q.question.toLowerCase().includes(s) || q.tags.some(t=>t.includes(s)) || q.topic.toLowerCase().includes(s) || (q.source||"").toLowerCase().includes(s);
     }
     return true;
+  };
+
+  const filtered = useMemo(() => questions.filter(q => {
+    if (recommendedMode && !recommendedIds.has(q.id)) return false;
+    if (statusFilter === "Unattempted" && qStats[q.id]?.attempts > 0) return false;
+    if (statusFilter === "Correct" && !(qStats[q.id]?.correct > 0)) return false;
+    if (statusFilter === "Incorrect" && !(qStats[q.id]?.attempts > 0 && qStats[q.id]?.correct === 0)) return false;
+    return matchesBaseFilters(q);
   }), [questions, topic, diff, search, typeFilter, sourceFilter, statusFilter, qStats, recommendedMode, recommendedIds]);
+
+  const missesVisible = useMemo(
+    () => missedQueue.filter(matchesBaseFilters),
+    [missedQueue, topic, diff, search, typeFilter, sourceFilter]
+  );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageClamped = Math.min(page, totalPages);
@@ -964,18 +983,22 @@ function App() {
           </div>
           {/* Right: actions */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* At md+ with a mastery block, the streak lives inside it (level with
+                the progress bar). This borderless copy covers everyone else, and
+                the sm-to-md gap where the mastery block is hidden by viewport. */}
             {dayStreak >= 1 && (
               <span title={`You've practiced ${dayStreak} day${dayStreak !== 1 ? 's' : ''} in a row`}
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold whitespace-nowrap">
+                className={`items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap ${
+                  (authUser && masteryStats && totalQuestions > 0) ? 'hidden sm:flex md:hidden' : 'hidden sm:flex'}`}>
                 <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-                {dayStreak}-day streak
+                {dayStreak} day{dayStreak !== 1 ? 's' : ''}
               </span>
             )}
             {authUser ? (
               <ProfileMenu authUser={authUser} dark={dark} toggleTheme={toggleTheme} signOut={signOut}
                 view={view} setView={setView} tab={tab} setTab={setTab}
                 recommendedMode={recommendedMode} setRecommendedMode={setRecommendedMode}
-                bookmarksCount={bookmarks.length} missesCount={missedQueue.length} setPage={setPage} navigateTab={navigateTab}
+                bookmarksCount={bookmarks.length} missesCount={missedQueue.length} dayStreak={dayStreak} setPage={setPage} navigateTab={navigateTab}
                 onUsedRecommendedPractice={markUsedRecommendedPractice}
                 masteryStats={masteryStats} totalQuestions={totalQuestions} />
             ) : (
@@ -1105,6 +1128,19 @@ function App() {
             </p>
           </div>
 
+          {/* Filters (no status filter -- everything here is missed by definition) */}
+          <div className="flex flex-wrap items-center gap-3 mb-5">
+            <div className="relative flex-1 min-w-[200px]">
+              <input type="text" placeholder="Search problems…" value={search}
+                onChange={e=>{setSearch(e.target.value); setPage(1);}}
+                className="w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
+            <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
+            <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
+            <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
+          </div>
+
           {authUser && allAttempts === null ? (
             <div className="flex items-center justify-center py-24">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -1121,12 +1157,20 @@ function App() {
                 Browse Problems
               </button>
             </div>
+          ) : missesVisible.length === 0 ? (
+            <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No missed problems match</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500">Try adjusting your filters or search term.</p>
+            </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
               <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                 <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
               </div>
-              {missedQueue.map((q,i) => {
+              {missesVisible.map((q,i) => {
                 const rec = qStats[q.id];
                 const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
                 return <ProblemRow key={q.id} q={q} n={i+1} status={status}
