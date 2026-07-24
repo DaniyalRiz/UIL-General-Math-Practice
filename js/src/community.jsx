@@ -1,4 +1,8 @@
-function ReportIssueModal({ q, authUser, onClose }) {
+import { useState, useEffect } from 'react';
+import { _supabase } from '../supabaseClient.js';
+import { MathText } from './hooks.jsx';
+
+export function ReportIssueModal({ q, authUser, onClose }) {
   const ISSUE_TYPES = ['Wrong answer','Wrong explanation','Typo','Image missing','Formatting issue','Other'];
   const [issueType, setIssueType] = useState('Wrong answer');
   const [details, setDetails] = useState('');
@@ -72,7 +76,7 @@ function ReportIssueModal({ q, authUser, onClose }) {
 }
 
 
-function CommunitySolutions({ q, authUser, answered }) {
+export function CommunitySolutions({ q, authUser, answered }) {
   const [open, setOpen] = useState(false);
   const [solutions, setSolutions] = useState([]);
   const [votes, setVotes] = useState([]);

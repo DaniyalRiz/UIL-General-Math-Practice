@@ -1,4 +1,17 @@
+import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
+import { createRoot } from 'react-dom/client';
+import { _supabase } from '../supabaseClient.js';
+import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES } from '../constants.js';
+import { updateUserStatsOnly, cropAndResizeAvatar } from '../utils.js';
+import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown } from './hooks.jsx';
+import { AnalyticsPage, HistoryPage } from './analytics.jsx';
+import { ProblemRow, ProblemView } from './problemView.jsx';
+import { LeaderboardPage } from './leaderboard.jsx';
+import { MasteryPage } from './mastery.jsx';
 
+// Admin-only and by far the largest component -- lazy-loaded so regular
+// visitors never download it.
+const AdminQuestionManager = lazy(() => import('./adminPanel.jsx'));
 
 function SettingsPage({ authUser, navigateTab }) {
   const providers = authUser?.app_metadata?.providers || [];
@@ -932,7 +945,9 @@ function App() {
           }, 80);
         }} />
       ) : tab === 'admin' ? (
-        <AdminQuestionManager authUser={authUser} />
+        <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-16 text-center text-sm text-slate-500">Loading admin panel…</div>}>
+          <AdminQuestionManager authUser={authUser} />
+        </Suspense>
       ) : tab === 'settings' ? (
         <SettingsPage authUser={authUser} navigateTab={navigateTab} />
       ) : tab === 'reportBug' ? (
@@ -1210,7 +1225,7 @@ function mountApp() {
   const root = document.getElementById("root");
   if (!root) return;
   root.dataset.loaded = "1";
-  ReactDOM.createRoot(root).render(<ErrorBoundary><App /></ErrorBoundary>);
+  createRoot(root).render(<ErrorBoundary><App /></ErrorBoundary>);
 }
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", mountApp);

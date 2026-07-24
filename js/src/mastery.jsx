@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { TOPIC_DOT, initialsFor, avatarColorFor, MASTERY_LEVELS, getMasteryLevel } from '../constants.js';
 
 const getAchievementsDef = (totalQuestions, topicTotals) => [
   {
@@ -183,7 +185,7 @@ function AchievementCard({ a, state }) {
   );
 }
 
-function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, totalQuestions, topicTotals }) {
+export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTab, totalQuestions, topicTotals }) {
   const [subtab, setSubtab] = useState('overview');
 
   if (!masteryStats || !totalQuestions) {

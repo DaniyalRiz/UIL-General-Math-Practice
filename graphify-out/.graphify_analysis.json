@@ -1,0 +1,586 @@
+{
+  "communities": {
+    "0": [
+      "js_built_app",
+      "js_built_app_app",
+      "js_built_app_arrayliketoarray",
+      "js_built_app_arraywithholes",
+      "js_built_app_arraywithoutholes",
+      "js_built_app_assertthisinitialized",
+      "js_built_app_asyncgeneratorstep",
+      "js_built_app_asynctogenerator",
+      "js_built_app_callsuper",
+      "js_built_app_classcallcheck",
+      "js_built_app_createclass",
+      "js_built_app_defineproperties",
+      "js_built_app_defineproperty",
+      "js_built_app_errorboundary",
+      "js_built_app_getprototypeof",
+      "js_built_app_inherits",
+      "js_built_app_isnativereflectconstruct",
+      "js_built_app_iterabletoarray",
+      "js_built_app_iterabletoarraylimit",
+      "js_built_app_mountapp",
+      "js_built_app_noniterablerest",
+      "js_built_app_noniterablespread",
+      "js_built_app_objectspread",
+      "js_built_app_ownkeys",
+      "js_built_app_possibleconstructorreturn",
+      "js_built_app_profilemenu",
+      "js_built_app_regenerator",
+      "js_built_app_regeneratordefine2",
+      "js_built_app_reportbugpage",
+      "js_built_app_setprototypeof",
+      "js_built_app_settingspage",
+      "js_built_app_slicedtoarray",
+      "js_built_app_toconsumablearray",
+      "js_built_app_toprimitive",
+      "js_built_app_topropertykey",
+      "js_built_app_typeof",
+      "js_built_app_unsupportediterabletoarray",
+      "js_src_hooks",
+      "js_src_hooks_diffpill",
+      "js_src_hooks_dropdown",
+      "js_src_hooks_mathtext",
+      "js_src_hooks_moonicon",
+      "js_src_hooks_sunicon",
+      "js_src_hooks_uselocalstorage",
+      "js_src_hooks_usetheme",
+      "js_src_hooks_usetimer"
+    ],
+    "1": [
+      "js_constants",
+      "js_constants_admin_emails",
+      "js_constants_allowed_image_types",
+      "js_constants_avatar_colors",
+      "js_constants_avatarcolorfor",
+      "js_constants_diff_pill",
+      "js_constants_difficulties",
+      "js_constants_fmttime",
+      "js_constants_getcolumncategory",
+      "js_constants_getmasterylevel",
+      "js_constants_getsourcetype",
+      "js_constants_initialsfor",
+      "js_constants_mastery_levels",
+      "js_constants_plaintext",
+      "js_constants_source_types",
+      "js_constants_sourcedisplay",
+      "js_constants_topic_dot",
+      "js_constants_topic_totals",
+      "js_constants_topics",
+      "js_src_adminpanel",
+      "js_src_adminpanel_adminbugreports",
+      "js_src_adminpanel_adminquestionmanager",
+      "js_src_adminpanel_adminreports",
+      "js_src_adminpanel_adminuseractivity",
+      "js_src_adminpanel_cropandresizeavatar",
+      "js_src_adminpanel_edgefunctionerrormessage",
+      "js_src_adminpanel_resizeimageforupload",
+      "js_src_adminpanel_reviewimportspanel",
+      "js_src_adminpanel_uploadwithsessionretry",
+      "js_src_app_app",
+      "js_src_mastery",
+      "js_src_mastery_achievementcard",
+      "js_src_mastery_achievements_def",
+      "js_src_mastery_masterypage"
+    ],
+    "2": [
+      "js_built_adminpanel",
+      "js_built_adminpanel_adminbugreports",
+      "js_built_adminpanel_adminquestionmanager",
+      "js_built_adminpanel_adminreports",
+      "js_built_adminpanel_adminuseractivity",
+      "js_built_adminpanel_arrayliketoarray",
+      "js_built_adminpanel_arraywithholes",
+      "js_built_adminpanel_arraywithoutholes",
+      "js_built_adminpanel_asyncgeneratorstep",
+      "js_built_adminpanel_asynctogenerator",
+      "js_built_adminpanel_createforofiteratorhelper",
+      "js_built_adminpanel_cropandresizeavatar",
+      "js_built_adminpanel_defineproperty",
+      "js_built_adminpanel_edgefunctionerrormessage",
+      "js_built_adminpanel_iterabletoarray",
+      "js_built_adminpanel_iterabletoarraylimit",
+      "js_built_adminpanel_noniterablerest",
+      "js_built_adminpanel_noniterablespread",
+      "js_built_adminpanel_objectspread",
+      "js_built_adminpanel_ownkeys",
+      "js_built_adminpanel_regenerator",
+      "js_built_adminpanel_regeneratordefine2",
+      "js_built_adminpanel_resizeimageforupload",
+      "js_built_adminpanel_reviewimportspanel",
+      "js_built_adminpanel_slicedtoarray",
+      "js_built_adminpanel_toconsumablearray",
+      "js_built_adminpanel_toprimitive",
+      "js_built_adminpanel_topropertykey",
+      "js_built_adminpanel_typeof",
+      "js_built_adminpanel_unsupportediterabletoarray",
+      "js_built_adminpanel_uploadwithsessionretry"
+    ],
+    "3": [
+      "babel_cli",
+      "babel_preset_env",
+      "babel_preset_react",
+      "package",
+      "package_author",
+      "package_bugs",
+      "package_bugs_url",
+      "package_description",
+      "package_devdependencies",
+      "package_devdependencies_babel_cli",
+      "package_devdependencies_babel_preset_env",
+      "package_devdependencies_babel_preset_react",
+      "package_homepage",
+      "package_keywords",
+      "package_license",
+      "package_main",
+      "package_name",
+      "package_repository",
+      "package_repository_type",
+      "package_repository_url",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_watch",
+      "package_type",
+      "package_version"
+    ],
+    "4": [
+      "js_built_analytics",
+      "js_built_analytics_analyticspage",
+      "js_built_analytics_arrayliketoarray",
+      "js_built_analytics_arraywithholes",
+      "js_built_analytics_arraywithoutholes",
+      "js_built_analytics_asyncgeneratorstep",
+      "js_built_analytics_asynctogenerator",
+      "js_built_analytics_defineproperty",
+      "js_built_analytics_historydetailmodal",
+      "js_built_analytics_historypage",
+      "js_built_analytics_iterabletoarray",
+      "js_built_analytics_iterabletoarraylimit",
+      "js_built_analytics_noniterablerest",
+      "js_built_analytics_noniterablespread",
+      "js_built_analytics_objectspread",
+      "js_built_analytics_ownkeys",
+      "js_built_analytics_regenerator",
+      "js_built_analytics_regeneratordefine2",
+      "js_built_analytics_slicedtoarray",
+      "js_built_analytics_toconsumablearray",
+      "js_built_analytics_toprimitive",
+      "js_built_analytics_topropertykey",
+      "js_built_analytics_typeof",
+      "js_built_analytics_unsupportediterabletoarray",
+      "js_built_hooks_mathtext"
+    ],
+    "5": [
+      "js_built_hooks_diffpill",
+      "js_built_problemview",
+      "js_built_problemview_arrayliketoarray",
+      "js_built_problemview_arraywithholes",
+      "js_built_problemview_arraywithoutholes",
+      "js_built_problemview_asyncgeneratorstep",
+      "js_built_problemview_asynctogenerator",
+      "js_built_problemview_defineproperty",
+      "js_built_problemview_iterabletoarray",
+      "js_built_problemview_iterabletoarraylimit",
+      "js_built_problemview_noniterablerest",
+      "js_built_problemview_noniterablespread",
+      "js_built_problemview_objectspread",
+      "js_built_problemview_ownkeys",
+      "js_built_problemview_problemrow",
+      "js_built_problemview_problemsidebarsections",
+      "js_built_problemview_problemview",
+      "js_built_problemview_regenerator",
+      "js_built_problemview_regeneratordefine2",
+      "js_built_problemview_slicedtoarray",
+      "js_built_problemview_toconsumablearray",
+      "js_built_problemview_toprimitive",
+      "js_built_problemview_topropertykey",
+      "js_built_problemview_typeof",
+      "js_built_problemview_unsupportediterabletoarray"
+    ],
+    "6": [
+      "js_built_community",
+      "js_built_community_arrayliketoarray",
+      "js_built_community_arraywithholes",
+      "js_built_community_arraywithoutholes",
+      "js_built_community_asyncgeneratorstep",
+      "js_built_community_asynctogenerator",
+      "js_built_community_communitysolutions",
+      "js_built_community_defineproperty",
+      "js_built_community_iterabletoarray",
+      "js_built_community_iterabletoarraylimit",
+      "js_built_community_noniterablerest",
+      "js_built_community_noniterablespread",
+      "js_built_community_objectspread",
+      "js_built_community_ownkeys",
+      "js_built_community_regenerator",
+      "js_built_community_regeneratordefine2",
+      "js_built_community_reportissuemodal",
+      "js_built_community_slicedtoarray",
+      "js_built_community_toconsumablearray",
+      "js_built_community_toprimitive",
+      "js_built_community_topropertykey",
+      "js_built_community_typeof",
+      "js_built_community_unsupportediterabletoarray"
+    ],
+    "7": [
+      "supabase_functions_solve_pdf_questions_index",
+      "supabase_functions_solve_pdf_questions_index_anthropic_api_key",
+      "supabase_functions_solve_pdf_questions_index_choiceletter",
+      "supabase_functions_solve_pdf_questions_index_cors_headers",
+      "supabase_functions_solve_pdf_questions_index_finalizeifdone",
+      "supabase_functions_solve_pdf_questions_index_json",
+      "supabase_functions_solve_pdf_questions_index_loadpagepdfs",
+      "supabase_functions_solve_pdf_questions_index_markfailed",
+      "supabase_functions_solve_pdf_questions_index_parseanswerkey",
+      "supabase_functions_solve_pdf_questions_index_questionboundary",
+      "supabase_functions_solve_pdf_questions_index_runwithconcurrency",
+      "supabase_functions_solve_pdf_questions_index_solve_tool",
+      "supabase_functions_solve_pdf_questions_index_solveandbuildfields",
+      "supabase_functions_solve_pdf_questions_index_solveandinsertone",
+      "supabase_functions_solve_pdf_questions_index_solvedfields",
+      "supabase_functions_solve_pdf_questions_index_solveonce",
+      "supabase_functions_solve_pdf_questions_index_solvequestion",
+      "supabase_functions_solve_pdf_questions_index_solvetextonlybatch",
+      "supabase_functions_solve_pdf_questions_index_streamtoolcall",
+      "supabase_functions_solve_pdf_questions_index_supabaseclient",
+      "supabase_functions_solve_pdf_questions_index_withtimeout"
+    ],
+    "8": [
+      "app_html",
+      "assets_favicon_svg",
+      "assets_logo_icon_svg",
+      "concept_google_auth",
+      "concept_supabase_auth",
+      "concept_uil_math",
+      "ext_jspdf",
+      "ext_katex",
+      "ext_react",
+      "ext_reactdom",
+      "ext_supabase_js",
+      "ext_tailwindcss",
+      "index_handlegoogleauth",
+      "index_handlesignin",
+      "index_handlesignout",
+      "index_handlesignup",
+      "index_html",
+      "privacy_html",
+      "readme",
+      "terms_html"
+    ],
+    "9": [
+      "js_built_mastery",
+      "js_built_mastery_achievementcard",
+      "js_built_mastery_arrayliketoarray",
+      "js_built_mastery_arraywithholes",
+      "js_built_mastery_defineproperty",
+      "js_built_mastery_iterabletoarraylimit",
+      "js_built_mastery_masterypage",
+      "js_built_mastery_noniterablerest",
+      "js_built_mastery_objectspread",
+      "js_built_mastery_ownkeys",
+      "js_built_mastery_slicedtoarray",
+      "js_built_mastery_toprimitive",
+      "js_built_mastery_topropertykey",
+      "js_built_mastery_typeof",
+      "js_built_mastery_unsupportediterabletoarray"
+    ],
+    "10": [
+      "supabase_functions_import_test_pdf_index",
+      "supabase_functions_import_test_pdf_index_anthropic_api_key",
+      "supabase_functions_import_test_pdf_index_boundaries_tool",
+      "supabase_functions_import_test_pdf_index_claudequestionboundary",
+      "supabase_functions_import_test_pdf_index_cors_headers",
+      "supabase_functions_import_test_pdf_index_extractboundariesforpage",
+      "supabase_functions_import_test_pdf_index_json",
+      "supabase_functions_import_test_pdf_index_markfailed",
+      "supabase_functions_import_test_pdf_index_processnextpage",
+      "supabase_functions_import_test_pdf_index_questionboundary",
+      "supabase_functions_import_test_pdf_index_startbatch",
+      "supabase_functions_import_test_pdf_index_streamtoolcall",
+      "supabase_functions_import_test_pdf_index_supabaseclient",
+      "supabase_functions_import_test_pdf_index_withtimeout"
+    ],
+    "11": [
+      "js_built_hooks_dropdown",
+      "js_built_leaderboard",
+      "js_built_leaderboard_arrayliketoarray",
+      "js_built_leaderboard_arraywithholes",
+      "js_built_leaderboard_iterabletoarraylimit",
+      "js_built_leaderboard_lbavatar",
+      "js_built_leaderboard_lbrankbadge",
+      "js_built_leaderboard_lbreltime",
+      "js_built_leaderboard_leaderboardpage",
+      "js_built_leaderboard_noniterablerest",
+      "js_built_leaderboard_slicedtoarray",
+      "js_built_leaderboard_unsupportediterabletoarray"
+    ],
+    "12": [
+      "supabase_functions_verify_draft_questions_index",
+      "supabase_functions_verify_draft_questions_index_anthropic_api_key",
+      "supabase_functions_verify_draft_questions_index_choiceletter",
+      "supabase_functions_verify_draft_questions_index_cors_headers",
+      "supabase_functions_verify_draft_questions_index_incomingquestion",
+      "supabase_functions_verify_draft_questions_index_json",
+      "supabase_functions_verify_draft_questions_index_runwithconcurrency",
+      "supabase_functions_verify_draft_questions_index_solve_tool",
+      "supabase_functions_verify_draft_questions_index_streamtoolcall",
+      "supabase_functions_verify_draft_questions_index_verifyone",
+      "supabase_functions_verify_draft_questions_index_verifyresult",
+      "supabase_functions_verify_draft_questions_index_withtimeout"
+    ],
+    "13": [
+      "js_constants_allowed_avatar_types",
+      "js_src_app",
+      "js_src_app_errorboundary",
+      "js_src_app_errorboundary_componentdidcatch",
+      "js_src_app_errorboundary_constructor",
+      "js_src_app_errorboundary_getderivedstatefromerror",
+      "js_src_app_errorboundary_render",
+      "js_src_app_mountapp",
+      "js_src_app_profilemenu",
+      "js_src_app_reportbugpage",
+      "js_src_app_settingspage"
+    ],
+    "14": [
+      "js_built_hooks",
+      "js_built_hooks_arrayliketoarray",
+      "js_built_hooks_arraywithholes",
+      "js_built_hooks_iterabletoarraylimit",
+      "js_built_hooks_noniterablerest",
+      "js_built_hooks_slicedtoarray",
+      "js_built_hooks_unsupportediterabletoarray",
+      "js_built_hooks_uselocalstorage",
+      "js_built_hooks_usetheme",
+      "js_built_hooks_usetimer"
+    ],
+    "15": [
+      "js_src_leaderboard",
+      "js_src_leaderboard_lb_day_options",
+      "js_src_leaderboard_lb_diff_options",
+      "js_src_leaderboard_lb_topic_options",
+      "js_src_leaderboard_lbavatar",
+      "js_src_leaderboard_lbrankbadge",
+      "js_src_leaderboard_lbreltime",
+      "js_src_leaderboard_leaderboardpage"
+    ],
+    "16": [
+      "js_utils",
+      "js_utils_csvescape",
+      "js_utils_downloadcsv",
+      "js_utils_getsimilarquestions",
+      "js_utils_updateuserstatsonly"
+    ],
+    "17": [
+      "js_src_analytics",
+      "js_src_analytics_analyticspage",
+      "js_src_analytics_historydetailmodal",
+      "js_src_analytics_historypage"
+    ],
+    "18": [
+      "js_src_problemview",
+      "js_src_problemview_problemrow",
+      "js_src_problemview_problemsidebarsections",
+      "js_src_problemview_problemview"
+    ],
+    "19": [
+      "supabase_functions_extract_answer_key_index",
+      "supabase_functions_extract_answer_key_index_anthropic_api_key",
+      "supabase_functions_extract_answer_key_index_cors_headers",
+      "supabase_functions_extract_answer_key_index_json"
+    ],
+    "20": [
+      "js_src_community",
+      "js_src_community_communitysolutions",
+      "js_src_community_reportissuemodal"
+    ],
+    "21": [
+      "babel_config",
+      "babel_config_presets"
+    ],
+    "22": [
+      "index_openauth",
+      "index_switchtab"
+    ],
+    "23": [
+      "js_supabaseclient",
+      "js_supabaseclient_supabase"
+    ],
+    "24": [
+      "index_closeauth"
+    ]
+  },
+  "cohesion": {
+    "0": 0.08792270531400966,
+    "1": 0.08199643493761141,
+    "2": 0.1913978494623656,
+    "3": 0.08,
+    "4": 0.16666666666666666,
+    "5": 0.16666666666666666,
+    "6": 0.1857707509881423,
+    "7": 0.14285714285714285,
+    "8": 0.13157894736842105,
+    "9": 0.26666666666666666,
+    "10": 0.1978021978021978,
+    "11": 0.30303030303030304,
+    "12": 0.21212121212121213,
+    "13": 0.2,
+    "14": 0.37777777777777777,
+    "15": 0.2857142857142857,
+    "16": 0.5,
+    "17": 0.5,
+    "18": 0.5,
+    "19": 0.5,
+    "20": 0.6666666666666666,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0,
+    "24": 1.0
+  },
+  "gods": [
+    {
+      "id": "js_built_app_app",
+      "label": "App()",
+      "degree": 22
+    },
+    {
+      "id": "js_built_adminpanel_reviewimportspanel",
+      "label": "ReviewImportsPanel()",
+      "degree": 16
+    },
+    {
+      "id": "js_built_adminpanel_adminquestionmanager",
+      "label": "AdminQuestionManager()",
+      "degree": 16
+    },
+    {
+      "id": "js_built_problemview_problemview",
+      "label": "ProblemView()",
+      "degree": 13
+    },
+    {
+      "id": "js_constants_admin_emails",
+      "label": "ADMIN_EMAILS",
+      "degree": 13
+    },
+    {
+      "id": "js_built_adminpanel_regenerator",
+      "label": "_regenerator()",
+      "degree": 11
+    },
+    {
+      "id": "js_built_analytics_historypage",
+      "label": "HistoryPage()",
+      "degree": 11
+    },
+    {
+      "id": "js_built_adminpanel_asynctogenerator",
+      "label": "_asyncToGenerator()",
+      "degree": 10
+    },
+    {
+      "id": "js_built_adminpanel_slicedtoarray",
+      "label": "_slicedToArray()",
+      "degree": 10
+    },
+    {
+      "id": "index_html",
+      "label": "Landing Page (index.html)",
+      "degree": 10
+    }
+  ],
+  "surprises": [
+    {
+      "source": "App HTML (Problems Page)",
+      "target": "Favicon SVG",
+      "source_files": [
+        "app.html",
+        "assets/favicon.svg"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "crosses file types (doc ↔ image); connects across different repos/directories; peripheral node `Favicon SVG` unexpectedly reaches hub `App HTML (Problems Page)`"
+    },
+    {
+      "source": "Landing Page (index.html)",
+      "target": "Favicon SVG",
+      "source_files": [
+        "index.html",
+        "assets/favicon.svg"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "crosses file types (doc ↔ image); connects across different repos/directories; peripheral node `Favicon SVG` unexpectedly reaches hub `Landing Page (index.html)`"
+    },
+    {
+      "source": "Landing Page (index.html)",
+      "target": "Logo Icon SVG",
+      "source_files": [
+        "index.html",
+        "assets/logo-icon.svg"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "crosses file types (doc ↔ image); connects across different repos/directories; peripheral node `Logo Icon SVG` unexpectedly reaches hub `Landing Page (index.html)`"
+    },
+    {
+      "source": "Landing Page (index.html)",
+      "target": "UIL General Mathematics Competition",
+      "source_files": [
+        "index.html",
+        "README.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; peripheral node `UIL General Mathematics Competition` unexpectedly reaches hub `Landing Page (index.html)`"
+    },
+    {
+      "source": "Landing Page (index.html)",
+      "target": "Supabase JS SDK (CDN)",
+      "source_files": [
+        "index.html",
+        "app.html"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; peripheral node `Supabase JS SDK (CDN)` unexpectedly reaches hub `Landing Page (index.html)`"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `App()` connect `Babel Runtime Helpers` to `App Constants and Utilities`, `Admin Panel Components`, `History and Analytics Pages`, `Problem View Components`, `Mastery and Achievements`, `Leaderboard Components`?",
+      "why": "High betweenness centrality (0.244) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `ProblemView()` connect `Problem View Components` to `Babel Runtime Helpers`, `History and Analytics Pages`, `Community Solutions Module`?",
+      "why": "High betweenness centrality (0.093) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `ADMIN_EMAILS` connect `App Constants and Utilities` to `Babel Runtime Helpers`, `Admin Panel Components`?",
+      "why": "High betweenness centrality (0.069) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 12 inferred relationships involving `App()` (e.g. with `AdminQuestionManager()` and `AnalyticsPage()`) actually correct?",
+      "why": "`App()` has 12 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 3 inferred relationships involving `ReviewImportsPanel()` (e.g. with `AdminQuestionManager()` and `DiffPill()`) actually correct?",
+      "why": "`ReviewImportsPanel()` has 3 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 6 inferred relationships involving `AdminQuestionManager()` (e.g. with `AdminBugReports()` and `AdminUserActivity()`) actually correct?",
+      "why": "`AdminQuestionManager()` has 6 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 6 inferred relationships involving `ProblemView()` (e.g. with `App()` and `CommunitySolutions()`) actually correct?",
+      "why": "`ProblemView()` has 6 INFERRED edges - model-reasoned connections that need verification."
+    }
+  ]
+}

@@ -1,13 +1,15 @@
-const { useState, useEffect, useRef, useMemo } = React;
+import { useState, useEffect, useRef } from 'react';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
+import { DIFF_PILL } from '../constants.js';
 
 // ── Math rendering ────────────────────────────────────────────────────────────
-// Renders text containing LaTeX. Falls back to plain text if KaTeX hasn't loaded.
-function MathText({ text, className }) {
+// Renders text containing LaTeX.
+export function MathText({ text, className }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (!window.katex) { el.textContent = text; return; }
     // Split on \[...\] (display) and \(...\) (inline). Money uses a plain $, which
     // we leave untouched so it never collides with math.
     const parts = String(text).split(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g);
@@ -20,7 +22,7 @@ function MathText({ text, className }) {
         const tex = part.slice(2, part.length - 2);
         const span = document.createElement("span");
         try {
-          window.katex.render(tex, span, { displayMode: display, throwOnError: false });
+          katex.render(tex, span, { displayMode: display, throwOnError: false });
         } catch(e) { span.textContent = tex; }
         el.appendChild(span);
       } else {
@@ -32,7 +34,7 @@ function MathText({ text, className }) {
 }
 
 // ── localStorage hook (JSON-backed, survives refresh on this device) ──────────
-function useLocalStorage(key, initial) {
+export function useLocalStorage(key, initial) {
   const [value, setValue] = useState(() => {
     try {
       const raw = localStorage.getItem(key);
@@ -46,7 +48,7 @@ function useLocalStorage(key, initial) {
 }
 
 // ── Theme hook (persists to localStorage) ────────────────────────────────────
-function useTheme() {
+export function useTheme() {
   const [dark, setDark] = useState(() => {
     try {
       const saved = localStorage.getItem("uilmath-theme");
@@ -62,7 +64,7 @@ function useTheme() {
   return [dark, () => setDark(d => !d)];
 }
 
-function useTimer() {
+export function useTimer() {
   const [elapsed, setElapsed] = useState(0);
   const ref = useRef(null);
   const start = () => { if (!ref.current) ref.current = setInterval(() => setElapsed(e => e + 1), 1000); };
@@ -73,14 +75,14 @@ function useTimer() {
 }
 
 // ── Small UI components ───────────────────────────────────────────────────────
-function DiffPill({ d }) {
+export function DiffPill({ d }) {
   return <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${DIFF_PILL[d]||""}`}>{d}</span>;
 }
 
-const SunIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>);
-const MoonIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>);
+export const SunIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>);
+export const MoonIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>);
 
-function Dropdown({ label, value, options, onChange }) {
+export function Dropdown({ label, value, options, onChange }) {
   return (
     <div className="relative">
       <select value={value} onChange={e=>onChange(e.target.value)} aria-label={label}

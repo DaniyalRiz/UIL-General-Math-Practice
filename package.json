@@ -2,10 +2,11 @@
   "name": "uil-math-practice-website",
   "version": "1.0.0",
   "description": "A practice platform for UIL General Mathematics competitors with topic filtering, timed practice, instant feedback, and performance analytics.",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "build": "babel js/src --out-dir js/built --extensions '.jsx,.js'",
-    "watch": "babel js/src --out-dir js/built --extensions '.jsx,.js' --watch"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
@@ -14,14 +15,23 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/DaniyalRiz/UIL-General-Math-Practice/issues"
   },
   "homepage": "https://github.com/DaniyalRiz/UIL-General-Math-Practice#readme",
   "devDependencies": {
-    "@babel/cli": "^8.0.1",
-    "@babel/preset-env": "^8.0.2",
-    "@babel/preset-react": "^8.0.1"
+    "@vitejs/plugin-react": "^6.0.4",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.22",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.1.5"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.8",
+    "jspdf": "2.5.1",
+    "katex": "0.16.9",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }

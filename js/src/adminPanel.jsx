@@ -1,3 +1,8 @@
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { _supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../supabaseClient.js';
+import { TOPICS, getColumnCategory, DIFFICULTIES, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText, ADMIN_EMAILS, ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_IMAGE_DIMENSION } from '../constants.js';
+import { MathText, useLocalStorage, DiffPill, Dropdown } from './hooks.jsx';
+
 function AdminUserActivity({ authUser }) {
   const [loading, setLoading] = useState(true);
   const [attempts, setAttempts] = useState([]);
@@ -795,32 +800,6 @@ async function uploadWithSessionRetry(bucket, path, file, options) {
   if (res.ok) return { error: null };
   const body = await res.json().catch(() => ({}));
   return { error: { message: body.message || body.error || `Upload failed (${res.status})` } };
-}
-
-// Avatars are always a small square photo, never need transparency or crisp vector lines,
-// so unlike resizeImageForUpload above this always crops to a centered square and re-encodes
-// as JPEG -- gives a small, predictable file size regardless of the source image's shape.
-async function cropAndResizeAvatar(file, maxDim = MAX_AVATAR_DIMENSION) {
-  let bitmap;
-  try {
-    bitmap = await createImageBitmap(file);
-  } catch (e) {
-    return file; // unreadable as an image — let the normal upload/validation handle it
-  }
-
-  const side = Math.min(bitmap.width, bitmap.height);
-  const sx = (bitmap.width - side) / 2;
-  const sy = (bitmap.height - side) / 2;
-  const outSide = Math.min(side, maxDim);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = outSide;
-  canvas.height = outSide;
-  canvas.getContext('2d').drawImage(bitmap, sx, sy, side, side, 0, 0, outSide, outSide);
-
-  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
-  if (!blob) return file;
-  return new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
 }
 
 // supabase-js's FunctionsHttpError.message is always the hardcoded string
@@ -2769,3 +2748,6 @@ function AdminQuestionManager({ authUser }) {
     </div>
   );
 }
+
+// Default export so App can lazy-load the whole admin panel with React.lazy.
+export default AdminQuestionManager;

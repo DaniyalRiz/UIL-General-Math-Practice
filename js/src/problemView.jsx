@@ -1,5 +1,11 @@
 // ── Problem list (row layout) ────────────────────────────────────────────────
-function ProblemRow({ q, n, onOpen, status }) {
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { _supabase } from '../supabaseClient.js';
+import { TOPIC_DOT, fmtTime, sourceDisplay, plainText } from '../constants.js';
+import { MathText, DiffPill, useTimer } from './hooks.jsx';
+import { ReportIssueModal, CommunitySolutions } from './community.jsx';
+
+export function ProblemRow({ q, n, onOpen, status }) {
   const dotCls = status === "correct" ? "bg-emerald-500"
                : status === "incorrect" ? "bg-rose-500"
                : "bg-transparent";
@@ -128,7 +134,7 @@ function ProblemSidebarSections({ stat, notes, authUser, noteText, setNoteText, 
   );
 }
 
-function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, authUser, allQuestions, onOpenQuestion }) {
+export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, authUser, allQuestions, onOpenQuestion }) {
   const [pending, setPending]   = useState(null);
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
@@ -406,7 +412,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
   };
 
   // compute similar questions once
-  const similarQuestions = React.useMemo(() => {
+  const similarQuestions = useMemo(() => {
     const pool = allQuestions.length > 0 ? allQuestions : [];
     if (pool.length <= 1) return [];
     const others = pool.filter(x => x.id !== q.id);

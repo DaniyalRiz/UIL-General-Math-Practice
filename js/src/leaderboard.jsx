@@ -1,4 +1,8 @@
 // ── Leaderboard ───────────────────────────────────────────────────────────────
+import { useState, useEffect, useMemo } from 'react';
+import { _supabase } from '../supabaseClient.js';
+import { sortSources, AVATAR_COLORS } from '../constants.js';
+import { Dropdown } from './hooks.jsx';
 
 const LB_DAY_OPTIONS   = ['All Time', 'Last 30 Days', 'Last 7 Days'];
 const LB_TOPIC_OPTIONS = ['All Topics', 'Algebra 1 & 2', 'Geometry', 'Precalculus', 'AP Calculus', 'AP Statistics'];
@@ -45,7 +49,7 @@ function LBRankBadge({ rank }) {
   return <span className="text-sm font-semibold text-slate-400 dark:text-slate-500">#{rank}</span>;
 }
 
-function LeaderboardPage({ authUser, questions }) {
+export function LeaderboardPage({ authUser, questions }) {
   const [entries, setEntries]               = useState([]);
   const [loading, setLoading]               = useState(true);
   const [error, setError]                   = useState(null);

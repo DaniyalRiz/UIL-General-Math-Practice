@@ -1,4 +1,9 @@
-function AnalyticsPage({ authUser, attempts, attemptsError }) {
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { _supabase } from '../supabaseClient.js';
+import { getColumnCategory, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText } from '../constants.js';
+import { MathText, DiffPill, Dropdown } from './hooks.jsx';
+
+export function AnalyticsPage({ authUser, attempts, attemptsError }) {
   // Shared attempt history owned by App (one fetch per login). null = still loading.
   const data = attempts;
 
@@ -105,12 +110,9 @@ function AnalyticsPage({ authUser, attempts, attemptsError }) {
   const DIFF_BAR = { Easy:'bg-emerald-500', Medium:'bg-amber-500', Hard:'bg-rose-500' };
   const COLUMN_BAR = { 'Column 1':'bg-blue-500', 'Column 2':'bg-violet-500', 'Column 3':'bg-fuchsia-500' };
 
-  const exportAnalyticsPdf = () => {
-    const jsPDF = window.jspdf?.jsPDF;
-    if (!jsPDF) {
-      alert('PDF exporter is still loading. Please try again in a few seconds.');
-      return;
-    }
+  const exportAnalyticsPdf = async () => {
+    // Loaded on first click so the PDF library stays out of the main bundle.
+    const { jsPDF } = await import('jspdf');
 
     const doc = new jsPDF();
     let y = 18;
@@ -311,7 +313,7 @@ function AnalyticsPage({ authUser, attempts, attemptsError }) {
   );
 }
 
-function HistoryPage({ authUser, allQuestions, attempts, attemptsError, onOpenQuestion, navigateTab }) {
+export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, onOpenQuestion, navigateTab }) {
   // Shared attempt history owned by App (one fetch per login). null = still loading.
   const rows = attempts || [];
   const loading = authUser && attempts === null;
