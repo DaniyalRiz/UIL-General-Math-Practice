@@ -148,6 +148,43 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
   const activeQuestionIdRef = useRef(q.id);
   activeQuestionIdRef.current = q.id;
 
+  const dialogRef = useRef(null);
+
+  // Move focus into the dialog when it opens so keyboard/screen-reader users
+  // land inside it instead of staying on the (now hidden) page behind.
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, []);
+
+  // Escape closes: the report modal first if it's open, otherwise the problem.
+  // Ignored while a submission is in flight, matching the disabled Close button.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (showReportIssue) { setShowReportIssue(false); return; }
+      if (!submitting) onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [showReportIssue, submitting, onClose]);
+
+  // Keep Tab cycling inside the dialog -- without this, keyboard focus walks
+  // out into the page hidden behind the full-screen problem view.
+  const trapTab = (e) => {
+    if (e.key !== 'Tab') return;
+    const els = dialogRef.current?.querySelectorAll('a[href], button:not([disabled]), textarea, input, select');
+    if (!els) return;
+    const list = Array.from(els).filter(el => el.offsetParent !== null);
+    if (!list.length) return;
+    const first = list[0];
+    const last = list[list.length - 1];
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
+  };
+
   // Reset per-question interaction state whenever the question itself changes.
   useEffect(() => {
     setPending(null);
@@ -214,11 +251,16 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
     setPending(p => p === choice ? null : choice);
   };
 
-  // Right-click: cross out / un-cross a choice
-  const handleCross = (e, choice) => {
-    e.preventDefault();
+  // Cross out / un-cross a choice -- reachable two ways: right-click on the
+  // choice (the paper-test gesture) or the per-choice toggle button, which is
+  // what keyboard and touch users actually have.
+  const toggleCross = (choice) => {
     if (answered) return;
     setCrossed(prev => ({ ...prev, [choice]: !prev[choice] }));
+  };
+  const handleCross = (e, choice) => {
+    e.preventDefault();
+    toggleCross(choice);
   };
 
   // Submit button handler — answer checking happens securely in Supabase for signed-in users,
@@ -381,7 +423,9 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
   }, [q.id, allQuestions]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-950 overflow-hidden">
+    <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true"
+      aria-label={q.title || 'Practice problem'} onKeyDown={trapTab}
+      className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-950 overflow-hidden outline-none">
       <div className="w-full max-w-7xl mx-auto flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden">
 
         {/* ── header ── */}
@@ -466,42 +510,57 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
             {/* ── hint ── */}
             {!answered && (
               <p className="px-4 sm:px-6 pb-2 text-xs text-slate-500 dark:text-slate-400">
-                Click to select · Right-click to cross out · Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs">Submit</kbd> to check
+                Click to select · Cross out with right-click or the ✕ at the right edge · Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs">Submit</kbd> to check
               </p>
             )}
 
             {/* ── choices ── */}
             <div className="px-4 sm:px-6 pb-4 grid gap-2.5">
               {q.choices.map((choice, i) => (
-                <button key={i}
-                  onClick={() => handlePick(choice)}
-                  onContextMenu={(e) => handleCross(e, choice)}
-                  className={`w-full text-left px-3 sm:px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-150 flex items-center gap-3 select-none ${choiceClass(choice, i)}`}>
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-black relative transition-all
-                    ${answered && ((isCorrect && selectedMatchesChoice(choice, i)) || answerMatches(choice, correctAnswer, i))
-                      ? "bg-emerald-500 text-white border-2 border-emerald-500"
-                      : answered && selectedMatchesChoice(choice, i) && !isCorrect
-                        ? "bg-rose-500 text-white border-2 border-rose-500"
-                        : pending === choice && !answered
-                          ? "bg-blue-500 text-white border-2 border-blue-500"
-                          : "border-2 border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500"}
-                    ${crossed[choice] && !answered ? "opacity-30" : ""}`}>
-                    {String.fromCharCode(65+i)}
-                    {crossed[choice] && !answered && (
-                      <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="w-full h-0.5 bg-current rotate-45 absolute"></span>
-                      </span>
-                    )}
-                  </span>
-                  <span className={crossed[choice] && !answered ? "line-through opacity-50" : ""}>
-                    <MathText text={choice.replace(/^\([A-E]\)\s*/, '')} />
-                  </span>
-                  {!answered && crossed[choice] && (
-                    <span className="ml-auto text-slate-400 text-xs">✕</span>
+                // Wrapper div, not nesting: the cross-out toggle must be a
+                // sibling of the choice button -- a button inside a button is
+                // invalid HTML and breaks keyboard activation.
+                <div key={i} className="relative">
+                  <button
+                    onClick={() => handlePick(choice)}
+                    onContextMenu={(e) => handleCross(e, choice)}
+                    className={`w-full text-left px-3 sm:px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-150 flex items-center gap-3 select-none ${!answered ? "pr-12" : ""} ${choiceClass(choice, i)}`}>
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-black relative transition-all
+                      ${answered && ((isCorrect && selectedMatchesChoice(choice, i)) || answerMatches(choice, correctAnswer, i))
+                        ? "bg-emerald-500 text-white border-2 border-emerald-500"
+                        : answered && selectedMatchesChoice(choice, i) && !isCorrect
+                          ? "bg-rose-500 text-white border-2 border-rose-500"
+                          : pending === choice && !answered
+                            ? "bg-blue-500 text-white border-2 border-blue-500"
+                            : "border-2 border-slate-300 dark:border-slate-600 text-slate-400 dark:text-slate-500"}
+                      ${crossed[choice] && !answered ? "opacity-30" : ""}`}>
+                      {String.fromCharCode(65+i)}
+                      {crossed[choice] && !answered && (
+                        <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <span className="w-full h-0.5 bg-current rotate-45 absolute"></span>
+                        </span>
+                      )}
+                    </span>
+                    <span className={crossed[choice] && !answered ? "line-through opacity-50" : ""}>
+                      <MathText text={choice.replace(/^\([A-E]\)\s*/, '')} />
+                    </span>
+                    {answered && (((isCorrect && selectedMatchesChoice(choice, i)) || answerMatches(choice, correctAnswer, i))) && <span className="ml-auto text-emerald-600 dark:text-emerald-400 font-bold text-base">✓</span>}
+                    {answered && selectedMatchesChoice(choice, i) && !isCorrect && <span className="ml-auto text-rose-500 font-bold text-base">✗</span>}
+                  </button>
+                  {!answered && (
+                    <button type="button"
+                      onClick={() => toggleCross(choice)}
+                      aria-pressed={!!crossed[choice]}
+                      aria-label={crossed[choice] ? `Undo cross out for choice ${String.fromCharCode(65+i)}` : `Cross out choice ${String.fromCharCode(65+i)}`}
+                      title={crossed[choice] ? "Undo cross out" : "Cross out this choice"}
+                      className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-sm font-bold transition-colors
+                        ${crossed[choice]
+                          ? "text-rose-500 bg-rose-50 dark:bg-rose-500/10"
+                          : "text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"}`}>
+                      ✕
+                    </button>
                   )}
-                  {answered && (((isCorrect && selectedMatchesChoice(choice, i)) || answerMatches(choice, correctAnswer, i))) && <span className="ml-auto text-emerald-600 dark:text-emerald-400 font-bold text-base">✓</span>}
-                  {answered && selectedMatchesChoice(choice, i) && !isCorrect && <span className="ml-auto text-rose-500 font-bold text-base">✗</span>}
-                </button>
+                </div>
               ))}
             </div>
 

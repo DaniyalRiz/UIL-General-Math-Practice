@@ -91,6 +91,9 @@ function ReportIssueModal(_ref) {
   }, /*#__PURE__*/React.createElement("div", {
     className: "absolute inset-0 bg-black/60 backdrop-blur-sm"
   }), /*#__PURE__*/React.createElement("div", {
+    role: "dialog",
+    "aria-modal": "true",
+    "aria-label": "Report a question issue",
     className: "relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5",
     onClick: function onClick(e) {
       return e.stopPropagation();

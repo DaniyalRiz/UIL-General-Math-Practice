@@ -31,7 +31,8 @@ function ReportIssueModal({ q, authUser, onClose }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-      <div className="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5"
+      <div role="dialog" aria-modal="true" aria-label="Report a question issue"
+        className="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5"
         onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
