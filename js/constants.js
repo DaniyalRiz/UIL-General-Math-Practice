@@ -141,3 +141,17 @@ export const MAX_IMAGE_DIMENSION = 1280; // longest side, in px, after resize
 export const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 export const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
 export const MAX_AVATAR_DIMENSION = 320; // avatars only ever render small
+
+// ─── RECOMMENDED PRACTICE ────────────────────────────────────────────────────
+// Scoring for the Recommended Practice picker (recommendedIds in app.jsx).
+// Higher score = surfaced sooner.
+export const REC_WEIGHTS = {
+  UNATTEMPTED: 30,       // flat boost for never-tried questions
+  WEAK_TOPIC: 45,        // scaled by (1 - topic accuracy)
+  WEAK_COLUMN: 35,       // scaled by (1 - column accuracy)
+  MEDIUM_DIFFICULTY: 4,  // slight preference for Medium over Hard over Easy
+  HARD_DIFFICULTY: 2,
+};
+export const REC_DEFAULT_ACCURACY = 0.65; // assumed accuracy for unseen topics/columns
+export const REC_LIST_SIZE = 25;          // picks shown once the user has history
+export const REC_STARTER_SIZE = 20;       // easiest-first list for brand-new users

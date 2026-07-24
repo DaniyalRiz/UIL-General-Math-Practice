@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { TOPIC_DOT, fmtTime, sourceDisplay, plainText } from '../constants.js';
-import { MathText, DiffPill, useTimer } from './hooks.jsx';
+import { MathText, DiffPill, useTimer, TimerDisplay } from './hooks.jsx';
 import { ReportIssueModal, CommunitySolutions } from './community.jsx';
 
 export function ProblemRow({ q, n, onOpen, status }) {
@@ -464,11 +464,11 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 ${answered
                   ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500"
                   : "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"}`}>
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" strokeWidth="2"/>
                   <path strokeLinecap="round" strokeWidth="2" d="M12 6v6l4 2"/>
                 </svg>
-                {timer.fmt}
+                <TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
               </div>
               <button onClick={()=>setShowReportIssue(true)} title="Report a question issue" aria-label="Report a question issue"
                 className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-rose-500 dark:hover:text-rose-400 transition-all">
@@ -507,7 +507,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
               </p>
               {q.image && (
                 <div className="mt-4 flex justify-center">
-                  <img src={q.image} alt="Figure for problem"
+                  <img src={q.image} alt="Figure for problem" loading="lazy" decoding="async"
                     className="max-w-full sm:max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white" />
                 </div>
               )}
@@ -594,7 +594,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 ${isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30"
                             : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30"}`}>
                 <div className={`font-bold text-base mb-3 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
-                  {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{` · Time: ${timer.fmt}`}
+                  {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{" · Time: "}<TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
                 </div>
                 <div className="mt-1 text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed whitespace-normal break-words">
                   <div className="overflow-x-auto max-w-full">

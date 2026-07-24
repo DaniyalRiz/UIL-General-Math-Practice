@@ -98,7 +98,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
   if (!data || data.length === 0) return (
     <div className="max-w-6xl mx-auto px-4 py-16 text-center">
       <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+        <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
       </div>
       <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">No data yet</p>
       <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">Answer some problems and your analytics will appear here.</p>
@@ -165,7 +165,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {!authUser && (
         <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span className="text-blue-800 dark:text-blue-200">Showing this session only. <a href="./index.html" className="font-semibold underline">Sign in</a> to save your progress.</span>
         </div>
       )}
@@ -407,16 +407,16 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
           setMySolutions([]);
           return;
         }
-        const rows = data || [];
-        if (!rows.length) { setMySolutions([]); return; }
-        const ids = rows.map(s => s.id);
+        const solutionRows = data || [];
+        if (!solutionRows.length) { setMySolutions([]); return; }
+        const ids = solutionRows.map(s => s.id);
         const { data: voteRows } = await _supabase
           .from('community_solution_votes')
           .select('solution_id')
           .in('solution_id', ids);
         const counts = {};
         (voteRows || []).forEach(v => { counts[v.solution_id] = (counts[v.solution_id] || 0) + 1; });
-        setMySolutions(rows.map(s => ({ ...s, upvotes: counts[s.id] || 0 })));
+        setMySolutions(solutionRows.map(s => ({ ...s, upvotes: counts[s.id] || 0 })));
       });
   }, [authUser?.id]);
 
@@ -454,7 +454,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
     <div className="max-w-6xl mx-auto px-4 py-8">
       {!authUser && (
         <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <span className="text-blue-800 dark:text-blue-200">Showing this session only. <a href="./index.html" className="font-semibold underline">Sign in</a> to save your history.</span>
         </div>
       )}
@@ -480,7 +480,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
           {mySolutions.length === 0 ? (
             <div className="py-20 text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No community solutions yet</p>
               <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Solutions you post under questions will appear here.</p>
@@ -579,7 +579,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
       {sorted.length === 0 ? (
         <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
           <div className={`w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center ${rows.length === 0 ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-500 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           </div>
           <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
             {rows.length === 0 ? 'No attempts yet' : 'No results match your filters'}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { _supabase } from '../supabaseClient.js';
-import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES } from '../constants.js';
+import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
 import { updateUserStatsOnly, cropAndResizeAvatar } from '../utils.js';
 import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown } from './hooks.jsx';
 import { AnalyticsPage, HistoryPage } from './analytics.jsx';
@@ -140,7 +140,7 @@ function SettingsPage({ authUser, navigateTab }) {
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">Settings</h1>
         <button onClick={() => navigateTab('problems')} title="Close"
           className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
@@ -252,7 +252,7 @@ function ReportBugPage({ authUser, navigateTab }) {
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">Report a Bug</h1>
         <button onClick={() => navigateTab('problems')} title="Close"
           className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
@@ -335,7 +335,7 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
 
           <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="mastery" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             My Mastery
           </button>
           <button onClick={() => {
@@ -348,7 +348,7 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
               setOpen(false);
             }}
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             Recommended Practice
           </button>
           <button onClick={() => {
@@ -359,13 +359,13 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
               setOpen(false);
             }}
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="review" ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
             <span className="flex-1">Review Later</span>
             {bookmarksCount > 0 && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">{bookmarksCount}</span>}
           </button>
           <button onClick={() => { setOpen(false); navigateTab('reportBug'); }}
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="reportBug" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
             Report a Bug
           </button>
 
@@ -379,7 +379,7 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
           </button>
           <button onClick={() => { setOpen(false); navigateTab('settings'); }}
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="settings" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             Settings
           </button>
 
@@ -387,7 +387,7 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
 
           <button onClick={() => { setOpen(false); signOut(); }}
             className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-600 dark:text-rose-400">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
             Sign Out
           </button>
         </div>
@@ -551,6 +551,7 @@ function App() {
 
   // Navigation helpers that also push browser history
   const openProblem = (idx) => {
+    if (idx == null || idx < 0 || idx >= filtered.length) return;
     pushAppState({ tab: 'problems', openIdx: idx, view, recommendedMode });
     setOpenIdx(idx);
     setOpenQuestionId(filtered[idx]?.id ?? null);
@@ -651,7 +652,7 @@ function App() {
             const rank = { Easy: 0, Medium: 1, Hard: 2 };
             return (rank[a.difficulty] ?? 1) - (rank[b.difficulty] ?? 1);
           })
-          .slice(0, 20)
+          .slice(0, REC_STARTER_SIZE)
           .map(q => q.id)
       );
     }
@@ -676,19 +677,19 @@ function App() {
       }
     });
 
-    const acc = (obj, key) => obj[key] && obj[key].attempts ? obj[key].correct / obj[key].attempts : 0.65;
+    const acc = (obj, key) => obj[key] && obj[key].attempts ? obj[key].correct / obj[key].attempts : REC_DEFAULT_ACCURACY;
 
     const scored = questions.map(q => {
       const topicAccuracy = acc(topicStats, q.topic);
       const columnAccuracy = acc(columnStats, getColumnCategory(q));
-      const unattemptedBoost = attemptedIds.has(q.id) ? 0 : 30;
-      const weakTopicBoost = (1 - topicAccuracy) * 45;
-      const weakColumnBoost = (1 - columnAccuracy) * 35;
-      const difficultyBoost = q.difficulty === "Medium" ? 4 : q.difficulty === "Hard" ? 2 : 0;
+      const unattemptedBoost = attemptedIds.has(q.id) ? 0 : REC_WEIGHTS.UNATTEMPTED;
+      const weakTopicBoost = (1 - topicAccuracy) * REC_WEIGHTS.WEAK_TOPIC;
+      const weakColumnBoost = (1 - columnAccuracy) * REC_WEIGHTS.WEAK_COLUMN;
+      const difficultyBoost = q.difficulty === "Medium" ? REC_WEIGHTS.MEDIUM_DIFFICULTY : q.difficulty === "Hard" ? REC_WEIGHTS.HARD_DIFFICULTY : 0;
       return { q, score: unattemptedBoost + weakTopicBoost + weakColumnBoost + difficultyBoost };
     });
 
-    return new Set(scored.sort((a, b) => b.score - a.score).slice(0, 25).map(x => x.q.id));
+    return new Set(scored.sort((a, b) => b.score - a.score).slice(0, REC_LIST_SIZE).map(x => x.q.id));
   }, [questions, qStats]);
 
   const filtered = useMemo(() => questions.filter(q => {
@@ -962,7 +963,7 @@ function App() {
               </div>
               <button onClick={() => { setRecommendedMode(false); setView('list'); }} title="Close"
                 className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
           </div>
@@ -1002,7 +1003,7 @@ function App() {
           {recommendedVisible.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No recommendations yet</p>
               <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Answer a few problems first so the site can learn your weak areas.</p>
@@ -1034,14 +1035,14 @@ function App() {
               )}
               <button onClick={() => setView('list')} title="Close"
                 className="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
           </div>
           {bookmarks.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No bookmarks yet</p>
               <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5">Open any problem and tap the bookmark icon to save it here for later review.</p>
@@ -1095,7 +1096,7 @@ function App() {
           {pageItems.length === 0 ? (
             <div className="py-20 text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No problems found</p>
               <p className="text-sm text-slate-400 dark:text-slate-500">Try adjusting your filters or search term.</p>

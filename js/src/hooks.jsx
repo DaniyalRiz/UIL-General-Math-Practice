@@ -1,36 +1,34 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { DIFF_PILL } from '../constants.js';
 
+const escapeHtml = (s) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 // ── Math rendering ────────────────────────────────────────────────────────────
-// Renders text containing LaTeX.
+// Renders text containing LaTeX as an HTML string in one pass: no flash of raw
+// LaTeX on first paint, and React's virtual DOM stays in agreement with the
+// real DOM. Plain segments are escaped; KaTeX output is safe by construction.
 export function MathText({ text, className }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+  const html = useMemo(() => {
     // Split on \[...\] (display) and \(...\) (inline). Money uses a plain $, which
     // we leave untouched so it never collides with math.
-    const parts = String(text).split(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g);
-    el.innerHTML = "";
-    parts.forEach(part => {
-      if (!part) return;
+    const parts = String(text ?? "").split(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g);
+    return parts.map(part => {
+      if (!part) return "";
       const display = part.startsWith("\\[") && part.endsWith("\\]");
       const inline = part.startsWith("\\(") && part.endsWith("\\)");
       if (display || inline) {
         const tex = part.slice(2, part.length - 2);
-        const span = document.createElement("span");
         try {
-          katex.render(tex, span, { displayMode: display, throwOnError: false });
-        } catch(e) { span.textContent = tex; }
-        el.appendChild(span);
-      } else {
-        el.appendChild(document.createTextNode(part));
+          return katex.renderToString(tex, { displayMode: display, throwOnError: false });
+        } catch(e) { return escapeHtml(tex); }
       }
-    });
+      return escapeHtml(part);
+    }).join("");
   }, [text]);
-  return <span ref={ref} className={className}>{text}</span>;
+  return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 // ── localStorage hook (JSON-backed, survives refresh on this device) ──────────
@@ -64,14 +62,30 @@ export function useTheme() {
   return [dark, () => setDark(d => !d)];
 }
 
+// Holds only start/stop timestamps, so the host component re-renders on
+// start/stop/reset -- not once per second. The tick lives in TimerDisplay,
+// which re-renders alone.
 export function useTimer() {
-  const [elapsed, setElapsed] = useState(0);
-  const ref = useRef(null);
-  const start = () => { if (!ref.current) ref.current = setInterval(() => setElapsed(e => e + 1), 1000); };
-  const stop  = () => { clearInterval(ref.current); ref.current = null; };
-  const reset = () => { stop(); setElapsed(0); };
-  useEffect(() => () => clearInterval(ref.current), []);
-  return { elapsed, fmt: `${String(Math.floor(elapsed/60)).padStart(2,"0")}:${String(elapsed%60).padStart(2,"0")}`, start, stop, reset };
+  const [span, setSpan] = useState({ startedAt: null, stoppedAt: null });
+  const start = () => setSpan(s => {
+    if (s.startedAt !== null && s.stoppedAt === null) return s;
+    if (s.startedAt !== null) return { startedAt: Date.now() - (s.stoppedAt - s.startedAt), stoppedAt: null };
+    return { startedAt: Date.now(), stoppedAt: null };
+  });
+  const stop  = () => setSpan(s => (s.startedAt === null || s.stoppedAt !== null) ? s : { ...s, stoppedAt: Date.now() });
+  const reset = () => setSpan({ startedAt: null, stoppedAt: null });
+  return { startedAt: span.startedAt, stoppedAt: span.stoppedAt, start, stop, reset };
+}
+
+export function TimerDisplay({ startedAt, stoppedAt }) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (startedAt === null || stoppedAt !== null) return;
+    const id = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [startedAt, stoppedAt]);
+  const secs = startedAt === null ? 0 : Math.max(0, Math.floor(((stoppedAt ?? Date.now()) - startedAt) / 1000));
+  return `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
 }
 
 // ── Small UI components ───────────────────────────────────────────────────────
@@ -79,8 +93,8 @@ export function DiffPill({ d }) {
   return <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${DIFF_PILL[d]||""}`}>{d}</span>;
 }
 
-export const SunIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>);
-export const MoonIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>);
+export const SunIcon = () => (<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>);
+export const MoonIcon = () => (<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>);
 
 export function Dropdown({ label, value, options, onChange }) {
   return (

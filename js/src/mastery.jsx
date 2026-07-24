@@ -235,7 +235,7 @@ export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTa
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">My Mastery</h1>
         <button onClick={() => navigateTab('problems')} title="Close"
           className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
 

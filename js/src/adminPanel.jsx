@@ -825,6 +825,13 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
   const [draftRows, setDraftRows] = useState([]);
   const [parseError, setParseError] = useState('');
   const [imageMap, setImageMap] = useState({}); // filename -> { file, url }
+  // Revoke any leftover object URLs on unmount (replacement revocation happens
+  // in loadImageFiles).
+  const imageMapRef = useRef(imageMap);
+  imageMapRef.current = imageMap;
+  useEffect(() => () => {
+    Object.values(imageMapRef.current).forEach(({ url }) => URL.revokeObjectURL(url));
+  }, []);
   const [publishing, setPublishing] = useState(false);
   const [publishMessage, setPublishMessage] = useState('');
   const [verifying, setVerifying] = useState(false);
@@ -2132,7 +2139,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                       Needs image: <code>{r.image_pending_filename}</code>
                     </p>
                     {matchedImage ? (
-                      <img src={matchedImage.url} alt="Attached diagram preview" className="max-w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-700" />
+                      <img src={matchedImage.url} alt="Attached diagram preview" loading="lazy" decoding="async" className="max-w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-700" />
                     ) : (
                       <p className="text-xs text-rose-600 dark:text-rose-400">Not attached yet — pick this file in the image picker above.</p>
                     )}
@@ -2142,7 +2149,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                   r.image ? (
                     <div className="rounded-xl border border-emerald-300 dark:border-emerald-700 p-3 bg-emerald-50 dark:bg-emerald-500/10">
                       <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 mb-2">✓ Diagram attached</p>
-                      <img src={r.image} alt={r.image_alt || 'Diagram preview'} className="max-w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />
+                      <img src={r.image} alt={r.image_alt || 'Diagram preview'} loading="lazy" decoding="async" className="max-w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />
                       <div className="mt-2 flex items-center gap-3">
                         <label className="inline-block text-xs font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
                           Replace image
@@ -2182,7 +2189,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Live Preview</p>
                 <p className="font-display text-base font-black text-slate-900 dark:text-white mb-2 break-words">{r.title || 'Untitled Question'}</p>
                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed break-words"><MathText text={r.question || 'Question preview will appear here.'} /></p>
-                {matchedImage && <img src={matchedImage.url} alt="Diagram" className="mt-3 max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />}
+                {matchedImage && <img src={matchedImage.url} alt="Diagram" loading="lazy" decoding="async" className="mt-3 max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />}
                 <div className="mt-3 space-y-1.5">
                   {r.choices.filter(Boolean).map((c,i)=>(
                     <div key={i} className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 break-words">
@@ -2290,7 +2297,8 @@ function AdminQuestionManager({ authUser }) {
   };
   useEffect(() => {
     refreshPendingReviewCount();
-    const interval = setInterval(refreshPendingReviewCount, 30000);
+    // Skip polls while the browser tab is hidden; refresh resumes on the next tick.
+    const interval = setInterval(() => { if (!document.hidden) refreshPendingReviewCount(); }, 30000);
     return () => clearInterval(interval);
   }, [authUser]);
 
@@ -2685,7 +2693,7 @@ function AdminQuestionManager({ authUser }) {
             {imageUploading && <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">Uploading image…</p>}
             {form.image && (
               <div className="mt-3">
-                <img src={form.image} alt={form.image_alt || 'Question image preview'} className="max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />
+                <img src={form.image} alt={form.image_alt || 'Question image preview'} loading="lazy" decoding="async" className="max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 break-all">{form.image}</p>
               </div>
             )}
@@ -2722,7 +2730,7 @@ function AdminQuestionManager({ authUser }) {
             </div>
             <div className="p-4">
               <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed"><MathText text={form.question || 'Question preview will appear here.'} /></p>
-              {form.image && <img src={form.image} alt={form.image_alt || 'Question image preview'} className="mt-3 max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />}
+              {form.image && <img src={form.image} alt={form.image_alt || 'Question image preview'} loading="lazy" decoding="async" className="mt-3 max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />}
               <div className="mt-3 space-y-2">
                 {form.choices.filter(Boolean).map((c,i)=>(
                   <div key={i} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300">

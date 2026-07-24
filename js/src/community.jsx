@@ -193,18 +193,24 @@ export function CommunitySolutions({ q, authUser, answered }) {
     if (!authUser || String(solutionId).startsWith('local-')) return;
     const already = votes.includes(solutionId);
 
-    if (already) {
-      await _supabase.from('community_solution_votes')
-        .delete()
-        .eq('user_id', authUser.id)
-        .eq('solution_id', solutionId);
-    } else {
-      await _supabase.from('community_solution_votes').insert({
-        user_id: authUser.id,
-        solution_id: solutionId,
-      });
-    }
-    await loadSolutions();
+    // Optimistic: flip the vote locally first; re-sync from the server only if
+    // the write fails.
+    setVotes(v => already ? v.filter(id => id !== solutionId) : [...v, solutionId]);
+    setSolutions(list => list.map(s =>
+      s.id === solutionId ? { ...s, upvotes: (s.upvotes || 0) + (already ? -1 : 1) } : s
+    ));
+
+    const { error } = already
+      ? await _supabase.from('community_solution_votes')
+          .delete()
+          .eq('user_id', authUser.id)
+          .eq('solution_id', solutionId)
+      : await _supabase.from('community_solution_votes').insert({
+          user_id: authUser.id,
+          solution_id: solutionId,
+        });
+
+    if (error) await loadSolutions();
   };
 
   return (
@@ -261,7 +267,7 @@ export function CommunitySolutions({ q, authUser, answered }) {
               ) : sorted.length === 0 ? (
                 <div className="py-8 text-center">
                   <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
                   <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-0.5">No solutions yet</p>
                   {authUser && <p className="text-xs text-slate-400 dark:text-slate-500">Be the first to add one above.</p>}
