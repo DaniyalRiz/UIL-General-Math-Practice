@@ -243,7 +243,15 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
 
   const exportAnalyticsPdf = async () => {
     // Loaded on first click so the PDF library stays out of the main bundle.
-    const { jsPDF } = await import('jspdf');
+    // The import 404s in tabs opened before a deploy replaced the hashed
+    // chunks; a message beats silently reloading away the page state.
+    let jsPDF;
+    try {
+      ({ jsPDF } = await import('jspdf'));
+    } catch (e) {
+      alert('The PDF exporter could not load. The site was probably just updated - refresh the page and try again.');
+      return;
+    }
 
     const doc = new jsPDF();
     let y = 18;

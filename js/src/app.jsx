@@ -10,8 +10,23 @@ import { LeaderboardPage } from './leaderboard.jsx';
 import { MasteryPage } from './mastery.jsx';
 
 // Admin-only and by far the largest component -- lazy-loaded so regular
-// visitors never download it.
-const AdminQuestionManager = lazy(() => import('./adminPanel.jsx'));
+// visitors never download it. Each deploy replaces the hashed chunk files, so
+// a tab opened before a deploy 404s on this import: reload once to pick up the
+// new file names, and only surface the error if it fails again after that.
+const AdminQuestionManager = lazy(async () => {
+  try {
+    const mod = await import('./adminPanel.jsx');
+    sessionStorage.removeItem('admin-chunk-reloaded');
+    return mod;
+  } catch (e) {
+    if (!sessionStorage.getItem('admin-chunk-reloaded')) {
+      sessionStorage.setItem('admin-chunk-reloaded', '1');
+      window.location.reload();
+      return new Promise(() => {}); // keep Suspense pending while reloading
+    }
+    throw e;
+  }
+});
 
 function SettingsPage({ authUser, navigateTab }) {
   const providers = authUser?.app_metadata?.providers || [];
