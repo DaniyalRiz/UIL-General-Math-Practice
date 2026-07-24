@@ -20,60 +20,162 @@ function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" !=
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function AnalyticsPage(_ref) {
   var authUser = _ref.authUser,
-    sessionAnswers = _ref.sessionAnswers,
-    questions = _ref.questions;
-  var _useState = useState(null),
-    _useState2 = _slicedToArray(_useState, 2),
-    data = _useState2[0],
-    setData = _useState2[1];
-  var _useState3 = useState(true),
-    _useState4 = _slicedToArray(_useState3, 2),
-    loading = _useState4[0],
-    setLoading = _useState4[1];
-  var _useState5 = useState(null),
-    _useState6 = _slicedToArray(_useState5, 2),
-    error = _useState6[0],
-    setError = _useState6[1];
-  useEffect(function () {
-    if (!authUser) {
-      var rows = (sessionAnswers || []).map(function (r) {
-        return {
-          topic: r.topic,
-          difficulty: r.difficulty,
-          is_correct: r.is_correct,
-          time_taken_ms: r.time_taken_ms,
-          created_at: r.created_at
-        };
-      });
-      setData(rows);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    _supabase.from('attempts').select('topic,difficulty,is_correct,time_taken_ms,created_at').eq('user_id', authUser.id).order('created_at', {
-      ascending: false
-    }).then(function (_ref2) {
-      var rows = _ref2.data,
-        err = _ref2.error;
-      if (err) {
-        setError(err.message);
-        setLoading(false);
-        return;
-      }
-      setData(rows || []);
-      setLoading(false);
+    attempts = _ref.attempts,
+    attemptsError = _ref.attemptsError;
+  // Shared attempt history owned by App (one fetch per login). null = still loading.
+  var data = attempts;
+
+  // ── compute stats (memoized: only re-runs when the data itself changes) ────
+  var stats = useMemo(function () {
+    var rows = data || [];
+    var total = rows.length;
+    var correct = rows.filter(function (r) {
+      return r.is_correct;
+    }).length;
+    var accuracy = total ? Math.round(100 * correct / total) : 0;
+    var totalMs = rows.reduce(function (s, r) {
+      return s + (r.time_taken_ms || 0);
+    }, 0);
+    var avgMs = total ? Math.round(totalMs / total) : 0;
+
+    // by topic
+    var topicMap = {};
+    rows.forEach(function (r) {
+      if (!topicMap[r.topic]) topicMap[r.topic] = {
+        attempts: 0,
+        correct: 0,
+        totalMs: 0
+      };
+      topicMap[r.topic].attempts++;
+      if (r.is_correct) topicMap[r.topic].correct++;
+      topicMap[r.topic].totalMs += r.time_taken_ms || 0;
     });
-  }, [authUser === null || authUser === void 0 ? void 0 : authUser.id, sessionAnswers]);
-  if (loading) return /*#__PURE__*/React.createElement("div", {
+    var byTopic = Object.entries(topicMap).map(function (_ref2) {
+      var _ref3 = _slicedToArray(_ref2, 2),
+        topic = _ref3[0],
+        v = _ref3[1];
+      return {
+        topic: topic,
+        attempts: v.attempts,
+        correct: v.correct,
+        accuracy: Math.round(100 * v.correct / v.attempts),
+        avgMs: Math.round(v.totalMs / v.attempts)
+      };
+    }).sort(function (a, b) {
+      return b.attempts - a.attempts;
+    });
+
+    // by difficulty
+    var diffMap = {};
+    rows.forEach(function (r) {
+      if (!diffMap[r.difficulty]) diffMap[r.difficulty] = {
+        attempts: 0,
+        correct: 0,
+        totalMs: 0
+      };
+      diffMap[r.difficulty].attempts++;
+      if (r.is_correct) diffMap[r.difficulty].correct++;
+      diffMap[r.difficulty].totalMs += r.time_taken_ms || 0;
+    });
+    var byDiff = ['Easy', 'Medium', 'Hard'].map(function (d) {
+      var v = diffMap[d] || {
+        attempts: 0,
+        correct: 0,
+        totalMs: 0
+      };
+      return {
+        difficulty: d,
+        attempts: v.attempts,
+        correct: v.correct,
+        accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
+        avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0
+      };
+    });
+
+    // by UIL column
+    var columnMap = {};
+    rows.forEach(function (r) {
+      var column = getColumnCategory(r);
+      if (!column) return;
+      if (!columnMap[column]) columnMap[column] = {
+        attempts: 0,
+        correct: 0,
+        totalMs: 0
+      };
+      columnMap[column].attempts++;
+      if (r.is_correct) columnMap[column].correct++;
+      columnMap[column].totalMs += r.time_taken_ms || 0;
+    });
+    var byColumn = ['Column 1', 'Column 2', 'Column 3'].map(function (column) {
+      var v = columnMap[column] || {
+        attempts: 0,
+        correct: 0,
+        totalMs: 0
+      };
+      return {
+        column: column,
+        attempts: v.attempts,
+        correct: v.correct,
+        accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
+        avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0
+      };
+    });
+
+    // insights
+    var topicsWithData = byTopic.filter(function (t) {
+      return t.attempts > 0;
+    });
+    var strongest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
+      return a.accuracy >= b.accuracy ? a : b;
+    }) : null;
+    var weakest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
+      return a.accuracy <= b.accuracy ? a : b;
+    }) : null;
+    var fastest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
+      return a.avgMs <= b.avgMs ? a : b;
+    }) : null;
+    var slowest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
+      return a.avgMs >= b.avgMs ? a : b;
+    }) : null;
+
+    // streak
+    var days = _toConsumableArray(new Set(rows.map(function (r) {
+      return new Date(r.created_at).toDateString();
+    })));
+    var streak = 0;
+    var today = new Date();
+    for (var i = 0; i < 365; i++) {
+      var d = new Date(today);
+      d.setDate(d.getDate() - i);
+      if (days.includes(d.toDateString())) streak++;else if (i > 0) break;
+    }
+    return {
+      total: total,
+      correct: correct,
+      accuracy: accuracy,
+      totalMs: totalMs,
+      avgMs: avgMs,
+      byTopic: byTopic,
+      byDiff: byDiff,
+      byColumn: byColumn,
+      topicsWithData: topicsWithData,
+      strongest: strongest,
+      weakest: weakest,
+      fastest: fastest,
+      slowest: slowest,
+      streak: streak
+    };
+  }, [data]);
+  if (authUser && data === null) return /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-32"
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"
   }));
-  if (error) return /*#__PURE__*/React.createElement("div", {
+  if (attemptsError) return /*#__PURE__*/React.createElement("div", {
     className: "max-w-6xl mx-auto px-4 py-12 text-center"
   }, /*#__PURE__*/React.createElement("p", {
     className: "text-rose-500 font-semibold"
-  }, "Error loading analytics: ", error), /*#__PURE__*/React.createElement("p", {
+  }, "Error loading analytics: ", attemptsError), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-400 text-sm mt-1"
   }, "Make sure the attempts table exists in Supabase."));
   if (!data || data.length === 0) return /*#__PURE__*/React.createElement("div", {
@@ -114,129 +216,20 @@ function AnalyticsPage(_ref) {
   }, "No data yet"), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-500 dark:text-slate-400 max-w-xs mx-auto"
   }, "Answer some problems and your analytics will appear here."));
-
-  // ── compute stats ──────────────────────────────────────────────────────────
-  var total = data.length;
-  var correct = data.filter(function (r) {
-    return r.is_correct;
-  }).length;
-  var accuracy = total ? Math.round(100 * correct / total) : 0;
-  var totalMs = data.reduce(function (s, r) {
-    return s + (r.time_taken_ms || 0);
-  }, 0);
-  var avgMs = total ? Math.round(totalMs / total) : 0;
-
-  // by topic
-  var topicMap = {};
-  data.forEach(function (r) {
-    if (!topicMap[r.topic]) topicMap[r.topic] = {
-      attempts: 0,
-      correct: 0,
-      totalMs: 0
-    };
-    topicMap[r.topic].attempts++;
-    if (r.is_correct) topicMap[r.topic].correct++;
-    topicMap[r.topic].totalMs += r.time_taken_ms || 0;
-  });
-  var byTopic = Object.entries(topicMap).map(function (_ref3) {
-    var _ref4 = _slicedToArray(_ref3, 2),
-      topic = _ref4[0],
-      v = _ref4[1];
-    return {
-      topic: topic,
-      attempts: v.attempts,
-      correct: v.correct,
-      accuracy: Math.round(100 * v.correct / v.attempts),
-      avgMs: Math.round(v.totalMs / v.attempts)
-    };
-  }).sort(function (a, b) {
-    return b.attempts - a.attempts;
-  });
-
-  // by difficulty
-  var diffMap = {};
-  data.forEach(function (r) {
-    if (!diffMap[r.difficulty]) diffMap[r.difficulty] = {
-      attempts: 0,
-      correct: 0,
-      totalMs: 0
-    };
-    diffMap[r.difficulty].attempts++;
-    if (r.is_correct) diffMap[r.difficulty].correct++;
-    diffMap[r.difficulty].totalMs += r.time_taken_ms || 0;
-  });
-  var byDiff = ['Easy', 'Medium', 'Hard'].map(function (d) {
-    var v = diffMap[d] || {
-      attempts: 0,
-      correct: 0,
-      totalMs: 0
-    };
-    return {
-      difficulty: d,
-      attempts: v.attempts,
-      correct: v.correct,
-      accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
-      avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0
-    };
-  });
-
-  // by UIL column
-  var columnMap = {};
-  data.forEach(function (r) {
-    var column = getColumnCategory(r);
-    if (!column) return;
-    if (!columnMap[column]) columnMap[column] = {
-      attempts: 0,
-      correct: 0,
-      totalMs: 0
-    };
-    columnMap[column].attempts++;
-    if (r.is_correct) columnMap[column].correct++;
-    columnMap[column].totalMs += r.time_taken_ms || 0;
-  });
-  var byColumn = ['Column 1', 'Column 2', 'Column 3'].map(function (column) {
-    var v = columnMap[column] || {
-      attempts: 0,
-      correct: 0,
-      totalMs: 0
-    };
-    return {
-      column: column,
-      attempts: v.attempts,
-      correct: v.correct,
-      accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
-      avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0
-    };
-  });
-
-  // insights
-  var topicsWithData = byTopic.filter(function (t) {
-    return t.attempts > 0;
-  });
-  var strongest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
-    return a.accuracy >= b.accuracy ? a : b;
-  }) : null;
-  var weakest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
-    return a.accuracy <= b.accuracy ? a : b;
-  }) : null;
-  var fastest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
-    return a.avgMs <= b.avgMs ? a : b;
-  }) : null;
-  var slowest = topicsWithData.length ? topicsWithData.reduce(function (a, b) {
-    return a.avgMs >= b.avgMs ? a : b;
-  }) : null;
-
-  // streak
-  var days = _toConsumableArray(new Set(data.map(function (r) {
-    return new Date(r.created_at).toDateString();
-  })));
-  var streak = 0;
-  var today = new Date();
-  for (var i = 0; i < 365; i++) {
-    var d = new Date(today);
-    d.setDate(d.getDate() - i);
-    if (days.includes(d.toDateString())) streak++;else if (i > 0) break;
-  }
+  var total = stats.total,
+    correct = stats.correct,
+    accuracy = stats.accuracy,
+    totalMs = stats.totalMs,
+    avgMs = stats.avgMs,
+    byTopic = stats.byTopic,
+    byDiff = stats.byDiff,
+    byColumn = stats.byColumn,
+    topicsWithData = stats.topicsWithData,
+    strongest = stats.strongest,
+    weakest = stats.weakest,
+    fastest = stats.fastest,
+    slowest = stats.slowest,
+    streak = stats.streak;
   var DIFF_BAR = {
     Easy: 'bg-emerald-500',
     Medium: 'bg-amber-500',
@@ -378,12 +371,12 @@ function AnalyticsPage(_ref) {
     value: streak + (streak === 1 ? ' day' : ' days'),
     color: 'text-amber-600 dark:text-amber-400',
     border: 'border-amber-200 dark:border-amber-800/60'
-  }].map(function (_ref5) {
-    var label = _ref5.label,
-      value = _ref5.value,
-      color = _ref5.color,
-      border = _ref5.border,
-      large = _ref5.large;
+  }].map(function (_ref4) {
+    var label = _ref4.label,
+      value = _ref4.value,
+      color = _ref4.color,
+      border = _ref4.border,
+      large = _ref4.large;
     return /*#__PURE__*/React.createElement("div", {
       key: label,
       className: "rounded-xl border ".concat(border || 'border-slate-200 dark:border-slate-800', " bg-white dark:bg-slate-900 p-4 text-center shadow-sm")
@@ -433,10 +426,10 @@ function AnalyticsPage(_ref) {
       label: 'Slowest Topic',
       value: slowest === null || slowest === void 0 ? void 0 : slowest.topic,
       sub: fmtTime(slowest === null || slowest === void 0 ? void 0 : slowest.avgMs) + ' avg'
-    }].map(function (_ref6) {
-      var label = _ref6.label,
-        value = _ref6.value,
-        sub = _ref6.sub;
+    }].map(function (_ref5) {
+      var label = _ref5.label,
+        value = _ref5.value,
+        sub = _ref5.sub;
       var s = INSIGHT_STYLE[label];
       return /*#__PURE__*/React.createElement("div", {
         key: label,
@@ -536,40 +529,33 @@ function AnalyticsPage(_ref) {
     })));
   })))));
 }
-function HistoryPage(_ref7) {
-  var authUser = _ref7.authUser,
-    allQuestions = _ref7.allQuestions,
-    sessionAnswers = _ref7.sessionAnswers,
-    onOpenQuestion = _ref7.onOpenQuestion,
-    navigateTab = _ref7.navigateTab;
-  var _useState7 = useState([]),
+function HistoryPage(_ref6) {
+  var authUser = _ref6.authUser,
+    allQuestions = _ref6.allQuestions,
+    attempts = _ref6.attempts,
+    attemptsError = _ref6.attemptsError,
+    onOpenQuestion = _ref6.onOpenQuestion,
+    navigateTab = _ref6.navigateTab;
+  // Shared attempt history owned by App (one fetch per login). null = still loading.
+  var rows = attempts || [];
+  var loading = authUser && attempts === null;
+  var error = attemptsError || null;
+  var _useState = useState(null),
+    _useState2 = _slicedToArray(_useState, 2),
+    selected = _useState2[0],
+    setSelected = _useState2[1];
+  var _useState3 = useState('attempts'),
+    _useState4 = _slicedToArray(_useState3, 2),
+    historySubTab = _useState4[0],
+    setHistorySubTab = _useState4[1];
+  var _useState5 = useState([]),
+    _useState6 = _slicedToArray(_useState5, 2),
+    mySolutions = _useState6[0],
+    setMySolutions = _useState6[1];
+  var _useState7 = useState(null),
     _useState8 = _slicedToArray(_useState7, 2),
-    rows = _useState8[0],
-    setRows = _useState8[1];
-  var _useState9 = useState(true),
-    _useState0 = _slicedToArray(_useState9, 2),
-    loading = _useState0[0],
-    setLoading = _useState0[1];
-  var _useState1 = useState(null),
-    _useState10 = _slicedToArray(_useState1, 2),
-    error = _useState10[0],
-    setError = _useState10[1];
-  var _useState11 = useState(null),
-    _useState12 = _slicedToArray(_useState11, 2),
-    selected = _useState12[0],
-    setSelected = _useState12[1];
-  var _useState13 = useState('attempts'),
-    _useState14 = _slicedToArray(_useState13, 2),
-    historySubTab = _useState14[0],
-    setHistorySubTab = _useState14[1];
-  var _useState15 = useState([]),
-    _useState16 = _slicedToArray(_useState15, 2),
-    mySolutions = _useState16[0],
-    setMySolutions = _useState16[1];
-  var _useState17 = useState(null),
-    _useState18 = _slicedToArray(_useState17, 2),
-    tooltipMeta = _useState18[0],
-    setTooltipMeta = _useState18[1];
+    tooltipMeta = _useState8[0],
+    setTooltipMeta = _useState8[1];
   var rowRefs = useRef({});
   var getSolutionQuestion = function getSolutionQuestion(solution) {
     return allQuestions.find(function (q) {
@@ -578,34 +564,34 @@ function HistoryPage(_ref7) {
   };
 
   // filters
-  var _useState19 = useState('All'),
+  var _useState9 = useState('All'),
+    _useState0 = _slicedToArray(_useState9, 2),
+    filterCorrect = _useState0[0],
+    setFilterCorrect = _useState0[1];
+  var _useState1 = useState('All Topics'),
+    _useState10 = _slicedToArray(_useState1, 2),
+    filterTopic = _useState10[0],
+    setFilterTopic = _useState10[1];
+  var _useState11 = useState('All Difficulties'),
+    _useState12 = _slicedToArray(_useState11, 2),
+    filterDiff = _useState12[0],
+    setFilterDiff = _useState12[1];
+  var _useState13 = useState('Most Recent'),
+    _useState14 = _slicedToArray(_useState13, 2),
+    filterDate = _useState14[0],
+    setFilterDate = _useState14[1];
+  var _useState15 = useState('All Sources'),
+    _useState16 = _slicedToArray(_useState15, 2),
+    filterSource = _useState16[0],
+    setFilterSource = _useState16[1];
+  var _useState17 = useState('All Types'),
+    _useState18 = _slicedToArray(_useState17, 2),
+    filterType = _useState18[0],
+    setFilterType = _useState18[1];
+  var _useState19 = useState(''),
     _useState20 = _slicedToArray(_useState19, 2),
-    filterCorrect = _useState20[0],
-    setFilterCorrect = _useState20[1];
-  var _useState21 = useState('All Topics'),
-    _useState22 = _slicedToArray(_useState21, 2),
-    filterTopic = _useState22[0],
-    setFilterTopic = _useState22[1];
-  var _useState23 = useState('All Difficulties'),
-    _useState24 = _slicedToArray(_useState23, 2),
-    filterDiff = _useState24[0],
-    setFilterDiff = _useState24[1];
-  var _useState25 = useState('Most Recent'),
-    _useState26 = _slicedToArray(_useState25, 2),
-    filterDate = _useState26[0],
-    setFilterDate = _useState26[1];
-  var _useState27 = useState('All Sources'),
-    _useState28 = _slicedToArray(_useState27, 2),
-    filterSource = _useState28[0],
-    setFilterSource = _useState28[1];
-  var _useState29 = useState('All Types'),
-    _useState30 = _slicedToArray(_useState29, 2),
-    filterType = _useState30[0],
-    setFilterType = _useState30[1];
-  var _useState31 = useState(''),
-    _useState32 = _slicedToArray(_useState31, 2),
-    search = _useState32[0],
-    setSearch = _useState32[1];
+    search = _useState20[0],
+    setSearch = _useState20[1];
   var questionSourceMap = useMemo(function () {
     var map = {};
     allQuestions.forEach(function (q) {
@@ -621,41 +607,57 @@ function HistoryPage(_ref7) {
     }).filter(Boolean));
     return ['All Sources'].concat(_toConsumableArray(sortSources(_toConsumableArray(srcs))));
   }, [rows, questionSourceMap, filterType]);
-  useEffect(function () {
-    if (!authUser) {
-      setRows(sessionAnswers || []);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    _supabase.from('attempts').select('*').eq('user_id', authUser.id).order('created_at', {
-      ascending: false
-    }).then(function (_ref8) {
-      var data = _ref8.data,
-        err = _ref8.error;
-      if (err) {
-        setError(err.message);
-        setLoading(false);
-        return;
+
+  // ── filtering & sorting (memoized: re-runs only when data or filters change) ──
+  var sorted = useMemo(function () {
+    var now = new Date();
+    var filtered = rows.filter(function (r) {
+      if (filterCorrect === 'Correct Only' && !r.is_correct) return false;
+      if (filterCorrect === 'Incorrect Only' && r.is_correct) return false;
+      if (filterTopic !== 'All Topics') {
+        var rowColumn = getColumnCategory(r);
+        if (['Column 1', 'Column 2', 'Column 3'].includes(filterTopic)) {
+          if (rowColumn !== filterTopic) return false;
+        } else if (r.topic !== filterTopic) return false;
       }
-      setRows(data || []);
-      setLoading(false);
+      if (filterDiff !== 'All Difficulties' && r.difficulty !== filterDiff) return false;
+      if (filterType !== 'All Types' && getSourceType(questionSourceMap[r.question_id] || '') !== filterType) return false;
+      if (filterSource !== 'All Sources' && (questionSourceMap[r.question_id] || '') !== filterSource) return false;
+      if (filterDate === 'Today') {
+        if (new Date(r.created_at).toDateString() !== now.toDateString()) return false;
+      } else if (filterDate === 'Last 7 Days') {
+        var cutoff = new Date(now);
+        cutoff.setDate(cutoff.getDate() - 7);
+        if (new Date(r.created_at) < cutoff) return false;
+      } else if (filterDate === 'Last 30 Days') {
+        var _cutoff = new Date(now);
+        _cutoff.setDate(_cutoff.getDate() - 30);
+        if (new Date(r.created_at) < _cutoff) return false;
+      }
+      if (search.trim()) {
+        var s = search.toLowerCase();
+        return (r.question_title || '').toLowerCase().includes(s) || (r.question_text || '').toLowerCase().includes(s) || (r.topic || '').toLowerCase().includes(s) || (r.tags || []).some(function (t) {
+          return t.toLowerCase().includes(s);
+        }) || (questionSourceMap[r.question_id] || '').toLowerCase().includes(s);
+      }
+      return true;
     });
-  }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
-  useEffect(function () {
-    if (!authUser) setRows(sessionAnswers || []);
-  }, [authUser, sessionAnswers]);
+    return _toConsumableArray(filtered).sort(function (a, b) {
+      if (filterDate === 'Oldest First') return new Date(a.created_at) - new Date(b.created_at);
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+  }, [rows, filterCorrect, filterTopic, filterDiff, filterType, filterSource, filterDate, search, questionSourceMap]);
   useEffect(function () {
     if (!authUser) return;
     _supabase.from('community_solutions').select('id,user_id,question_id,solution_text,created_at,updated_at,hidden').eq('user_id', authUser.id).order('created_at', {
       ascending: false
     }).then(/*#__PURE__*/function () {
-      var _ref0 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(_ref9) {
+      var _ref8 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(_ref7) {
         var data, error, rows, ids, _yield$_supabase$from, voteRows, counts;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.n) {
             case 0:
-              data = _ref9.data, error = _ref9.error;
+              data = _ref7.data, error = _ref7.error;
               if (!error) {
                 _context.n = 1;
                 break;
@@ -695,10 +697,10 @@ function HistoryPage(_ref7) {
         }, _callee);
       }));
       return function (_x) {
-        return _ref0.apply(this, arguments);
+        return _ref8.apply(this, arguments);
       };
     }());
-  }, [authUser]);
+  }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-32"
   }, /*#__PURE__*/React.createElement("div", {
@@ -711,44 +713,6 @@ function HistoryPage(_ref7) {
   }, "Error loading history: ", error), /*#__PURE__*/React.createElement("p", {
     className: "text-slate-400 text-sm mt-1"
   }, "Make sure the attempts table exists in Supabase."));
-
-  // ── filtering & sorting ────────────────────────────────────────────────────
-  var now = new Date();
-  var filtered = rows.filter(function (r) {
-    if (filterCorrect === 'Correct Only' && !r.is_correct) return false;
-    if (filterCorrect === 'Incorrect Only' && r.is_correct) return false;
-    if (filterTopic !== 'All Topics') {
-      var rowColumn = getColumnCategory(r);
-      if (['Column 1', 'Column 2', 'Column 3'].includes(filterTopic)) {
-        if (rowColumn !== filterTopic) return false;
-      } else if (r.topic !== filterTopic) return false;
-    }
-    if (filterDiff !== 'All Difficulties' && r.difficulty !== filterDiff) return false;
-    if (filterType !== 'All Types' && getSourceType(questionSourceMap[r.question_id] || '') !== filterType) return false;
-    if (filterSource !== 'All Sources' && (questionSourceMap[r.question_id] || '') !== filterSource) return false;
-    if (filterDate === 'Today') {
-      if (new Date(r.created_at).toDateString() !== now.toDateString()) return false;
-    } else if (filterDate === 'Last 7 Days') {
-      var cutoff = new Date(now);
-      cutoff.setDate(cutoff.getDate() - 7);
-      if (new Date(r.created_at) < cutoff) return false;
-    } else if (filterDate === 'Last 30 Days') {
-      var _cutoff = new Date(now);
-      _cutoff.setDate(_cutoff.getDate() - 30);
-      if (new Date(r.created_at) < _cutoff) return false;
-    }
-    if (search.trim()) {
-      var s = search.toLowerCase();
-      return (r.question_title || '').toLowerCase().includes(s) || (r.question_text || '').toLowerCase().includes(s) || (r.topic || '').toLowerCase().includes(s) || (r.tags || []).some(function (t) {
-        return t.toLowerCase().includes(s);
-      }) || (questionSourceMap[r.question_id] || '').toLowerCase().includes(s);
-    }
-    return true;
-  });
-  var sorted = _toConsumableArray(filtered).sort(function (a, b) {
-    if (filterDate === 'Oldest First') return new Date(a.created_at) - new Date(b.created_at);
-    return new Date(b.created_at) - new Date(a.created_at);
-  });
   var findQ = function findQ(row) {
     var q = allQuestions.find(function (x) {
       return x.id === row.question_id;
@@ -1052,10 +1016,10 @@ function HistoryPage(_ref7) {
     }
   }));
 }
-function HistoryDetailModal(_ref1) {
-  var row = _ref1.row,
-    q = _ref1.q,
-    onClose = _ref1.onClose;
+function HistoryDetailModal(_ref9) {
+  var row = _ref9.row,
+    q = _ref9.q,
+    onClose = _ref9.onClose;
   return /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 z-50 flex items-center justify-center p-4",
     onClick: onClose

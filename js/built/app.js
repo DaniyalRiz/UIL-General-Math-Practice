@@ -9,15 +9,15 @@ function _possibleConstructorReturn(t, e) { if (e && ("object" == _typeof(e) || 
 function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
 function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -876,6 +876,17 @@ function App() {
     _useState52 = _slicedToArray(_useState51, 2),
     sessionAnswers = _useState52[0],
     setSessionAnswers = _useState52[1];
+  // Single shared fetch of the signed-in user's attempt history -- Analytics,
+  // History, and the qStats rebuild all read from this one load instead of
+  // each fetching the attempts table separately. null = not loaded yet.
+  var _useState53 = useState(null),
+    _useState54 = _slicedToArray(_useState53, 2),
+    serverAttempts = _useState54[0],
+    setServerAttempts = _useState54[1];
+  var _useState55 = useState(''),
+    _useState56 = _slicedToArray(_useState55, 2),
+    attemptsError = _useState56[0],
+    setAttemptsError = _useState56[1];
   var _useLocalStorage3 = useLocalStorage("uilmath-qstats", {}),
     _useLocalStorage4 = _slicedToArray(_useLocalStorage3, 2),
     qStats = _useLocalStorage4[0],
@@ -884,49 +895,62 @@ function App() {
     _useLocalStorage6 = _slicedToArray(_useLocalStorage5, 2),
     bookmarks = _useLocalStorage6[0],
     setBookmarks = _useLocalStorage6[1];
-  var _useState53 = useState(null),
-    _useState54 = _slicedToArray(_useState53, 2),
-    masteryStats = _useState54[0],
-    setMasteryStats = _useState54[1];
-  var _useState55 = useState(false),
-    _useState56 = _slicedToArray(_useState55, 2),
-    recommendedMode = _useState56[0],
-    setRecommendedMode = _useState56[1];
-  var _useState57 = useState("All"),
+  var _useState57 = useState(null),
     _useState58 = _slicedToArray(_useState57, 2),
-    recStatus = _useState58[0],
-    setRecStatus = _useState58[1];
-  var _useState59 = useState("Most Recent"),
+    masteryStats = _useState58[0],
+    setMasteryStats = _useState58[1];
+  var _useState59 = useState(false),
     _useState60 = _slicedToArray(_useState59, 2),
-    recSort = _useState60[0],
-    setRecSort = _useState60[1];
-  var _useState61 = useState("All Types"),
+    recommendedMode = _useState60[0],
+    setRecommendedMode = _useState60[1];
+  var _useState61 = useState("All"),
     _useState62 = _slicedToArray(_useState61, 2),
-    typeFilter = _useState62[0],
-    setTypeFilter = _useState62[1];
-  var _useState63 = useState("All Sources"),
+    recStatus = _useState62[0],
+    setRecStatus = _useState62[1];
+  var _useState63 = useState("Most Recent"),
     _useState64 = _slicedToArray(_useState63, 2),
-    sourceFilter = _useState64[0],
-    setSourceFilter = _useState64[1];
-  var _useState65 = useState("All Status"),
+    recSort = _useState64[0],
+    setRecSort = _useState64[1];
+  var _useState65 = useState("All Types"),
     _useState66 = _slicedToArray(_useState65, 2),
-    statusFilter = _useState66[0],
-    setStatusFilter = _useState66[1];
+    typeFilter = _useState66[0],
+    setTypeFilter = _useState66[1];
+  var _useState67 = useState("All Sources"),
+    _useState68 = _slicedToArray(_useState67, 2),
+    sourceFilter = _useState68[0],
+    setSourceFilter = _useState68[1];
+  var _useState69 = useState("All Status"),
+    _useState70 = _slicedToArray(_useState69, 2),
+    statusFilter = _useState70[0],
+    setStatusFilter = _useState70[1];
 
-  // Rebuild per-question stats from the `attempts` table on login. Answers can only be
-  // submitted while signed in, so server history is authoritative — this keeps the list's
-  // status dots correct on a new device/browser instead of relying on local cache alone.
+  // One fetch of the full attempt history on login. It rebuilds the per-question
+  // stats (status dots stay correct on a new device/browser) AND feeds the
+  // Analytics/History tabs, which previously each ran their own full-table fetch.
   useEffect(function () {
-    if (!authUser) return;
+    if (!authUser) {
+      setServerAttempts(null);
+      setAttemptsError('');
+      return;
+    }
     var cancelled = false;
-    _supabase.from('attempts').select('question_id,is_correct,time_taken_ms,created_at').eq('user_id', authUser.id).order('created_at', {
-      ascending: true
+    _supabase.from('attempts').select('*').eq('user_id', authUser.id).order('created_at', {
+      ascending: false
     }).then(function (_ref5) {
       var data = _ref5.data,
         error = _ref5.error;
-      if (cancelled || error || !data) return;
+      if (cancelled) return;
+      if (error || !data) {
+        setServerAttempts([]);
+        setAttemptsError((error === null || error === void 0 ? void 0 : error.message) || 'Could not load attempts.');
+        return;
+      }
+      setServerAttempts(data);
+      setAttemptsError('');
       var agg = {};
-      data.forEach(function (r) {
+      // Rows arrive newest-first, so walk backwards for correct lastMs.
+      for (var i = data.length - 1; i >= 0; i--) {
+        var r = data[i];
         var cur = agg[r.question_id] || {
           attempts: 0,
           correct: 0,
@@ -937,15 +961,25 @@ function App() {
         cur.attempts += 1;
         if (r.is_correct) cur.correct += 1;
         cur.bestMs = cur.bestMs == null ? ms : Math.min(cur.bestMs, ms);
-        cur.lastMs = ms; // rows are ascending by created_at, so the last write is the most recent
+        cur.lastMs = ms;
         agg[r.question_id] = cur;
-      });
+      }
       setQStats(agg);
     });
     return function () {
       cancelled = true;
     };
   }, [authUser === null || authUser === void 0 ? void 0 : authUser.id]);
+
+  // What Analytics/History actually render: for signed-in users, answers given
+  // since page load (sessionAnswers, newest first) stacked on the server history
+  // fetched at login -- no overlap, since the login fetch predates them. Guests
+  // just see their session. null = signed in but history still loading.
+  var allAttempts = useMemo(function () {
+    if (!authUser) return sessionAnswers;
+    if (serverAttempts === null) return null;
+    return [].concat(_toConsumableArray(sessionAnswers), _toConsumableArray(serverAttempts));
+  }, [authUser, serverAttempts, sessionAnswers]);
   var loadMasteryStats = /*#__PURE__*/function () {
     var _loadMasteryStats = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
       var _yield$_supabase$rpc, data, error;
@@ -1094,18 +1128,18 @@ function App() {
       setPage(1);
     }
   };
-  var _useState67 = useState([]),
-    _useState68 = _slicedToArray(_useState67, 2),
-    questions = _useState68[0],
-    setQuestions = _useState68[1];
-  var _useState69 = useState("loading"),
-    _useState70 = _slicedToArray(_useState69, 2),
-    loadState = _useState70[0],
-    setLoadState = _useState70[1]; // "loading" | "ready" | "error"
-  var _useState71 = useState(""),
+  var _useState71 = useState([]),
     _useState72 = _slicedToArray(_useState71, 2),
-    loadError = _useState72[0],
-    setLoadError = _useState72[1];
+    questions = _useState72[0],
+    setQuestions = _useState72[1];
+  var _useState73 = useState("loading"),
+    _useState74 = _slicedToArray(_useState73, 2),
+    loadState = _useState74[0],
+    setLoadState = _useState74[1]; // "loading" | "ready" | "error"
+  var _useState75 = useState(""),
+    _useState76 = _slicedToArray(_useState75, 2),
+    loadError = _useState76[0],
+    setLoadError = _useState76[1];
   useEffect(function () {
     var cancelled = false;
     function loadQuestionsFromSupabase() {
@@ -1528,12 +1562,13 @@ function App() {
     questions: questions
   }) : tab === 'analytics' ? /*#__PURE__*/React.createElement(AnalyticsPage, {
     authUser: authUser,
-    sessionAnswers: sessionAnswers,
-    questions: questions
+    attempts: allAttempts,
+    attemptsError: attemptsError
   }) : tab === 'history' ? /*#__PURE__*/React.createElement(HistoryPage, {
     authUser: authUser,
     allQuestions: questions,
-    sessionAnswers: sessionAnswers,
+    attempts: allAttempts,
+    attemptsError: attemptsError,
     navigateTab: navigateTab,
     onOpenQuestion: function onOpenQuestion(id) {
       navigateTab('problems');

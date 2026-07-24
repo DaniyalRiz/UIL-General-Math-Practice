@@ -425,6 +425,11 @@ function App() {
   const answersRef = useRef({});
   const [answerVersion, setAnswerVersion] = useState(0);
   const [sessionAnswers, setSessionAnswers] = useState([]);
+  // Single shared fetch of the signed-in user's attempt history -- Analytics,
+  // History, and the qStats rebuild all read from this one load instead of
+  // each fetching the attempts table separately. null = not loaded yet.
+  const [serverAttempts, setServerAttempts] = useState(null);
+  const [attemptsError, setAttemptsError] = useState('');
   const [qStats, setQStats] = useLocalStorage("uilmath-qstats", {});
   const [bookmarks, setBookmarks] = useLocalStorage("uilmath-bookmarks", []);
   const [masteryStats, setMasteryStats] = useState(null);
@@ -435,33 +440,52 @@ function App() {
   const [sourceFilter, setSourceFilter] = useState("All Sources");
   const [statusFilter, setStatusFilter] = useState("All Status");
 
-  // Rebuild per-question stats from the `attempts` table on login. Answers can only be
-  // submitted while signed in, so server history is authoritative — this keeps the list's
-  // status dots correct on a new device/browser instead of relying on local cache alone.
+  // One fetch of the full attempt history on login. It rebuilds the per-question
+  // stats (status dots stay correct on a new device/browser) AND feeds the
+  // Analytics/History tabs, which previously each ran their own full-table fetch.
   useEffect(() => {
-    if (!authUser) return;
+    if (!authUser) { setServerAttempts(null); setAttemptsError(''); return; }
     let cancelled = false;
     _supabase
       .from('attempts')
-      .select('question_id,is_correct,time_taken_ms,created_at')
+      .select('*')
       .eq('user_id', authUser.id)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (cancelled || error || !data) return;
+        if (cancelled) return;
+        if (error || !data) {
+          setServerAttempts([]);
+          setAttemptsError(error?.message || 'Could not load attempts.');
+          return;
+        }
+        setServerAttempts(data);
+        setAttemptsError('');
         const agg = {};
-        data.forEach(r => {
+        // Rows arrive newest-first, so walk backwards for correct lastMs.
+        for (let i = data.length - 1; i >= 0; i--) {
+          const r = data[i];
           const cur = agg[r.question_id] || { attempts: 0, correct: 0, bestMs: null, lastMs: null };
           const ms = r.time_taken_ms || 0;
           cur.attempts += 1;
           if (r.is_correct) cur.correct += 1;
           cur.bestMs = cur.bestMs == null ? ms : Math.min(cur.bestMs, ms);
-          cur.lastMs = ms; // rows are ascending by created_at, so the last write is the most recent
+          cur.lastMs = ms;
           agg[r.question_id] = cur;
-        });
+        }
         setQStats(agg);
       });
     return () => { cancelled = true; };
   }, [authUser?.id]);
+
+  // What Analytics/History actually render: for signed-in users, answers given
+  // since page load (sessionAnswers, newest first) stacked on the server history
+  // fetched at login -- no overlap, since the login fetch predates them. Guests
+  // just see their session. null = signed in but history still loading.
+  const allAttempts = useMemo(() => {
+    if (!authUser) return sessionAnswers;
+    if (serverAttempts === null) return null;
+    return [...sessionAnswers, ...serverAttempts];
+  }, [authUser, serverAttempts, sessionAnswers]);
 
   const loadMasteryStats = async () => {
     if (!authUser) return;
@@ -892,9 +916,9 @@ function App() {
       ) : tab === 'leaderboard' ? (
         <LeaderboardPage authUser={authUser} questions={questions} />
       ) : tab === 'analytics' ? (
-        <AnalyticsPage authUser={authUser} sessionAnswers={sessionAnswers} questions={questions} />
+        <AnalyticsPage authUser={authUser} attempts={allAttempts} attemptsError={attemptsError} />
       ) : tab === 'history' ? (
-        <HistoryPage authUser={authUser} allQuestions={questions} sessionAnswers={sessionAnswers} navigateTab={navigateTab} onOpenQuestion={(id)=>{
+        <HistoryPage authUser={authUser} allQuestions={questions} attempts={allAttempts} attemptsError={attemptsError} navigateTab={navigateTab} onOpenQuestion={(id)=>{
           navigateTab('problems');
           setRecommendedMode(false);
           setTopic("All Topics");

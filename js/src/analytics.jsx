@@ -1,40 +1,91 @@
-function AnalyticsPage({ authUser, sessionAnswers, questions }) {
-  const [data, setData]     = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState(null);
+function AnalyticsPage({ authUser, attempts, attemptsError }) {
+  // Shared attempt history owned by App (one fetch per login). null = still loading.
+  const data = attempts;
 
-  useEffect(() => {
-    if (!authUser) {
-      const rows = (sessionAnswers || []).map(r => ({
-        topic: r.topic, difficulty: r.difficulty,
-        is_correct: r.is_correct, time_taken_ms: r.time_taken_ms, created_at: r.created_at,
-      }));
-      setData(rows);
-      setLoading(false);
-      return;
+  // ── compute stats (memoized: only re-runs when the data itself changes) ────
+  const stats = useMemo(() => {
+    const rows = data || [];
+    const total      = rows.length;
+    const correct    = rows.filter(r => r.is_correct).length;
+    const accuracy   = total ? Math.round(100 * correct / total) : 0;
+    const totalMs    = rows.reduce((s, r) => s + (r.time_taken_ms || 0), 0);
+    const avgMs      = total ? Math.round(totalMs / total) : 0;
+
+    // by topic
+    const topicMap = {};
+    rows.forEach(r => {
+      if (!topicMap[r.topic]) topicMap[r.topic] = { attempts:0, correct:0, totalMs:0 };
+      topicMap[r.topic].attempts++;
+      if (r.is_correct) topicMap[r.topic].correct++;
+      topicMap[r.topic].totalMs += r.time_taken_ms || 0;
+    });
+    const byTopic = Object.entries(topicMap).map(([topic, v]) => ({
+      topic, attempts: v.attempts, correct: v.correct,
+      accuracy: Math.round(100 * v.correct / v.attempts),
+      avgMs: Math.round(v.totalMs / v.attempts),
+    })).sort((a,b) => b.attempts - a.attempts);
+
+    // by difficulty
+    const diffMap = {};
+    rows.forEach(r => {
+      if (!diffMap[r.difficulty]) diffMap[r.difficulty] = { attempts:0, correct:0, totalMs:0 };
+      diffMap[r.difficulty].attempts++;
+      if (r.is_correct) diffMap[r.difficulty].correct++;
+      diffMap[r.difficulty].totalMs += r.time_taken_ms || 0;
+    });
+    const byDiff = ['Easy','Medium','Hard'].map(d => {
+      const v = diffMap[d] || { attempts:0, correct:0, totalMs:0 };
+      return { difficulty:d, attempts:v.attempts, correct:v.correct,
+        accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
+        avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0 };
+    });
+
+    // by UIL column
+    const columnMap = {};
+    rows.forEach(r => {
+      const column = getColumnCategory(r);
+      if (!column) return;
+      if (!columnMap[column]) columnMap[column] = { attempts:0, correct:0, totalMs:0 };
+      columnMap[column].attempts++;
+      if (r.is_correct) columnMap[column].correct++;
+      columnMap[column].totalMs += r.time_taken_ms || 0;
+    });
+    const byColumn = ['Column 1','Column 2','Column 3'].map(column => {
+      const v = columnMap[column] || { attempts:0, correct:0, totalMs:0 };
+      return { column, attempts:v.attempts, correct:v.correct,
+        accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
+        avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0 };
+    });
+
+    // insights
+    const topicsWithData = byTopic.filter(t => t.attempts > 0);
+    const strongest = topicsWithData.length ? topicsWithData.reduce((a,b) => a.accuracy>=b.accuracy?a:b) : null;
+    const weakest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.accuracy<=b.accuracy?a:b) : null;
+    const fastest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.avgMs<=b.avgMs?a:b) : null;
+    const slowest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.avgMs>=b.avgMs?a:b) : null;
+
+    // streak
+    const days = [...new Set(rows.map(r => new Date(r.created_at).toDateString()))];
+    let streak = 0;
+    const today = new Date();
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      if (days.includes(d.toDateString())) streak++;
+      else if (i > 0) break;
     }
-    setLoading(true);
-    _supabase
-      .from('attempts')
-      .select('topic,difficulty,is_correct,time_taken_ms,created_at')
-      .eq('user_id', authUser.id)
-      .order('created_at', { ascending: false })
-      .then(({ data: rows, error: err }) => {
-        if (err) { setError(err.message); setLoading(false); return; }
-        setData(rows || []);
-        setLoading(false);
-      });
-  }, [authUser?.id, sessionAnswers]);
 
-  if (loading) return (
+    return { total, correct, accuracy, totalMs, avgMs, byTopic, byDiff, byColumn, topicsWithData, strongest, weakest, fastest, slowest, streak };
+  }, [data]);
+
+  if (authUser && data === null) return (
     <div className="flex items-center justify-center py-32">
       <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 
-  if (error) return (
+  if (attemptsError) return (
     <div className="max-w-6xl mx-auto px-4 py-12 text-center">
-      <p className="text-rose-500 font-semibold">Error loading analytics: {error}</p>
+      <p className="text-rose-500 font-semibold">Error loading analytics: {attemptsError}</p>
       <p className="text-slate-400 text-sm mt-1">Make sure the attempts table exists in Supabase.</p>
     </div>
   );
@@ -49,75 +100,7 @@ function AnalyticsPage({ authUser, sessionAnswers, questions }) {
     </div>
   );
 
-  // ── compute stats ──────────────────────────────────────────────────────────
-  const total      = data.length;
-  const correct    = data.filter(r => r.is_correct).length;
-  const accuracy   = total ? Math.round(100 * correct / total) : 0;
-  const totalMs    = data.reduce((s, r) => s + (r.time_taken_ms || 0), 0);
-  const avgMs      = total ? Math.round(totalMs / total) : 0;
-
-  // by topic
-  const topicMap = {};
-  data.forEach(r => {
-    if (!topicMap[r.topic]) topicMap[r.topic] = { attempts:0, correct:0, totalMs:0 };
-    topicMap[r.topic].attempts++;
-    if (r.is_correct) topicMap[r.topic].correct++;
-    topicMap[r.topic].totalMs += r.time_taken_ms || 0;
-  });
-  const byTopic = Object.entries(topicMap).map(([topic, v]) => ({
-    topic, attempts: v.attempts, correct: v.correct,
-    accuracy: Math.round(100 * v.correct / v.attempts),
-    avgMs: Math.round(v.totalMs / v.attempts),
-  })).sort((a,b) => b.attempts - a.attempts);
-
-  // by difficulty
-  const diffMap = {};
-  data.forEach(r => {
-    if (!diffMap[r.difficulty]) diffMap[r.difficulty] = { attempts:0, correct:0, totalMs:0 };
-    diffMap[r.difficulty].attempts++;
-    if (r.is_correct) diffMap[r.difficulty].correct++;
-    diffMap[r.difficulty].totalMs += r.time_taken_ms || 0;
-  });
-  const byDiff = ['Easy','Medium','Hard'].map(d => {
-    const v = diffMap[d] || { attempts:0, correct:0, totalMs:0 };
-    return { difficulty:d, attempts:v.attempts, correct:v.correct,
-      accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
-      avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0 };
-  });
-
-  // by UIL column
-  const columnMap = {};
-  data.forEach(r => {
-    const column = getColumnCategory(r);
-    if (!column) return;
-    if (!columnMap[column]) columnMap[column] = { attempts:0, correct:0, totalMs:0 };
-    columnMap[column].attempts++;
-    if (r.is_correct) columnMap[column].correct++;
-    columnMap[column].totalMs += r.time_taken_ms || 0;
-  });
-  const byColumn = ['Column 1','Column 2','Column 3'].map(column => {
-    const v = columnMap[column] || { attempts:0, correct:0, totalMs:0 };
-    return { column, attempts:v.attempts, correct:v.correct,
-      accuracy: v.attempts ? Math.round(100 * v.correct / v.attempts) : 0,
-      avgMs: v.attempts ? Math.round(v.totalMs / v.attempts) : 0 };
-  });
-
-  // insights
-  const topicsWithData = byTopic.filter(t => t.attempts > 0);
-  const strongest = topicsWithData.length ? topicsWithData.reduce((a,b) => a.accuracy>=b.accuracy?a:b) : null;
-  const weakest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.accuracy<=b.accuracy?a:b) : null;
-  const fastest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.avgMs<=b.avgMs?a:b) : null;
-  const slowest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.avgMs>=b.avgMs?a:b) : null;
-
-  // streak
-  const days = [...new Set(data.map(r => new Date(r.created_at).toDateString()))];
-  let streak = 0;
-  const today = new Date();
-  for (let i = 0; i < 365; i++) {
-    const d = new Date(today); d.setDate(d.getDate() - i);
-    if (days.includes(d.toDateString())) streak++;
-    else if (i > 0) break;
-  }
+  const { total, correct, accuracy, totalMs, avgMs, byTopic, byDiff, byColumn, topicsWithData, strongest, weakest, fastest, slowest, streak } = stats;
 
   const DIFF_BAR = { Easy:'bg-emerald-500', Medium:'bg-amber-500', Hard:'bg-rose-500' };
   const COLUMN_BAR = { 'Column 1':'bg-blue-500', 'Column 2':'bg-violet-500', 'Column 3':'bg-fuchsia-500' };
@@ -328,10 +311,11 @@ function AnalyticsPage({ authUser, sessionAnswers, questions }) {
   );
 }
 
-function HistoryPage({ authUser, allQuestions, sessionAnswers, onOpenQuestion, navigateTab }) {
-  const [rows, setRows]         = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+function HistoryPage({ authUser, allQuestions, attempts, attemptsError, onOpenQuestion, navigateTab }) {
+  // Shared attempt history owned by App (one fetch per login). null = still loading.
+  const rows = attempts || [];
+  const loading = authUser && attempts === null;
+  const error = attemptsError || null;
   const [selected, setSelected] = useState(null);
   const [historySubTab, setHistorySubTab] = useState('attempts');
   const [mySolutions, setMySolutions] = useState([]);
@@ -365,24 +349,48 @@ function HistoryPage({ authUser, allQuestions, sessionAnswers, onOpenQuestion, n
     return ['All Sources', ...sortSources([...srcs])];
   }, [rows, questionSourceMap, filterType]);
 
-  useEffect(() => {
-    if (!authUser) { setRows(sessionAnswers || []); setLoading(false); return; }
-    setLoading(true);
-    _supabase
-      .from('attempts')
-      .select('*')
-      .eq('user_id', authUser.id)
-      .order('created_at', { ascending: false })
-      .then(({ data, error: err }) => {
-        if (err) { setError(err.message); setLoading(false); return; }
-        setRows(data || []);
-        setLoading(false);
-      });
-  }, [authUser?.id]);
-
-  useEffect(() => {
-    if (!authUser) setRows(sessionAnswers || []);
-  }, [authUser, sessionAnswers]);
+  // ── filtering & sorting (memoized: re-runs only when data or filters change) ──
+  const sorted = useMemo(() => {
+    const now = new Date();
+    const filtered = rows.filter(r => {
+      if (filterCorrect === 'Correct Only'   && !r.is_correct) return false;
+      if (filterCorrect === 'Incorrect Only' &&  r.is_correct) return false;
+      if (filterTopic !== 'All Topics') {
+        const rowColumn = getColumnCategory(r);
+        if (['Column 1','Column 2','Column 3'].includes(filterTopic)) {
+          if (rowColumn !== filterTopic) return false;
+        } else if (r.topic !== filterTopic) return false;
+      }
+      if (filterDiff  !== 'All Difficulties' && r.difficulty !== filterDiff) return false;
+      if (filterType !== 'All Types' && getSourceType(questionSourceMap[r.question_id] || '') !== filterType) return false;
+      if (filterSource !== 'All Sources' && (questionSourceMap[r.question_id] || '') !== filterSource) return false;
+      if (filterDate === 'Today') {
+        if (new Date(r.created_at).toDateString() !== now.toDateString()) return false;
+      } else if (filterDate === 'Last 7 Days') {
+        const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 7);
+        if (new Date(r.created_at) < cutoff) return false;
+      } else if (filterDate === 'Last 30 Days') {
+        const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30);
+        if (new Date(r.created_at) < cutoff) return false;
+      }
+      if (search.trim()) {
+        const s = search.toLowerCase();
+        return (
+          (r.question_title || '').toLowerCase().includes(s) ||
+          (r.question_text  || '').toLowerCase().includes(s) ||
+          (r.topic          || '').toLowerCase().includes(s) ||
+          (r.tags           || []).some(t => t.toLowerCase().includes(s)) ||
+          (questionSourceMap[r.question_id] || '').toLowerCase().includes(s)
+        );
+      }
+      return true;
+    });
+    return [...filtered].sort((a, b) => {
+      if (filterDate === 'Oldest First')
+        return new Date(a.created_at) - new Date(b.created_at);
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+  }, [rows, filterCorrect, filterTopic, filterDiff, filterType, filterSource, filterDate, search, questionSourceMap]);
 
   useEffect(() => {
     if (!authUser) return;
@@ -408,7 +416,7 @@ function HistoryPage({ authUser, allQuestions, sessionAnswers, onOpenQuestion, n
         (voteRows || []).forEach(v => { counts[v.solution_id] = (counts[v.solution_id] || 0) + 1; });
         setMySolutions(rows.map(s => ({ ...s, upvotes: counts[s.id] || 0 })));
       });
-  }, [authUser]);
+  }, [authUser?.id]);
 
 
   if (loading) return (
@@ -423,48 +431,6 @@ function HistoryPage({ authUser, allQuestions, sessionAnswers, onOpenQuestion, n
       <p className="text-slate-400 text-sm mt-1">Make sure the attempts table exists in Supabase.</p>
     </div>
   );
-
-  // ── filtering & sorting ────────────────────────────────────────────────────
-  const now = new Date();
-  const filtered = rows.filter(r => {
-    if (filterCorrect === 'Correct Only'   && !r.is_correct) return false;
-    if (filterCorrect === 'Incorrect Only' &&  r.is_correct) return false;
-    if (filterTopic !== 'All Topics') {
-      const rowColumn = getColumnCategory(r);
-      if (['Column 1','Column 2','Column 3'].includes(filterTopic)) {
-        if (rowColumn !== filterTopic) return false;
-      } else if (r.topic !== filterTopic) return false;
-    }
-    if (filterDiff  !== 'All Difficulties' && r.difficulty !== filterDiff) return false;
-    if (filterType !== 'All Types' && getSourceType(questionSourceMap[r.question_id] || '') !== filterType) return false;
-    if (filterSource !== 'All Sources' && (questionSourceMap[r.question_id] || '') !== filterSource) return false;
-    if (filterDate === 'Today') {
-      if (new Date(r.created_at).toDateString() !== now.toDateString()) return false;
-    } else if (filterDate === 'Last 7 Days') {
-      const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 7);
-      if (new Date(r.created_at) < cutoff) return false;
-    } else if (filterDate === 'Last 30 Days') {
-      const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30);
-      if (new Date(r.created_at) < cutoff) return false;
-    }
-    if (search.trim()) {
-      const s = search.toLowerCase();
-      return (
-        (r.question_title || '').toLowerCase().includes(s) ||
-        (r.question_text  || '').toLowerCase().includes(s) ||
-        (r.topic          || '').toLowerCase().includes(s) ||
-        (r.tags           || []).some(t => t.toLowerCase().includes(s)) ||
-        (questionSourceMap[r.question_id] || '').toLowerCase().includes(s)
-      );
-    }
-    return true;
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
-    if (filterDate === 'Oldest First')
-      return new Date(a.created_at) - new Date(b.created_at);
-    return new Date(b.created_at) - new Date(a.created_at);
-  });
 
   const findQ = (row) => {
     const q = allQuestions.find(x => x.id === row.question_id);
