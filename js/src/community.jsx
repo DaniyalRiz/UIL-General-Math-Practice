@@ -79,7 +79,7 @@ export function ReportIssueModal({ q, onClose }) {
 
 
 export function CommunitySolutions({ q, answered }) {
-  const { authUser } = useApp();
+  const { authUser, openAuth } = useApp();
   const [open, setOpen] = useState(false);
   const [solutions, setSolutions] = useState([]);
   const [votes, setVotes] = useState([]);
@@ -247,7 +247,7 @@ export function CommunitySolutions({ q, answered }) {
             </div>
           ) : (
             <p className="text-sm text-slate-500 dark:text-slate-400 pt-1">
-              <a href="./index.html" className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</a> to post a community solution.
+              <button onClick={()=>openAuth('signin')} className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</button> to post a community solution.
             </p>
           )}
 

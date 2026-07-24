@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { getColumnCategory, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText } from '../constants.js';
 import { MathText, DiffPill, Dropdown } from './hooks.jsx';
+import { useApp } from './appContext.jsx';
 import { computeDayStreak } from '../utils.js';
 
 // ── Weekly trend: accuracy line over attempt-volume bars, last 8 weeks ───────
@@ -143,6 +144,7 @@ function WeeklyTrend({ attempts }) {
 }
 
 export function AnalyticsPage({ authUser, attempts, attemptsError }) {
+  const { openAuth } = useApp();
   // Shared attempt history owned by App (one fetch per login). null = still loading.
   const data = attempts;
 
@@ -305,7 +307,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
       {!authUser && (
         <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <a href="./index.html" className="font-semibold underline">Sign in</a> to save your progress.</span>
+          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <button onClick={()=>openAuth('signin')} className="font-semibold underline">Sign in</button> to save your progress.</span>
         </div>
       )}
       <div className="mb-6 flex items-start justify-between gap-4">
@@ -455,6 +457,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
 }
 
 export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, onOpenQuestion, navigateTab }) {
+  const { openAuth } = useApp();
   // Shared attempt history owned by App (one fetch per login). null = still loading.
   const rows = attempts || [];
   const loading = authUser && attempts === null;
@@ -596,7 +599,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
       {!authUser && (
         <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <a href="./index.html" className="font-semibold underline">Sign in</a> to save your history.</span>
+          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <button onClick={()=>openAuth('signin')} className="font-semibold underline">Sign in</button> to save your history.</span>
         </div>
       )}
       <div className="mb-6">

@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { sortSources, AVATAR_COLORS } from '../constants.js';
 import { Dropdown, useSupabaseQuery } from './hooks.jsx';
+import { useApp } from './appContext.jsx';
 
 const LB_DAY_OPTIONS   = ['All Time', 'Last 30 Days', 'Last 7 Days'];
 const LB_TOPIC_OPTIONS = ['All Topics', 'Algebra 1 & 2', 'Geometry', 'Precalculus', 'AP Calculus', 'AP Statistics'];
@@ -50,6 +51,7 @@ function LBRankBadge({ rank }) {
 }
 
 export function LeaderboardPage({ authUser, questions }) {
+  const { openAuth } = useApp();
   const [dayFilter, setDayFilter]           = useState('All Time');
   const [topicFilter, setTopicFilter]       = useState('All Topics');
   const [diffFilter, setDiffFilter]         = useState('All Difficulties');
@@ -92,7 +94,7 @@ export function LeaderboardPage({ authUser, questions }) {
       {!authUser && (
         <div className="mb-5 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
           <p className="text-sm text-blue-800 dark:text-blue-200">Sign in to appear on the leaderboard and track your rank.</p>
-          <a href="./index.html" className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">Sign In</a>
+          <button onClick={()=>openAuth('signin')} className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">Sign In</button>
         </div>
       )}
 

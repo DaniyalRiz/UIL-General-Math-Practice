@@ -5,6 +5,7 @@ import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSo
 import { updateUserStatsOnly, cropAndResizeAvatar, computeDayStreak } from '../utils.js';
 import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown } from './hooks.jsx';
 import { AppContext, useApp } from './appContext.jsx';
+import { AuthModal } from './authModal.jsx';
 import { AnalyticsPage, HistoryPage } from './analytics.jsx';
 import { ProblemRow, ProblemView } from './problemView.jsx';
 import { LeaderboardPage } from './leaderboard.jsx';
@@ -484,6 +485,10 @@ function App() {
   const [dark, toggleTheme] = useTheme();
   const [authUser, setAuthUser] = useState(null);
   const [tab, setTab] = useLocalStorage('current_tab', 'problems'); // 'problems' | 'analytics' | 'history' | 'admin'
+  // null when closed, otherwise the tab the modal opens on: 'signin' | 'signup'
+  const [authModalTab, setAuthModalTab] = useState(null);
+  const openAuth = (t = 'signin') => setAuthModalTab(t);
+  const closeAuth = () => setAuthModalTab(null);
 
   // Auth state listener — use getSession() which reliably restores persisted sessions
   useEffect(() => {
@@ -492,6 +497,7 @@ function App() {
     });
     const { data: { subscription } } = _supabase.auth.onAuthStateChange((_e, session) => {
       setAuthUser(session?.user ?? null);
+      if (session) setAuthModalTab(null); // covers the OAuth round trip as well as password sign-in
       if (!session) {
         setQStats({});
         setBookmarks([]);
@@ -962,8 +968,9 @@ function App() {
   }
 
   return (
-    <AppContext.Provider value={{ authUser, navigateTab, requestOpenById }}>
+    <AppContext.Provider value={{ authUser, navigateTab, requestOpenById, openAuth }}>
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+      {authModalTab && <AuthModal initialTab={authModalTab} onClose={closeAuth} />}
       {/* NAV */}
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-1 sm:gap-4">
@@ -1052,10 +1059,10 @@ function App() {
                 onUsedRecommendedPractice={markUsedRecommendedPractice}
                 masteryStats={masteryStats} totalQuestions={totalQuestions} />
             ) : (
-              <a href="./index.html"
+              <button onClick={()=>openAuth('signin')}
                 className="text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors whitespace-nowrap">
                 Sign In
-              </a>
+              </button>
             )}
           </div>
         </div>

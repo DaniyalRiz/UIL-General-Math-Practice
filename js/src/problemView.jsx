@@ -44,7 +44,7 @@ export function ProblemRow({ q, n, onOpen, status }) {
 // Rendered once here, then placed inside a mobile (lg:hidden) and a desktop
 // (hidden lg:flex) wrapper by ProblemView, instead of being duplicated.
 function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, deleteNote, notesSaving, similarQuestions }) {
-  const { authUser, requestOpenById } = useApp();
+  const { authUser, requestOpenById, openAuth } = useApp();
   return (
     <>
       {/* History */}
@@ -100,7 +100,7 @@ function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, 
           </div>
         ) : (
           <div className="px-4 py-3">
-            <p className="text-xs text-slate-400 dark:text-slate-500"><a href="./index.html" className="text-blue-500 hover:underline">Sign in</a> to add and save notes.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500"><button onClick={()=>openAuth('signin')} className="text-blue-500 hover:underline">Sign in</button> to add and save notes.</p>
           </div>
         )}
       </div>
