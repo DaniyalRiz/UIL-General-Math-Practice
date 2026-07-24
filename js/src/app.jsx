@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'rea
 import { createRoot } from 'react-dom/client';
 import { _supabase } from '../supabaseClient.js';
 import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
-import { updateUserStatsOnly, cropAndResizeAvatar } from '../utils.js';
+import { updateUserStatsOnly, cropAndResizeAvatar, computeDayStreak } from '../utils.js';
 import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown } from './hooks.jsx';
 import { AnalyticsPage, HistoryPage } from './analytics.jsx';
 import { ProblemRow, ProblemView } from './problemView.jsx';
@@ -279,7 +279,7 @@ function ReportBugPage({ authUser, navigateTab }) {
   );
 }
 
-function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, setPage, navigateTab, onUsedRecommendedPractice, masteryStats, totalQuestions }) {
+function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, missesCount, setPage, navigateTab, onUsedRecommendedPractice, masteryStats, totalQuestions }) {
   const [open, setOpen] = useState(false);
   const avatarUrl = authUser?.user_metadata?.custom_avatar_url || null;
   const menuRef = useRef(null);
@@ -350,6 +350,18 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="recommended" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
             Recommended Practice
+          </button>
+          <button onClick={() => {
+              setTab("problems");
+              setRecommendedMode(false);
+              setView(v=>(v==="misses" && tab==="problems")?"list":"misses");
+              setPage(1);
+              setOpen(false);
+            }}
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="misses" ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <span className="flex-1">Redo Misses</span>
+            {missesCount > 0 && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400">{missesCount}</span>}
           </button>
           <button onClick={() => {
               setTab("problems");
@@ -499,6 +511,8 @@ function App() {
     if (serverAttempts === null) return null;
     return [...sessionAnswers, ...serverAttempts];
   }, [authUser, serverAttempts, sessionAnswers]);
+
+  const dayStreak = useMemo(() => computeDayStreak(allAttempts || []), [allAttempts]);
 
   const loadMasteryStats = async () => {
     if (!authUser) return;
@@ -691,6 +705,33 @@ function App() {
 
     return new Set(scored.sort((a, b) => b.score - a.score).slice(0, REC_LIST_SIZE).map(x => x.q.id));
   }, [questions, qStats]);
+
+  // Redo Misses queue: every question whose most recent attempt was wrong.
+  // One later correct answer clears it (mastered questions included -- a miss
+  // is a miss). Ordered by miss count, then most recent miss. allAttempts is
+  // newest-first, so the first row seen per question is its latest result.
+  const missedQueue = useMemo(() => {
+    const source = allAttempts;
+    if (!source || !source.length || !questions.length) return [];
+    const latestCorrect = {};
+    const missCount = {};
+    const lastMissAt = {};
+    for (const r of source) {
+      const qid = r.question_id;
+      if (latestCorrect[qid] === undefined) latestCorrect[qid] = !!r.is_correct;
+      if (!r.is_correct) {
+        missCount[qid] = (missCount[qid] || 0) + 1;
+        const t = new Date(r.created_at).getTime();
+        if (!lastMissAt[qid] || t > lastMissAt[qid]) lastMissAt[qid] = t;
+      }
+    }
+    const byId = new Map(questions.map(q => [q.id, q]));
+    return Object.keys(latestCorrect)
+      .filter(qid => latestCorrect[qid] === false)
+      .map(qid => byId.get(Number(qid)))
+      .filter(Boolean)
+      .sort((a, b) => (missCount[b.id] - missCount[a.id]) || (lastMissAt[b.id] - lastMissAt[a.id]));
+  }, [allAttempts, questions]);
 
   const filtered = useMemo(() => questions.filter(q => {
     if (recommendedMode && !recommendedIds.has(q.id)) return false;
@@ -908,11 +949,18 @@ function App() {
           </div>
           {/* Right: actions */}
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {dayStreak >= 1 && (
+              <span title={`You've practiced ${dayStreak} day${dayStreak !== 1 ? 's' : ''} in a row`}
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold whitespace-nowrap">
+                <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                {dayStreak}-day streak
+              </span>
+            )}
             {authUser ? (
               <ProfileMenu authUser={authUser} dark={dark} toggleTheme={toggleTheme} signOut={signOut}
                 view={view} setView={setView} tab={tab} setTab={setTab}
                 recommendedMode={recommendedMode} setRecommendedMode={setRecommendedMode}
-                bookmarksCount={bookmarks.length} setPage={setPage} navigateTab={navigateTab}
+                bookmarksCount={bookmarks.length} missesCount={missedQueue.length} setPage={setPage} navigateTab={navigateTab}
                 onUsedRecommendedPractice={markUsedRecommendedPractice}
                 masteryStats={masteryStats} totalQuestions={totalQuestions} />
             ) : (
@@ -1018,6 +1066,56 @@ function App() {
                 const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
                 return <ProblemRow key={q.id} q={q} n={i+1} status={status}
                   onOpen={()=>openProblem(filtered.findIndex(x=>x.id===q.id))} />;
+              })}
+            </div>
+          )}
+        </div>
+      ) : view === "misses" ? (
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Redo Misses</h1>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">{missedQueue.length} problem{missedQueue.length!==1?"s":""} to clear</p>
+            </div>
+            <button onClick={() => setView('list')} title="Close"
+              className="mt-1 p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 p-5 mb-6">
+            <h2 className="font-bold text-rose-900 dark:text-rose-200 mb-1">How this queue works</h2>
+            <p className="text-sm text-rose-800 dark:text-rose-300 leading-relaxed">
+              Every question whose most recent attempt was wrong lands here. Answer it correctly once and it leaves the queue. The questions you have missed most often come first.{!authUser && " As a guest, only misses from this session are tracked."}
+            </p>
+          </div>
+
+          {authUser && allAttempts === null ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : missedQueue.length === 0 ? (
+            <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400">
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Nothing to redo</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5">Miss a question and it will appear here until you answer it correctly.</p>
+              <button onClick={() => setView('list')}
+                className="inline-block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+                Browse Problems
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+              <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
+              </div>
+              {missedQueue.map((q,i) => {
+                const rec = qStats[q.id];
+                const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
+                return <ProblemRow key={q.id} q={q} n={i+1} status={status}
+                  onOpen={()=>{ const idx=filtered.findIndex(x=>x.id===q.id); if(idx===-1){setTopic("All Topics");setDiff("All Difficulties");setSearch(""); setTimeout(()=>openProblem(questions.findIndex(x=>x.id===q.id)),50);} else openProblem(idx); }} />;
               })}
             </div>
           )}

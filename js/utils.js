@@ -47,3 +47,17 @@ export async function cropAndResizeAvatar(file, maxDim = MAX_AVATAR_DIMENSION) {
   if (!blob) return file;
   return new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
 }
+
+// Consecutive practice days ending today -- or yesterday, so the streak isn't
+// broken just because today's practice hasn't happened yet.
+export function computeDayStreak(rows) {
+  const days = new Set((rows || []).map(r => new Date(r.created_at).toDateString()));
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    if (days.has(d.toDateString())) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}

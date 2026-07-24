@@ -2,6 +2,145 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { getColumnCategory, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText } from '../constants.js';
 import { MathText, DiffPill, Dropdown } from './hooks.jsx';
+import { computeDayStreak } from '../utils.js';
+
+// ── Weekly trend: accuracy line over attempt-volume bars, last 8 weeks ───────
+// Two stacked panels sharing the week axis instead of a dual-axis chart
+// (accuracy % and attempt counts are different scales). Palette validated for
+// CVD/contrast in both modes: blue-600/blue-500 line, teal-600 bars.
+function WeeklyTrend({ attempts }) {
+  const [hover, setHover] = useState(null);
+
+  const weeks = useMemo(() => {
+    const weekStartOf = (d) => {
+      const dt = new Date(d);
+      dt.setHours(0, 0, 0, 0);
+      dt.setDate(dt.getDate() - ((dt.getDay() + 6) % 7)); // Monday start
+      return dt;
+    };
+    const buckets = new Map();
+    (attempts || []).forEach(r => {
+      const key = weekStartOf(r.created_at).getTime();
+      const b = buckets.get(key) || { attempts: 0, correct: 0 };
+      b.attempts += 1;
+      if (r.is_correct) b.correct += 1;
+      buckets.set(key, b);
+    });
+    const thisWeek = weekStartOf(new Date());
+    const out = [];
+    for (let i = 7; i >= 0; i--) {
+      const start = new Date(thisWeek);
+      start.setDate(start.getDate() - 7 * i);
+      const b = buckets.get(start.getTime()) || { attempts: 0, correct: 0 };
+      out.push({
+        label: start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        attempts: b.attempts,
+        correct: b.correct,
+        accuracy: b.attempts ? Math.round(100 * b.correct / b.attempts) : null,
+      });
+    }
+    return out;
+  }, [attempts]);
+
+  if (!weeks.some(w => w.attempts > 0)) return null;
+
+  const n = weeks.length;
+  const maxAttempts = Math.max(1, ...weeks.map(w => w.attempts));
+  const pts = weeks.map((w, i) => w.accuracy === null ? null : { x: (i + 0.5) / n * 100, y: 100 - w.accuracy, i });
+  // Split the line into segments across weeks with no attempts (gaps, not zeros).
+  const segments = [];
+  let run = [];
+  pts.forEach(p => { if (p) run.push(p); else { if (run.length) segments.push(run); run = []; } });
+  if (run.length) segments.push(run);
+  const lastPt = [...pts].reverse().find(Boolean);
+  const hoverAlign = (i) => i <= 1 ? 'left-0' : i >= n - 2 ? 'right-0' : 'left-1/2 -translate-x-1/2';
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm mb-8">
+      <div className="flex items-baseline justify-between mb-4">
+        <h2 className="font-bold text-slate-800 dark:text-slate-100">Weekly Trend</h2>
+        <span className="text-xs text-slate-400 dark:text-slate-500">Last 8 weeks</span>
+      </div>
+
+      <div className="relative">
+        {/* Accuracy panel */}
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Accuracy</p>
+        <div className="relative h-28 mb-1">
+          {[0, 50, 100].map(v => (
+            <div key={v} className="absolute inset-x-0 border-t border-slate-100 dark:border-slate-800" style={{ top: `${100 - v}%` }}>
+              <span className={`absolute left-0 text-[10px] text-slate-400 dark:text-slate-500 tabular-nums ${v === 100 ? 'pt-px' : '-translate-y-full pb-px'}`}>{v}%</span>
+            </div>
+          ))}
+          <svg aria-hidden="true" className="absolute inset-0 w-full h-full text-blue-600 dark:text-blue-500 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {segments.map((seg, si) => (
+              <polyline key={si} points={seg.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="currentColor"
+                strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+            ))}
+          </svg>
+          {pts.filter(Boolean).map(p => (
+            <span key={p.i} aria-hidden="true"
+              className={`absolute w-2 h-2 rounded-full ring-2 ring-white dark:ring-slate-900 ${hover === p.i ? 'bg-blue-700 dark:bg-blue-400 scale-125' : 'bg-blue-600 dark:bg-blue-500'}`}
+              style={{ left: `${p.x}%`, top: `${p.y}%`, transform: 'translate(-50%,-50%)' }} />
+          ))}
+          {lastPt && (
+            <span className="absolute -translate-x-1/2 text-xs font-bold text-slate-700 dark:text-slate-200 tabular-nums"
+              style={{ left: `${lastPt.x}%`, top: `${lastPt.y}%`, marginTop: '-1.4rem' }}>
+              {weeks[lastPt.i].accuracy}%
+            </span>
+          )}
+        </div>
+
+        {/* Attempts panel */}
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 mt-4">Attempts</p>
+        <div className="flex items-end gap-0.5 h-16 border-b border-slate-100 dark:border-slate-800">
+          {weeks.map((w, i) => (
+            <div key={i} className="flex-1 flex items-end justify-center h-full">
+              <div className={`w-full max-w-8 rounded-t ${hover === i ? 'bg-teal-700 dark:bg-teal-500' : 'bg-teal-600'}`}
+                style={{ height: w.attempts ? `${Math.max(4, w.attempts / maxAttempts * 100)}%` : '0' }} />
+            </div>
+          ))}
+        </div>
+
+        {/* X labels */}
+        <div className="flex mt-1.5">
+          {weeks.map((w, i) => (
+            <span key={i} className={`flex-1 text-center text-[10px] text-slate-400 dark:text-slate-500 ${i % 2 ? 'invisible sm:visible' : ''}`}>{w.label}</span>
+          ))}
+        </div>
+
+        {/* Hover bands + tooltip, spanning both panels */}
+        <div className="absolute inset-0 flex" onMouseLeave={() => setHover(null)}>
+          {weeks.map((w, i) => (
+            <div key={i} className={`flex-1 relative ${hover === i ? 'bg-slate-500/5 dark:bg-slate-400/5 rounded' : ''}`}
+              onMouseEnter={() => setHover(i)}>
+              {hover === i && (
+                <div className={`absolute top-0 ${hoverAlign(i)} z-10 pointer-events-none whitespace-nowrap rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 shadow-lg text-xs`}>
+                  <p className="font-bold text-slate-700 dark:text-slate-200 mb-0.5">Week of {w.label}</p>
+                  {w.attempts
+                    ? <>
+                        <p className="text-slate-600 dark:text-slate-300">{w.accuracy}% accuracy ({w.correct}/{w.attempts})</p>
+                        <p className="text-slate-400 dark:text-slate-500">{w.attempts} attempt{w.attempts !== 1 ? 's' : ''}</p>
+                      </>
+                    : <p className="text-slate-400 dark:text-slate-500">No attempts</p>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <table className="sr-only">
+        <caption>Weekly accuracy and attempts, last 8 weeks</caption>
+        <thead><tr><th>Week of</th><th>Accuracy</th><th>Correct</th><th>Attempts</th></tr></thead>
+        <tbody>
+          {weeks.map((w, i) => (
+            <tr key={i}><td>{w.label}</td><td>{w.accuracy === null ? 'No attempts' : `${w.accuracy}%`}</td><td>{w.correct}</td><td>{w.attempts}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 export function AnalyticsPage({ authUser, attempts, attemptsError }) {
   // Shared attempt history owned by App (one fetch per login). null = still loading.
@@ -69,15 +208,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
     const fastest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.avgMs<=b.avgMs?a:b) : null;
     const slowest   = topicsWithData.length ? topicsWithData.reduce((a,b) => a.avgMs>=b.avgMs?a:b) : null;
 
-    // streak
-    const days = [...new Set(rows.map(r => new Date(r.created_at).toDateString()))];
-    let streak = 0;
-    const today = new Date();
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(today); d.setDate(d.getDate() - i);
-      if (days.includes(d.toDateString())) streak++;
-      else if (i > 0) break;
-    }
+    const streak = computeDayStreak(rows);
 
     return { total, correct, accuracy, totalMs, avgMs, byTopic, byDiff, byColumn, topicsWithData, strongest, weakest, fastest, slowest, streak };
   }, [data]);
@@ -230,6 +361,8 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
           </div>
         );
       })()}
+
+      <WeeklyTrend attempts={data} />
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* ── By Topic ── */}
