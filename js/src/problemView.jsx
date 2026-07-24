@@ -475,12 +475,13 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                 <span className="hidden sm:inline">Report</span>
               </button>
-              <button onClick={onToggleBookmark} title={isBookmarked ? "Remove bookmark" : "Bookmark for review"}
+              <button onClick={onToggleBookmark} title={isBookmarked ? "Remove from Review Later" : "Add to Review Later"}
                 className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all whitespace-nowrap
                   ${isBookmarked
                     ? "bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-500/15 dark:border-amber-500/40 dark:text-amber-400"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-amber-300 hover:text-amber-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-amber-500 dark:hover:text-amber-400"}`}>
-                <span>{isBookmarked ? "Saved" : "Review Later"}</span>
+                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill={isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                <span>Review Later</span>
               </button>
               <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl leading-none transition-colors">×</button>
             </div>

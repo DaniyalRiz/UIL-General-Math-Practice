@@ -3,6 +3,21 @@ import { _supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../supabaseClient.js
 import { TOPICS, getColumnCategory, DIFFICULTIES, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText, ADMIN_EMAILS, ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_IMAGE_DIMENSION } from '../constants.js';
 import { MathText, useLocalStorage, DiffPill, Dropdown } from './hooks.jsx';
 
+// Shared report-row mutations. The three admin panels each manage a report list
+// against a different table (question_reports / bug_reports) and state setter,
+// so both are passed in.
+async function updateReportRowStatus(table, setRows, reportId, status) {
+  const { error } = await _supabase.from(table).update({ status }).eq('id', reportId);
+  if (error) { alert(error.message || 'Could not update report.'); return; }
+  setRows(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
+}
+async function deleteReportRow(table, setRows, reportId) {
+  if (!confirm('Delete this report?')) return;
+  const { error } = await _supabase.from(table).delete().eq('id', reportId);
+  if (error) { alert(error.message || 'Could not delete report.'); return; }
+  setRows(prev => prev.filter(r => r.id !== reportId));
+}
+
 function AdminUserActivity({ authUser }) {
   const [loading, setLoading] = useState(true);
   const [attempts, setAttempts] = useState([]);
@@ -118,27 +133,8 @@ function AdminUserActivity({ authUser }) {
   const slowest = [...questionStats].filter(q=>q.attempts>=2).sort((a,b)=>b.avgMs-a.avgMs).slice(0,10);
   const recentAttempts = attempts.slice(0,25);
 
-  const updateReportStatus = async (reportId, status) => {
-    const { error } = await _supabase
-      .from('question_reports')
-      .update({ status })
-      .eq('id', reportId);
-    if (error) {
-      alert(error.message || 'Could not update report.');
-      return;
-    }
-    setReports(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
-  };
-
-  const deleteReport = async (reportId) => {
-    if (!confirm('Delete this report?')) return;
-    const { error } = await _supabase.from('question_reports').delete().eq('id', reportId);
-    if (error) {
-      alert(error.message || 'Could not delete report.');
-      return;
-    }
-    setReports(prev => prev.filter(r => r.id !== reportId));
-  };
+  const updateReportStatus = (reportId, status) => updateReportRowStatus('question_reports', setReports, reportId, status);
+  const deleteReport = (reportId) => deleteReportRow('question_reports', setReports, reportId);
 
   const Card = ({label,value,sub}) => (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
@@ -485,18 +481,8 @@ function AdminReports({ authUser }) {
     });
   }, [isAdmin]);
 
-  const updateStatus = async (reportId, status) => {
-    const { error } = await _supabase.from('question_reports').update({ status }).eq('id', reportId);
-    if (error) { alert(error.message); return; }
-    setReports(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
-  };
-
-  const deleteReport = async (reportId) => {
-    if (!confirm('Delete this report?')) return;
-    const { error } = await _supabase.from('question_reports').delete().eq('id', reportId);
-    if (error) { alert(error.message); return; }
-    setReports(prev => prev.filter(r => r.id !== reportId));
-  };
+  const updateStatus = (reportId, status) => updateReportRowStatus('question_reports', setReports, reportId, status);
+  const deleteReport = (reportId) => deleteReportRow('question_reports', setReports, reportId);
 
   if (!isAdmin) return null;
   if (loading) return <div className="flex items-center justify-center py-24"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>;
@@ -592,31 +578,10 @@ function AdminBugReports({ authUser }) {
     });
   }, [isAdmin]);
 
-  const updateBugStatus = async (reportId, status) => {
-    const { error } = await _supabase.from('bug_reports').update({ status }).eq('id', reportId);
-    if (error) { alert(error.message); return; }
-    setReports(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
-  };
-
-  const deleteBugReport = async (reportId) => {
-    if (!confirm('Delete this report?')) return;
-    const { error } = await _supabase.from('bug_reports').delete().eq('id', reportId);
-    if (error) { alert(error.message); return; }
-    setReports(prev => prev.filter(r => r.id !== reportId));
-  };
-
-  const updateQuestionReportStatus = async (reportId, status) => {
-    const { error } = await _supabase.from('question_reports').update({ status }).eq('id', reportId);
-    if (error) { alert(error.message); return; }
-    setQuestionReports(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
-  };
-
-  const deleteQuestionReport = async (reportId) => {
-    if (!confirm('Delete this report?')) return;
-    const { error } = await _supabase.from('question_reports').delete().eq('id', reportId);
-    if (error) { alert(error.message); return; }
-    setQuestionReports(prev => prev.filter(r => r.id !== reportId));
-  };
+  const updateBugStatus = (reportId, status) => updateReportRowStatus('bug_reports', setReports, reportId, status);
+  const deleteBugReport = (reportId) => deleteReportRow('bug_reports', setReports, reportId);
+  const updateQuestionReportStatus = (reportId, status) => updateReportRowStatus('question_reports', setQuestionReports, reportId, status);
+  const deleteQuestionReport = (reportId) => deleteReportRow('question_reports', setQuestionReports, reportId);
 
   if (!isAdmin) return null;
   if (loading) return <div className="flex items-center justify-center py-24"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div>;
@@ -1579,16 +1544,18 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     needsImage: draftRows.filter(r => r.needs_image).length,
   }), [draftRows]);
 
-  const publishApproved = async () => {
-    const approved = draftRows.filter(r => r._status === 'approved');
-    if (!approved.length) {
-      setPublishMessage('No approved questions to publish.');
+  // publishApproved and publishAll differ only in which drafts they select;
+  // the ~130 lines of validation, id assignment, image upload, upsert, and
+  // receipt logic below are identical, so they share this one implementation.
+  const publishRows = async (rows, emptyMessage) => {
+    if (!rows.length) {
+      setPublishMessage(emptyMessage);
       return;
     }
 
     // Validate before writing anything.
     const errors = [];
-    approved.forEach(r => {
+    rows.forEach(r => {
       if (!r.question.trim()) errors.push(`"${r.title || 'Untitled'}": missing question text.`);
       const filledChoices = r.choices.filter(c => c && c.trim());
       if (filledChoices.length < 2) errors.push(`"${r.title || 'Untitled'}": needs at least 2 choices.`);
@@ -1612,7 +1579,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
 
     const rowsToUpsert = [];
     const idByKey = {};
-    for (const r of approved) {
+    for (const r of rows) {
       const id = nextId++;
       idByKey[r._key] = id;
 
@@ -1680,7 +1647,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
 
     // Keep the source draft_questions rows in sync so a page refresh doesn't
     // show already-published drafts as pending again.
-    const publishedDraftIds = approved.filter(r => r._draftId).map(r => r._draftId);
+    const publishedDraftIds = rows.filter(r => r._draftId).map(r => r._draftId);
     if (publishedDraftIds.length) {
       await _supabase.from('draft_questions').update({ review_status: 'published' }).in('id', publishedDraftIds);
     }
@@ -1695,7 +1662,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     // write one now purely as a publish receipt so it shows up under "View all
     // past imports" instead of leaving no trace at all. notified_at is set
     // immediately since the admin just reviewed and published this themselves.
-    const manualRows = approved.filter(r => !r._draftId);
+    const manualRows = rows.filter(r => !r._draftId);
     if (manualRows.length) {
       const label = manualRows[0].original_test || manualRows[0].source || 'Manual import';
       const now = new Date().toISOString();
@@ -1720,138 +1687,8 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     }
   };
 
-  const publishAll = async () => {
-    const toPublish = draftRows.filter(r => r._status !== 'published');
-    if (!toPublish.length) {
-      setPublishMessage('No questions to publish.');
-      return;
-    }
-
-    const errors = [];
-    toPublish.forEach(r => {
-      if (!r.question.trim()) errors.push(`"${r.title || 'Untitled'}": missing question text.`);
-      const filledChoices = r.choices.filter(c => c && c.trim());
-      if (filledChoices.length < 2) errors.push(`"${r.title || 'Untitled'}": needs at least 2 choices.`);
-      if (!r.answer.trim()) errors.push(`"${r.title || 'Untitled'}": missing correct answer.`);
-      if (!r.topic) errors.push(`"${r.title || 'Untitled'}": missing topic.`);
-    });
-    if (errors.length) {
-      setPublishMessage('Fix these before publishing: ' + errors.join(' '));
-      return;
-    }
-
-    setPublishing(true);
-    setPublishMessage('');
-
-    const { data: idRows } = await _supabase
-      .from('questions')
-      .select('id')
-      .order('id', { ascending: false })
-      .limit(1);
-    let nextId = idRows && idRows.length > 0 ? idRows[0].id + 1 : 1;
-
-    const rowsToUpsert = [];
-    const idByKey = {};
-    for (const r of toPublish) {
-      const id = nextId++;
-      idByKey[r._key] = id;
-
-      let imageUrl = r.image || null;
-      let imageAlt = r.image_alt || null;
-      const matchedImage = r.image_pending_filename ? imageMap[r.image_pending_filename] : null;
-      if (matchedImage) {
-        if (!ALLOWED_IMAGE_TYPES.includes(matchedImage.file.type)) {
-          setPublishing(false);
-          setPublishMessage(`"${r.title || 'Untitled'}": attached image must be PNG, JPEG, WEBP, or GIF.`);
-          return;
-        }
-        if (matchedImage.file.size > MAX_IMAGE_BYTES) {
-          setPublishing(false);
-          setPublishMessage(`"${r.title || 'Untitled'}": attached image is over 5 MB.`);
-          return;
-        }
-        const resizedImage = await resizeImageForUpload(matchedImage.file);
-        if (resizedImage.size > MAX_IMAGE_BYTES) {
-          setPublishing(false);
-          setPublishMessage(`"${r.title || 'Untitled'}": attached image is still too large after resizing.`);
-          return;
-        }
-        const ext = (resizedImage.name.split('.').pop() || 'png').toLowerCase();
-        const path = `${id}/question-${id}-${Date.now()}.${ext}`;
-        const { error: uploadErr } = await uploadWithSessionRetry('question-images', path, resizedImage,
-          { upsert: true, contentType: resizedImage.type });
-        if (uploadErr) {
-          setPublishing(false);
-          setPublishMessage(`"${r.title || 'Untitled'}": image upload failed — ${uploadErr.message}`);
-          return;
-        }
-        const { data: pub } = _supabase.storage.from('question-images').getPublicUrl(path);
-        imageUrl = pub.publicUrl;
-        imageAlt = imageAlt || (r.title ? `Image for ${r.title}` : `Image for question ${id}`);
-      }
-
-      rowsToUpsert.push({
-        id,
-        title: r.title || null,
-        topic: r.topic,
-        difficulty: r.difficulty,
-        source: r.source || null,
-        question: r.question,
-        choices: r.choices.filter(Boolean),
-        answer: r.answer,
-        explanation: r.explanation || null,
-        tags: r.tags,
-        date_added: new Date().toISOString().slice(0, 10),
-        original_test: r.original_test || r.source || null,
-        original_question_number: r.original_question_number ? Number(r.original_question_number) : null,
-        source_reference: r.source_reference || null,
-        image: imageUrl,
-        image_alt: imageAlt,
-      });
-    }
-
-    const { error } = await _supabase.from('questions').upsert(rowsToUpsert, { onConflict: 'id' });
-    setPublishing(false);
-
-    if (error) {
-      setPublishMessage('Publish failed — nothing was saved: ' + error.message);
-      return;
-    }
-
-    const publishedDraftIds = toPublish.filter(r => r._draftId).map(r => r._draftId);
-    if (publishedDraftIds.length) {
-      await _supabase.from('draft_questions').update({ review_status: 'published' }).in('id', publishedDraftIds);
-    }
-
-    setDraftRows(prev => prev.map(r =>
-      idByKey[r._key] != null ? { ...r, _status: 'published', id: idByKey[r._key] } : r
-    ));
-    setPublishMessage(`Published ${rowsToUpsert.length} question(s).`);
-
-    const manualRows = toPublish.filter(r => !r._draftId);
-    if (manualRows.length) {
-      const label = manualRows[0].original_test || manualRows[0].source || 'Manual import';
-      const now = new Date().toISOString();
-      await _supabase.from('import_batches').insert({
-        source_label: label,
-        original_test: label,
-        status: 'completed',
-        questions_extracted: manualRows.length,
-        started_at: now,
-        finished_at: now,
-        notified_at: now,
-        created_by: authUser?.id || null,
-      });
-      if (showAllBatches) {
-        _supabase
-          .from('import_batches')
-          .select('id, source_label, original_test, status, started_at, questions_extracted, source_pdf_path')
-          .in('status', ['completed', 'needs_attention'])
-          .order('started_at', { ascending: false })
-          .then(({ data }) => setAllBatches(data || []));
-      }
-    }
-  };
+  const publishApproved = () => publishRows(draftRows.filter(r => r._status === 'approved'), 'No approved questions to publish.');
+  const publishAll = () => publishRows(draftRows.filter(r => r._status !== 'published'), 'No questions to publish.');
 
   const isAdmin = authUser && ADMIN_EMAILS.includes(authUser.email || '');
   if (!isAdmin) {

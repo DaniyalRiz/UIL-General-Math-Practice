@@ -465,6 +465,10 @@ function App() {
   const [page, setPage] = useState(1);
   const [openIdx, setOpenIdx] = useState(null);
   const [openQuestionId, setOpenQuestionId] = useState(null);
+  // When opening a question by id that the current filters exclude, we clear the
+  // filters and stash the id here; an effect opens it deterministically once it
+  // reappears in `filtered` -- no setTimeout "wait and hope" races.
+  const [pendingOpenId, setPendingOpenId] = useState(null);
   const [view, setView] = useState("list");
   const [jumpValue, setJumpValue] = useState('');
   const [jumpActive, setJumpActive] = useState(null);
@@ -788,6 +792,33 @@ function App() {
     [missedQueue, topic, diff, search, typeFilter, sourceFilter]
   );
 
+  // Open a question by id from anywhere (History, Review Later, Redo Misses, the
+  // "similar problems" list). If the current filters already show it, open it
+  // now; otherwise switch to the plain problem list, clear the filters, and let
+  // the effect below open it once it lands in `filtered`.
+  const requestOpenById = (id) => {
+    setTab('problems');
+    const idx = filtered.findIndex(q => q.id === id);
+    if (idx !== -1) { openProblem(idx); return; }
+    if (!questions.some(q => q.id === id)) return; // unknown/unpublished — nothing to open
+    setRecommendedMode(false);
+    setView('list');
+    setTopic('All Topics');
+    setDiff('All Difficulties');
+    setTypeFilter('All Types');
+    setSourceFilter('All Sources');
+    setStatusFilter('All Status');
+    setSearch('');
+    setPage(1);
+    setPendingOpenId(id);
+  };
+
+  useEffect(() => {
+    if (pendingOpenId == null) return;
+    const idx = filtered.findIndex(q => q.id === pendingOpenId);
+    if (idx !== -1) { openProblem(idx); setPendingOpenId(null); }
+  }, [pendingOpenId, filtered]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageClamped = Math.min(page, totalPages);
   const pageItems = filtered.slice((pageClamped-1)*PAGE_SIZE, pageClamped*PAGE_SIZE);
@@ -1018,19 +1049,7 @@ function App() {
       ) : tab === 'analytics' ? (
         <AnalyticsPage authUser={authUser} attempts={allAttempts} attemptsError={attemptsError} />
       ) : tab === 'history' ? (
-        <HistoryPage authUser={authUser} allQuestions={questions} attempts={allAttempts} attemptsError={attemptsError} navigateTab={navigateTab} onOpenQuestion={(id)=>{
-          navigateTab('problems');
-          setRecommendedMode(false);
-          setTopic("All Topics");
-          setDiff("All Difficulties");
-          setSearch("");
-          setView("list");
-          setPage(1);
-          setTimeout(() => {
-            const idx = filtered.findIndex(q => q.id === id);
-            if (idx !== -1) openProblem(idx);
-          }, 80);
-        }} />
+        <HistoryPage authUser={authUser} allQuestions={questions} attempts={allAttempts} attemptsError={attemptsError} navigateTab={navigateTab} onOpenQuestion={requestOpenById} />
       ) : tab === 'admin' ? (
         <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-16 text-center text-sm text-slate-500">Loading admin panel…</div>}>
           <AdminQuestionManager authUser={authUser} />
@@ -1174,7 +1193,7 @@ function App() {
                 const rec = qStats[q.id];
                 const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
                 return <ProblemRow key={q.id} q={q} n={i+1} status={status}
-                  onOpen={()=>{ const idx=filtered.findIndex(x=>x.id===q.id); if(idx===-1){setTopic("All Topics");setDiff("All Difficulties");setSearch(""); setTimeout(()=>openProblem(questions.findIndex(x=>x.id===q.id)),50);} else openProblem(idx); }} />;
+                  onOpen={()=>requestOpenById(q.id)} />;
               })}
             </div>
           )}
@@ -1184,7 +1203,7 @@ function App() {
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Review Later</h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">{bookmarks.length} bookmarked problem{bookmarks.length!==1?"s":""}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">{bookmarks.length} problem{bookmarks.length!==1?"s":""} in Review Later</p>
             </div>
             <div className="flex items-center gap-2 mt-1 shrink-0">
               {bookmarks.length>0 && (
@@ -1201,8 +1220,8 @@ function App() {
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
               </div>
-              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No bookmarks yet</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5">Open any problem and tap the bookmark icon to save it here for later review.</p>
+              <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Nothing in Review Later yet</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5">Open any problem and tap Review Later to save it here.</p>
               <button onClick={() => setView('list')}
                 className="inline-block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
                 Browse Problems
@@ -1217,7 +1236,7 @@ function App() {
                 const rec = qStats[q.id];
                 const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
                 return <ProblemRow key={q.id} q={q} n={i+1} status={status}
-                  onOpen={()=>{ const idx=filtered.findIndex(x=>x.id===q.id); if(idx===-1){setTopic("All Topics");setDiff("All Difficulties");setSearch(""); setTimeout(()=>openProblem(questions.findIndex(x=>x.id===q.id)),50);} else openProblem(idx); }} />;
+                  onOpen={()=>requestOpenById(q.id)} />;
               })}
             </div>
           )}
@@ -1234,7 +1253,7 @@ function App() {
         <div className="flex flex-wrap items-center gap-3 mb-5">
           <div className="relative flex-1 min-w-[200px]">
             <input type="text" placeholder="Search problems…" value={search}
-              onChange={e=>{setSearch(e.target.value); setRecommendedMode(false); setView("list"); setPage(1);}}
+              onChange={e=>{setSearch(e.target.value); setPage(1);}}
               className="w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <Dropdown label="Status" value={statusFilter} options={["All Status","Unattempted","Correct","Incorrect"]} onChange={v=>onFilter(setStatusFilter,v)} />
@@ -1331,15 +1350,7 @@ function App() {
           onNext={()=>openProblem(Math.min(filtered.length-1,openIdx+1))}
           authUser={authUser}
           allQuestions={questions}
-          onOpenQuestion={(id)=>{
-            const idx = filtered.findIndex(x=>x.id===id);
-            if(idx!==-1){ openProblem(idx); }
-            else {
-              setTopic("All Topics"); setDiff("All Difficulties"); setSearch("");
-              const qIdx = questions.findIndex(x=>x.id===id);
-              if(qIdx!==-1) setTimeout(()=>openProblem(qIdx),50);
-            }
-          }}
+          onOpenQuestion={requestOpenById}
         />
         );
       })()}

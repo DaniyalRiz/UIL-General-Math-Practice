@@ -22,7 +22,7 @@ const getAchievementsDef = (totalQuestions, topicTotals) => [
     id: 'review_mindset',
     name: 'Review Mindset',
     icon: '🔖',
-    description: 'Bookmark at least one question for later.',
+    description: 'Add at least one question to Review Later.',
     numeric: false,
     check: (_s, bm) => bm > 0,
   },
