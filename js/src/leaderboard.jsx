@@ -1,8 +1,8 @@
 // ── Leaderboard ───────────────────────────────────────────────────────────────
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { sortSources, AVATAR_COLORS } from '../constants.js';
-import { Dropdown } from './hooks.jsx';
+import { Dropdown, useSupabaseQuery } from './hooks.jsx';
 
 const LB_DAY_OPTIONS   = ['All Time', 'Last 30 Days', 'Last 7 Days'];
 const LB_TOPIC_OPTIONS = ['All Topics', 'Algebra 1 & 2', 'Geometry', 'Precalculus', 'AP Calculus', 'AP Statistics'];
@@ -50,9 +50,6 @@ function LBRankBadge({ rank }) {
 }
 
 export function LeaderboardPage({ authUser, questions }) {
-  const [entries, setEntries]               = useState([]);
-  const [loading, setLoading]               = useState(true);
-  const [error, setError]                   = useState(null);
   const [dayFilter, setDayFilter]           = useState('All Time');
   const [topicFilter, setTopicFilter]       = useState('All Topics');
   const [diffFilter, setDiffFilter]         = useState('All Difficulties');
@@ -65,11 +62,7 @@ export function LeaderboardPage({ authUser, questions }) {
     return ['All Sources', ...sources];
   }, [questions]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
+  const { data: entriesData, loading, error } = useSupabaseQuery(() => {
     const pDays   = dayFilter    === 'Last 30 Days'    ? 30 : dayFilter === 'Last 7 Days' ? 7 : null;
     const pTopic  = topicFilter  === 'All Topics'       ? null : topicFilter;
     const pDiff   = diffFilter   === 'All Difficulties' ? null : diffFilter;
@@ -80,15 +73,9 @@ export function LeaderboardPage({ authUser, questions }) {
     if (pType)   params.p_source_type = pType;
     if (pSource) params.p_source = pSource;
 
-    _supabase.rpc('get_leaderboard', params).then(({ data, error: err }) => {
-      if (cancelled) return;
-      if (err) { setError(err.message); }
-      else     { setEntries(data || []); }
-      setLoading(false);
-    });
-
-    return () => { cancelled = true; };
+    return _supabase.rpc('get_leaderboard', params);
   }, [dayFilter, topicFilter, diffFilter, typeFilter, sourceFilter]);
+  const entries = entriesData || [];
 
   const myEntry = entries.find(e => e.is_current_user);
 

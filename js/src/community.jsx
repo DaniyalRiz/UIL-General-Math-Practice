@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { MathText } from './hooks.jsx';
+import { useApp } from './appContext.jsx';
 
-export function ReportIssueModal({ q, authUser, onClose }) {
+export function ReportIssueModal({ q, onClose }) {
+  const { authUser } = useApp();
   const ISSUE_TYPES = ['Wrong answer','Wrong explanation','Typo','Image missing','Formatting issue','Other'];
   const [issueType, setIssueType] = useState('Wrong answer');
   const [details, setDetails] = useState('');
@@ -76,7 +78,8 @@ export function ReportIssueModal({ q, authUser, onClose }) {
 }
 
 
-export function CommunitySolutions({ q, authUser, answered }) {
+export function CommunitySolutions({ q, answered }) {
+  const { authUser } = useApp();
   const [open, setOpen] = useState(false);
   const [solutions, setSolutions] = useState([]);
   const [votes, setVotes] = useState([]);

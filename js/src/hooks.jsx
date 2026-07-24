@@ -3,6 +3,25 @@ import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { DIFF_PILL } from '../constants.js';
 
+// Runs a single Supabase query and tracks { data, loading, error }, guarding
+// against a stale response when deps change or the component unmounts. For
+// simple single-query loads only -- effects that fan out to several queries or
+// set multiple pieces of state stay hand-written.
+export function useSupabaseQuery(queryFn, deps) {
+  const [state, setState] = useState({ data: null, loading: true, error: null });
+  useEffect(() => {
+    let cancelled = false;
+    setState(s => (s.loading ? s : { ...s, loading: true }));
+    Promise.resolve(queryFn()).then(({ data, error }) => {
+      if (cancelled) return;
+      setState({ data: data ?? null, loading: false, error: error ? (error.message || String(error)) : null });
+    });
+    return () => { cancelled = true; };
+    // deps is the caller-supplied dependency array for the query.
+  }, deps);
+  return state;
+}
+
 const escapeHtml = (s) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

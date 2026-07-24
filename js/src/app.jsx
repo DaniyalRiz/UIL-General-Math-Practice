@@ -4,6 +4,7 @@ import { _supabase } from '../supabaseClient.js';
 import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
 import { updateUserStatsOnly, cropAndResizeAvatar, computeDayStreak } from '../utils.js';
 import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown } from './hooks.jsx';
+import { AppContext, useApp } from './appContext.jsx';
 import { AnalyticsPage, HistoryPage } from './analytics.jsx';
 import { ProblemRow, ProblemView } from './problemView.jsx';
 import { LeaderboardPage } from './leaderboard.jsx';
@@ -294,7 +295,8 @@ function ReportBugPage({ authUser, navigateTab }) {
   );
 }
 
-function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, missesCount, dayStreak, setPage, navigateTab, onUsedRecommendedPractice, masteryStats, totalQuestions }) {
+function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, recommendedMode, setRecommendedMode, bookmarksCount, missesCount, dayStreak, setPage, onUsedRecommendedPractice, masteryStats, totalQuestions }) {
+  const { authUser, navigateTab } = useApp();
   const [open, setOpen] = useState(false);
   const avatarUrl = authUser?.user_metadata?.custom_avatar_url || null;
   const menuRef = useRef(null);
@@ -430,6 +432,54 @@ function ProfileMenu({ authUser, dark, toggleTheme, signOut, view, setView, tab,
   );
 }
 
+// Owns the problem-list filter state (topic/difficulty/search/type/source/status
+// + page) and the values derived purely from it. Extracted from App so that
+// cluster of state lives in one named place. `counts`, `uniqueSources`, and
+// `filtered` stay in App because they also depend on `questions`/`qStats`.
+function useProblemFilters() {
+  const [topic, setTopic] = useState("All Topics");
+  const [diff, setDiff] = useState("All Difficulties");
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All Types");
+  const [sourceFilter, setSourceFilter] = useState("All Sources");
+  const [statusFilter, setStatusFilter] = useState("All Status");
+  const [page, setPage] = useState(1);
+
+  // Reset specific source when type changes so stale selections don't persist
+  useEffect(() => { setSourceFilter("All Sources"); setPage(1); }, [typeFilter]);
+
+  const matchesBaseFilters = (q) => {
+    if (topic !== "All Topics") {
+      const col = getColumnCategory(q);
+      if (["Column 1","Column 2","Column 3"].includes(topic)) {
+        if (col !== topic) return false;
+      } else if (q.topic !== topic) return false;
+    }
+    if (diff !== "All Difficulties" && q.difficulty !== diff) return false;
+    if (typeFilter !== "All Types" && getSourceType(q.source || '') !== typeFilter) return false;
+    if (sourceFilter !== "All Sources" && (q.source || "") !== sourceFilter) return false;
+    if (search.trim()) {
+      const s = search.toLowerCase();
+      return q.question.toLowerCase().includes(s) || q.tags.some(t=>t.includes(s)) || q.topic.toLowerCase().includes(s) || (q.source||"").toLowerCase().includes(s);
+    }
+    return true;
+  };
+
+  const onFilter = (setter, val) => { setter(val); setPage(1); };
+
+  const resetFilters = () => {
+    setTopic("All Topics"); setDiff("All Difficulties");
+    setTypeFilter("All Types"); setSourceFilter("All Sources"); setStatusFilter("All Status");
+    setSearch(""); setPage(1);
+  };
+
+  return {
+    topic, setTopic, diff, setDiff, search, setSearch,
+    typeFilter, setTypeFilter, sourceFilter, setSourceFilter, statusFilter, setStatusFilter,
+    page, setPage, matchesBaseFilters, onFilter, resetFilters,
+  };
+}
+
 function App() {
   const [dark, toggleTheme] = useTheme();
   const [authUser, setAuthUser] = useState(null);
@@ -459,10 +509,11 @@ function App() {
     answersRef.current = {};
     setSessionAnswers([]);
   };
-  const [topic, setTopic] = useState("All Topics");
-  const [diff, setDiff] = useState("All Difficulties");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const {
+    topic, setTopic, diff, setDiff, search, setSearch,
+    typeFilter, setTypeFilter, sourceFilter, setSourceFilter, statusFilter, setStatusFilter,
+    page, setPage, matchesBaseFilters, onFilter, resetFilters,
+  } = useProblemFilters();
   const [openIdx, setOpenIdx] = useState(null);
   const [openQuestionId, setOpenQuestionId] = useState(null);
   // When opening a question by id that the current filters exclude, we clear the
@@ -487,9 +538,6 @@ function App() {
   const [recommendedMode, setRecommendedMode] = useState(false);
   const [recStatus, setRecStatus] = useState("All");
   const [recSort, setRecSort] = useState("Most Recent");
-  const [typeFilter, setTypeFilter] = useState("All Types");
-  const [sourceFilter, setSourceFilter] = useState("All Sources");
-  const [statusFilter, setStatusFilter] = useState("All Status");
 
   // One fetch of the full attempt history on login. It rebuilds the per-question
   // stats (status dots stay correct on a new device/browser) AND feeds the
@@ -759,26 +807,6 @@ function App() {
       .sort((a, b) => (missCount[b.id] - missCount[a.id]) || (lastMissAt[b.id] - lastMissAt[a.id]));
   }, [allAttempts, questions]);
 
-  // Topic/difficulty/type/source/search predicate shared by the main list and
-  // the Redo Misses view (which adds no status filter -- everything in the
-  // queue is missed by definition).
-  const matchesBaseFilters = (q) => {
-    if (topic !== "All Topics") {
-      const col = getColumnCategory(q);
-      if (["Column 1","Column 2","Column 3"].includes(topic)) {
-        if (col !== topic) return false;
-      } else if (q.topic !== topic) return false;
-    }
-    if (diff !== "All Difficulties" && q.difficulty !== diff) return false;
-    if (typeFilter !== "All Types" && getSourceType(q.source || '') !== typeFilter) return false;
-    if (sourceFilter !== "All Sources" && (q.source || "") !== sourceFilter) return false;
-    if (search.trim()) {
-      const s = search.toLowerCase();
-      return q.question.toLowerCase().includes(s) || q.tags.some(t=>t.includes(s)) || q.topic.toLowerCase().includes(s) || (q.source||"").toLowerCase().includes(s);
-    }
-    return true;
-  };
-
   const filtered = useMemo(() => questions.filter(q => {
     if (recommendedMode && !recommendedIds.has(q.id)) return false;
     if (statusFilter === "Unattempted" && qStats[q.id]?.attempts > 0) return false;
@@ -803,13 +831,7 @@ function App() {
     if (!questions.some(q => q.id === id)) return; // unknown/unpublished — nothing to open
     setRecommendedMode(false);
     setView('list');
-    setTopic('All Topics');
-    setDiff('All Difficulties');
-    setTypeFilter('All Types');
-    setSourceFilter('All Sources');
-    setStatusFilter('All Status');
-    setSearch('');
-    setPage(1);
+    resetFilters();
     setPendingOpenId(id);
   };
 
@@ -858,9 +880,6 @@ function App() {
   };
 
 
-  // Reset specific source when type changes so stale selections don't persist
-  useEffect(() => { setSourceFilter("All Sources"); setPage(1); }, [typeFilter]);
-
   const counts = useMemo(()=>{
     const t={}, d={};
     TOPICS.forEach(x=> {
@@ -884,7 +903,6 @@ function App() {
     return ['All Sources', ...sortSources([...srcs])];
   }, [questions, typeFilter]);
 
-  const onFilter = (setter,val)=>{ setter(val); setPage(1); };
 
   const statusFor = (q) => {
     const a = answersRef.current[q.id];
@@ -944,6 +962,7 @@ function App() {
   }
 
   return (
+    <AppContext.Provider value={{ authUser, navigateTab, requestOpenById }}>
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       {/* NAV */}
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
@@ -1026,10 +1045,10 @@ function App() {
               </span>
             )}
             {authUser ? (
-              <ProfileMenu authUser={authUser} dark={dark} toggleTheme={toggleTheme} signOut={signOut}
+              <ProfileMenu dark={dark} toggleTheme={toggleTheme} signOut={signOut}
                 view={view} setView={setView} tab={tab} setTab={setTab}
                 recommendedMode={recommendedMode} setRecommendedMode={setRecommendedMode}
-                bookmarksCount={bookmarks.length} missesCount={missedQueue.length} dayStreak={dayStreak} setPage={setPage} navigateTab={navigateTab}
+                bookmarksCount={bookmarks.length} missesCount={missedQueue.length} dayStreak={dayStreak} setPage={setPage}
                 onUsedRecommendedPractice={markUsedRecommendedPractice}
                 masteryStats={masteryStats} totalQuestions={totalQuestions} />
             ) : (
@@ -1348,13 +1367,12 @@ function App() {
           hasNext={openIdx<filtered.length-1}
           onPrev={()=>openProblem(Math.max(0,openIdx-1))}
           onNext={()=>openProblem(Math.min(filtered.length-1,openIdx+1))}
-          authUser={authUser}
           allQuestions={questions}
-          onOpenQuestion={requestOpenById}
         />
         );
       })()}
     </div>
+    </AppContext.Provider>
   );
 }
 

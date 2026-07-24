@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { TOPIC_DOT, fmtTime, sourceDisplay, plainText } from '../constants.js';
 import { MathText, DiffPill, useTimer, TimerDisplay } from './hooks.jsx';
+import { useApp } from './appContext.jsx';
 import { ReportIssueModal, CommunitySolutions } from './community.jsx';
 
 export function ProblemRow({ q, n, onOpen, status }) {
@@ -42,7 +43,8 @@ export function ProblemRow({ q, n, onOpen, status }) {
 // ── Shared "History on this problem / My Notes / Similar Problems" widgets ───
 // Rendered once here, then placed inside a mobile (lg:hidden) and a desktop
 // (hidden lg:flex) wrapper by ProblemView, instead of being duplicated.
-function ProblemSidebarSections({ stat, notes, authUser, noteText, setNoteText, saveNote, deleteNote, notesSaving, similarQuestions, onOpenQuestion }) {
+function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, deleteNote, notesSaving, similarQuestions }) {
+  const { authUser, requestOpenById } = useApp();
   return (
     <>
       {/* History */}
@@ -124,7 +126,7 @@ function ProblemSidebarSections({ stat, notes, authUser, noteText, setNoteText, 
                     )}
                   </div>
                 </div>
-                <button onClick={()=>onOpenQuestion(sq.id)} className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors">Open</button>
+                <button onClick={()=>requestOpenById(sq.id)} className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors">Open</button>
               </div>
             ))}
           </div>
@@ -134,7 +136,8 @@ function ProblemSidebarSections({ stat, notes, authUser, noteText, setNoteText, 
   );
 }
 
-export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, authUser, allQuestions, onOpenQuestion }) {
+export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, allQuestions }) {
+  const { authUser } = useApp();
   const [pending, setPending]   = useState(null);
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
@@ -605,7 +608,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
               </div>
             )}
 
-            {answered && <CommunitySolutions q={q} authUser={authUser} answered={answered} />}
+            {answered && <CommunitySolutions q={q} answered={answered} />}
 
             {/* ── tags ── */}
             <div className="px-4 sm:px-6 pb-4 flex flex-wrap gap-1.5">
@@ -615,9 +618,9 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
             {/* on mobile, show sidebar sections inline after answering */}
             {answered && (
               <div className="lg:hidden flex flex-col gap-4 px-6 pb-4">
-                <ProblemSidebarSections stat={stat} notes={notes} authUser={authUser}
+                <ProblemSidebarSections stat={stat} notes={notes}
                   noteText={noteText} setNoteText={setNoteText} saveNote={saveNote} deleteNote={deleteNote}
-                  notesSaving={notesSaving} similarQuestions={similarQuestions} onOpenQuestion={onOpenQuestion} />
+                  notesSaving={notesSaving} similarQuestions={similarQuestions} />
               </div>
             )}
 
@@ -626,16 +629,16 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
           {/* ── RIGHT sidebar: only on desktop, only after answering ── */}
           {answered && (
             <div className="hidden lg:flex flex-col gap-4 w-80 xl:w-96 shrink-0 border-l border-slate-100 dark:border-slate-800 px-5 pt-5 pb-4 overflow-y-auto">
-              <ProblemSidebarSections stat={stat} notes={notes} authUser={authUser}
+              <ProblemSidebarSections stat={stat} notes={notes}
                 noteText={noteText} setNoteText={setNoteText} saveNote={saveNote} deleteNote={deleteNote}
-                notesSaving={notesSaving} similarQuestions={similarQuestions} onOpenQuestion={onOpenQuestion} />
+                notesSaving={notesSaving} similarQuestions={similarQuestions} />
             </div>
           )}{/* end right sidebar */}
 
         </div>{/* end two-column body */}
 
         {showReportIssue && (
-          <ReportIssueModal q={q} authUser={authUser} onClose={()=>setShowReportIssue(false)} />
+          <ReportIssueModal q={q} onClose={()=>setShowReportIssue(false)} />
         )}
 
         {/* ── nav footer ── */}
