@@ -59,7 +59,8 @@ function LBRankBadge(_ref2) {
   }, "#", rank);
 }
 function LeaderboardPage(_ref3) {
-  var authUser = _ref3.authUser;
+  var authUser = _ref3.authUser,
+    questions = _ref3.questions;
   var _useState = useState([]),
     _useState2 = _slicedToArray(_useState, 2),
     entries = _useState2[0],
@@ -92,20 +93,14 @@ function LeaderboardPage(_ref3) {
     _useState14 = _slicedToArray(_useState13, 2),
     sourceFilter = _useState14[0],
     setSourceFilter = _useState14[1];
-  var _useState15 = useState(['All Sources']),
-    _useState16 = _slicedToArray(_useState15, 2),
-    availableSources = _useState16[0],
-    setAvailableSources = _useState16[1];
-  useEffect(function () {
-    _supabase.from('public_questions').select('source').then(function (_ref4) {
-      var data = _ref4.data;
-      if (!data) return;
-      var sources = sortSources(_toConsumableArray(new Set(data.map(function (q) {
-        return q.source;
-      }).filter(Boolean))));
-      setAvailableSources(['All Sources'].concat(_toConsumableArray(sources)));
-    });
-  }, []);
+
+  // Derived from the question list App already loaded -- no extra fetch needed.
+  var availableSources = useMemo(function () {
+    var sources = sortSources(_toConsumableArray(new Set((questions || []).map(function (q) {
+      return q.source;
+    }).filter(Boolean))));
+    return ['All Sources'].concat(_toConsumableArray(sources));
+  }, [questions]);
   useEffect(function () {
     var cancelled = false;
     setLoading(true);
@@ -122,9 +117,9 @@ function LeaderboardPage(_ref3) {
     };
     if (pType) params.p_source_type = pType;
     if (pSource) params.p_source = pSource;
-    _supabase.rpc('get_leaderboard', params).then(function (_ref5) {
-      var data = _ref5.data,
-        err = _ref5.error;
+    _supabase.rpc('get_leaderboard', params).then(function (_ref4) {
+      var data = _ref4.data,
+        err = _ref4.error;
       if (cancelled) return;
       if (err) {
         setError(err.message);

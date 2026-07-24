@@ -24,7 +24,7 @@ function AnalyticsPage({ authUser, sessionAnswers, questions }) {
         setData(rows || []);
         setLoading(false);
       });
-  }, [authUser, sessionAnswers]);
+  }, [authUser?.id, sessionAnswers]);
 
   if (loading) return (
     <div className="flex items-center justify-center py-32">

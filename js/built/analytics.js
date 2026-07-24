@@ -63,7 +63,7 @@ function AnalyticsPage(_ref) {
       setData(rows || []);
       setLoading(false);
     });
-  }, [authUser, sessionAnswers]);
+  }, [authUser === null || authUser === void 0 ? void 0 : authUser.id, sessionAnswers]);
   if (loading) return /*#__PURE__*/React.createElement("div", {
     className: "flex items-center justify-center py-32"
   }, /*#__PURE__*/React.createElement("div", {

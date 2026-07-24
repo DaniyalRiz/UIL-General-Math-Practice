@@ -45,7 +45,7 @@ function LBRankBadge({ rank }) {
   return <span className="text-sm font-semibold text-slate-400 dark:text-slate-500">#{rank}</span>;
 }
 
-function LeaderboardPage({ authUser }) {
+function LeaderboardPage({ authUser, questions }) {
   const [entries, setEntries]               = useState([]);
   const [loading, setLoading]               = useState(true);
   const [error, setError]                   = useState(null);
@@ -54,15 +54,12 @@ function LeaderboardPage({ authUser }) {
   const [diffFilter, setDiffFilter]         = useState('All Difficulties');
   const [typeFilter, setTypeFilter]         = useState('All Types');
   const [sourceFilter, setSourceFilter]     = useState('All Sources');
-  const [availableSources, setAvailableSources] = useState(['All Sources']);
 
-  useEffect(() => {
-    _supabase.from('public_questions').select('source').then(({ data }) => {
-      if (!data) return;
-      const sources = sortSources([...new Set(data.map(q => q.source).filter(Boolean))]);
-      setAvailableSources(['All Sources', ...sources]);
-    });
-  }, []);
+  // Derived from the question list App already loaded -- no extra fetch needed.
+  const availableSources = useMemo(() => {
+    const sources = sortSources([...new Set((questions || []).map(q => q.source).filter(Boolean))]);
+    return ['All Sources', ...sources];
+  }, [questions]);
 
   useEffect(() => {
     let cancelled = false;

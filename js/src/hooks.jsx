@@ -83,7 +83,7 @@ const MoonIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="no
 function Dropdown({ label, value, options, onChange }) {
   return (
     <div className="relative">
-      <select value={value} onChange={e=>onChange(e.target.value)}
+      <select value={value} onChange={e=>onChange(e.target.value)} aria-label={label}
         className="appearance-none pl-3 pr-9 py-2 rounded-lg text-sm font-medium border
                    bg-white border-slate-200 text-slate-700
                    dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200

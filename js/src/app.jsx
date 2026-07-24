@@ -843,6 +843,13 @@ function App() {
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                 History
               </button>
+              <button onClick={()=>navigateTab('mastery')}
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
+                  ${tab==='mastery'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                Mastery
+              </button>
               <button onClick={()=>navigateTab('leaderboard')}
                 className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
                   ${tab==='leaderboard'
@@ -883,7 +890,7 @@ function App() {
       {tab === 'mastery' ? (
         <MasteryPage authUser={authUser} masteryStats={authUser ? masteryStats : guestMasteryStats} bookmarksCount={bookmarks.length} navigateTab={navigateTab} totalQuestions={totalQuestions} topicTotals={topicTotals} />
       ) : tab === 'leaderboard' ? (
-        <LeaderboardPage authUser={authUser} />
+        <LeaderboardPage authUser={authUser} questions={questions} />
       ) : tab === 'analytics' ? (
         <AnalyticsPage authUser={authUser} sessionAnswers={sessionAnswers} questions={questions} />
       ) : tab === 'history' ? (
@@ -1073,7 +1080,7 @@ function App() {
           });
           return (
             <div className="flex items-center justify-center gap-1.5 mt-6">
-              <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={pageClamped===1}
+              <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={pageClamped===1} aria-label="Previous page"
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium ${pageClamped===1?"text-slate-300 dark:text-slate-700 cursor-not-allowed":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>‹</button>
               {items.map((p, i) => p === '...'
                 ? jumpActive === i
@@ -1099,7 +1106,7 @@ function App() {
                 : <button key={p} onClick={()=>setPage(p)}
                     className={`w-9 h-9 rounded-lg text-sm font-medium ${p===pageClamped?"bg-blue-600 text-white":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p}</button>
               )}
-              <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={pageClamped===totalPages}
+              <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={pageClamped===totalPages} aria-label="Next page"
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium ${pageClamped===totalPages?"text-slate-300 dark:text-slate-700 cursor-not-allowed":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>›</button>
             </div>
           );
@@ -1127,7 +1134,6 @@ function App() {
           onNext={()=>openProblem(Math.min(filtered.length-1,openIdx+1))}
           authUser={authUser}
           allQuestions={questions}
-          answeredIds={Object.keys(answersRef.current).map(Number)}
           onOpenQuestion={(id)=>{
             const idx = filtered.findIndex(x=>x.id===id);
             if(idx!==-1){ openProblem(idx); }

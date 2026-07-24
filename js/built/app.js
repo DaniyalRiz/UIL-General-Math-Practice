@@ -1481,6 +1481,11 @@ function App() {
     className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'history' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
   }, "History"), /*#__PURE__*/React.createElement("button", {
     onClick: function onClick() {
+      return navigateTab('mastery');
+    },
+    className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'mastery' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
+  }, "Mastery"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
       return navigateTab('leaderboard');
     },
     className: "px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap\n                  ".concat(tab === 'leaderboard' ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800')
@@ -1519,7 +1524,8 @@ function App() {
     totalQuestions: totalQuestions,
     topicTotals: topicTotals
   }) : tab === 'leaderboard' ? /*#__PURE__*/React.createElement(LeaderboardPage, {
-    authUser: authUser
+    authUser: authUser,
+    questions: questions
   }) : tab === 'analytics' ? /*#__PURE__*/React.createElement(AnalyticsPage, {
     authUser: authUser,
     sessionAnswers: sessionAnswers,
@@ -1892,6 +1898,7 @@ function App() {
         });
       },
       disabled: pageClamped === 1,
+      "aria-label": "Previous page",
       className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === 1 ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
     }, "\u2039"), items.map(function (p, i) {
       return p === '...' ? jumpActive === i ? /*#__PURE__*/React.createElement("input", {
@@ -1943,6 +1950,7 @@ function App() {
         });
       },
       disabled: pageClamped === totalPages,
+      "aria-label": "Next page",
       className: "px-3 py-1.5 rounded-lg text-sm font-medium ".concat(pageClamped === totalPages ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")
     }, "\u203A"));
   }()), function () {
@@ -1969,7 +1977,6 @@ function App() {
       },
       authUser: authUser,
       allQuestions: questions,
-      answeredIds: Object.keys(answersRef.current).map(Number),
       onOpenQuestion: function onOpenQuestion(id) {
         var idx = filtered.findIndex(function (x) {
           return x.id === id;

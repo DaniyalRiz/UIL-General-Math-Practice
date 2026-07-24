@@ -9,15 +9,17 @@ function ProblemRow({ q, n, onOpen, status }) {
                  border-b border-slate-100 dark:border-slate-800
                  hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors">
       <div className="flex items-center justify-end gap-1.5">
-        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotCls}`}></span>
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotCls}`}
+          title={status === "correct" ? "Answered correctly" : status === "incorrect" ? "Answered incorrectly" : undefined}
+          aria-label={status === "correct" ? "Answered correctly" : status === "incorrect" ? "Answered incorrectly" : undefined}></span>
         <span className="text-xs font-mono text-slate-400 dark:text-slate-600 text-right">{n}</span>
       </div>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
           {q.title || plainText(q.question)}
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate hidden sm:block">{plainText(q.question)}</p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 sm:hidden">{q.topic} · {q.difficulty}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate hidden sm:block">{plainText(q.question)}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 sm:hidden">{q.topic} · {q.difficulty}</p>
       </div>
       <div className="hidden sm:flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
         <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[q.topic]||"bg-slate-400"}`}></span>{q.topic}
@@ -126,7 +128,7 @@ function ProblemSidebarSections({ stat, notes, authUser, noteText, setNoteText, 
   );
 }
 
-function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, authUser, allQuestions, answeredIds, onOpenQuestion }) {
+function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, authUser, allQuestions, onOpenQuestion }) {
   const [pending, setPending]   = useState(null);
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
@@ -418,8 +420,9 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
                 </svg>
                 {timer.fmt}
               </div>
-              <button onClick={()=>setShowReportIssue(true)} title="Report a question issue"
+              <button onClick={()=>setShowReportIssue(true)} title="Report a question issue" aria-label="Report a question issue"
                 className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-rose-500 dark:hover:text-rose-400 transition-all">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                 <span className="hidden sm:inline">Report</span>
               </button>
               <button onClick={onToggleBookmark} title={isBookmarked ? "Remove bookmark" : "Bookmark for review"}
@@ -462,7 +465,7 @@ function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext,
 
             {/* ── hint ── */}
             {!answered && (
-              <p className="px-4 sm:px-6 pb-2 text-xs text-slate-400 dark:text-slate-500">
+              <p className="px-4 sm:px-6 pb-2 text-xs text-slate-500 dark:text-slate-400">
                 Click to select · Right-click to cross out · Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs">Submit</kbd> to check
               </p>
             )}
