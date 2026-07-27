@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { getColumnCategory, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText } from '../constants.js';
-import { MathText, DiffPill, Dropdown } from './hooks.jsx';
+import { MathText, DiffPill, Dropdown, useLocalStorage } from './hooks.jsx';
 import { useApp } from './appContext.jsx';
 import { computeDayStreak } from '../utils.js';
 
@@ -463,7 +463,14 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
   const loading = authUser && attempts === null;
   const error = attemptsError || null;
   const [selected, setSelected] = useState(null);
-  const [historySubTab, setHistorySubTab] = useState('attempts');
+  // Persisted, not local state: opening a question unmounts this page (ProblemView
+  // renders only on the 'problems' tab), so a plain useState would silently snap
+  // back to 'attempts' when the user closes the question and returns here.
+  const [historySubTab, setHistorySubTab] = useLocalStorage('history_subtab', 'attempts');
+  // The solutions tab button only exists for signed-in users, so a stored
+  // 'solutions' left over from a previous session would otherwise strand a
+  // signed-out visitor on that panel with no visible way back to Attempts.
+  const activeSubTab = (!authUser && historySubTab === 'solutions') ? 'attempts' : historySubTab;
   const [mySolutions, setMySolutions] = useState([]);
   const [tooltipMeta, setTooltipMeta] = useState(null);
   const rowRefs = useRef({});
@@ -604,22 +611,22 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
       )}
       <div className="mb-6">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">History</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">{historySubTab === 'attempts' ? `${rows.length} total attempt${rows.length !== 1 ? 's' : ''} · showing ${sorted.length}` : `${mySolutions.length} community solution${mySolutions.length !== 1 ? 's' : ''}`}</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm">{activeSubTab === 'attempts' ? `${rows.length} total attempt${rows.length !== 1 ? 's' : ''} · showing ${sorted.length}` : `${mySolutions.length} community solution${mySolutions.length !== 1 ? 's' : ''}`}</p>
         <div className="mt-4 flex gap-0 border-b border-slate-200 dark:border-slate-800">
           <button onClick={()=>setHistorySubTab('attempts')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${historySubTab==='attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${activeSubTab==='attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             Attempts
           </button>
           {authUser && (
           <button onClick={()=>setHistorySubTab('solutions')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${historySubTab==='solutions' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${activeSubTab==='solutions' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             My Community Solutions
           </button>
           )}
         </div>
       </div>
 
-      {historySubTab === 'solutions' ? (
+      {activeSubTab === 'solutions' ? (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
           {mySolutions.length === 0 ? (
             <div className="py-20 text-center">

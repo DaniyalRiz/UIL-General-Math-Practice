@@ -526,6 +526,11 @@ function App() {
   // filters and stash the id here; an effect opens it deterministically once it
   // reappears in `filtered` -- no setTimeout "wait and hope" races.
   const [pendingOpenId, setPendingOpenId] = useState(null);
+  // ProblemView only renders on the 'problems' tab, so opening a question from
+  // History (or anywhere else) has to switch tabs. This remembers where the user
+  // actually was, so closing the question returns them there instead of leaving
+  // them in a problem list they never asked for.
+  const [returnTab, setReturnTab] = useState(null);
   const [view, setView] = useState("list");
   const [jumpValue, setJumpValue] = useState('');
   const [jumpActive, setJumpActive] = useState(null);
@@ -638,26 +643,29 @@ function App() {
       setView(s.view || 'list');
       setRecommendedMode(!!s.recommendedMode);
       setOpenIdx(s.openIdx ?? null);
+      setReturnTab(s.returnTab ?? null);
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
   // Navigation helpers that also push browser history
-  const openProblem = (idx) => {
+  const openProblem = (idx, origin = returnTab) => {
     if (idx == null || idx < 0 || idx >= filtered.length) return;
-    pushAppState({ tab: 'problems', openIdx: idx, view, recommendedMode });
+    pushAppState({ tab: 'problems', openIdx: idx, view, recommendedMode, returnTab: origin });
     setOpenIdx(idx);
     setOpenQuestionId(filtered[idx]?.id ?? null);
   };
   const closeProblem = () => {
     setOpenIdx(null);
     setOpenQuestionId(null);
+    if (returnTab) { setTab(returnTab); setReturnTab(null); }
   };
   const navigateTab = (t) => {
     pushAppState({ tab: t, openIdx: null, view: 'list', recommendedMode: false });
     setTab(t);
     setOpenIdx(null);
+    setReturnTab(null); // an explicit tab change discards where a question was opened from
     if (t === 'problems') {
       setRecommendedMode(false);
       setView('list');
@@ -831,9 +839,14 @@ function App() {
   // now; otherwise switch to the plain problem list, clear the filters, and let
   // the effect below open it once it lands in `filtered`.
   const requestOpenById = (id) => {
+    // Keep an origin already recorded, so History → question → "similar problem"
+    // still returns to History rather than stopping at the problem list. Passed
+    // to openProblem explicitly because setReturnTab won't have applied yet.
+    const origin = returnTab || (tab !== 'problems' ? tab : null);
+    setReturnTab(origin);
     setTab('problems');
     const idx = filtered.findIndex(q => q.id === id);
-    if (idx !== -1) { openProblem(idx); return; }
+    if (idx !== -1) { openProblem(idx, origin); return; }
     if (!questions.some(q => q.id === id)) return; // unknown/unpublished — nothing to open
     setRecommendedMode(false);
     setView('list');
