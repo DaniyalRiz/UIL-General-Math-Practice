@@ -47,10 +47,10 @@ async function deleteReportRow(table, setRows, reportId) {
 }
 
 // Resolved and dismissed reports are done with, so they drop out of the lists to
-// keep only actionable ones in view. They are hidden, never deleted: the "Sharp Eye"
-// achievement is a live `exists(status = 'resolved')` check against bug_reports
-// (see get_mastery_stats), so deleting a resolved report silently revokes it from
-// the user who filed it. The toggle below is the way back to them.
+// keep only actionable ones in view. The toggle below is the way back to them.
+// Deleting a resolved report is safe: sharp_eye_permanent.sql stamps the "Sharp
+// Eye" grant onto user_stats the moment a report is marked resolved, so the
+// achievement outlives the report row.
 const isClosedReport = (r) => r.status === 'resolved' || r.status === 'dismissed';
 
 function ClosedReportsToggle({ count, show, onToggle }) {
@@ -612,7 +612,7 @@ function AdminBugReports({ authUser }) {
             <p className="text-sm text-slate-400 mt-1">
               {reports.length === 0
                 ? 'Reports submitted from the profile menu will appear here.'
-                : `${closedBugCount} resolved or dismissed report${closedBugCount !== 1 ? 's' : ''} hidden. They stay on file so reporters keep their Sharp Eye achievement.`}
+                : `${closedBugCount} resolved or dismissed report${closedBugCount !== 1 ? 's' : ''} hidden.`}
             </p>
           </div>
         ) : (
