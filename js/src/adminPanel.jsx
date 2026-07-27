@@ -1,7 +1,35 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../supabaseClient.js';
-import { TOPICS, getColumnCategory, DIFFICULTIES, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText, ADMIN_EMAILS, ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_IMAGE_DIMENSION } from '../constants.js';
+import { TOPICS, getColumnCategory, DIFFICULTIES, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, sourceDisplay, plainText, ADMIN_EMAILS, ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, MAX_IMAGE_DIMENSION } from '../constants.js';
 import { MathText, useLocalStorage, DiffPill, Dropdown } from './hooks.jsx';
+
+// The same metadata row the practice view shows above a question (topic dot,
+// difficulty pill, "source • Problem N" chip, date added), so a question is
+// identified identically in the admin views and in the app. Every field is
+// optional: attempts can reference a question that is no longer in
+// public_questions, in which case only what the attempt row carries shows.
+function QuestionMeta({ q, className = '' }) {
+  const src = sourceDisplay(q);
+  return (
+    <div className={`flex items-center gap-2 flex-wrap ${className}`}>
+      <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${TOPIC_DOT[q.topic] || 'bg-slate-400'}`}></span>
+        {q.topic || 'Unknown topic'}
+      </span>
+      {q.difficulty && <DiffPill d={q.difficulty} />}
+      {src && (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700">
+          {src}
+        </span>
+      )}
+      {q.date_added && (
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          Added {new Date(q.date_added).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}
+        </span>
+      )}
+    </div>
+  );
+}
 
 // Shared report-row mutations. The three admin panels each manage a report list
 // against a different table (question_reports / bug_reports) and state setter,
@@ -18,6 +46,23 @@ async function deleteReportRow(table, setRows, reportId) {
   setRows(prev => prev.filter(r => r.id !== reportId));
 }
 
+// Resolved and dismissed reports are done with, so they drop out of the lists to
+// keep only actionable ones in view. They are hidden, never deleted: the "Sharp Eye"
+// achievement is a live `exists(status = 'resolved')` check against bug_reports
+// (see get_mastery_stats), so deleting a resolved report silently revokes it from
+// the user who filed it. The toggle below is the way back to them.
+const isClosedReport = (r) => r.status === 'resolved' || r.status === 'dismissed';
+
+function ClosedReportsToggle({ count, show, onToggle }) {
+  if (count === 0) return null;
+  return (
+    <button onClick={onToggle}
+      className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+      {show ? 'Hide' : 'Show'} resolved ({count})
+    </button>
+  );
+}
+
 function AdminUserActivity({ authUser }) {
   const [loading, setLoading] = useState(true);
   const [attempts, setAttempts] = useState([]);
@@ -27,6 +72,7 @@ function AdminUserActivity({ authUser }) {
   const [error, setError] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showClosedReports, setShowClosedReports] = useState(false);
 
   const isAdmin = authUser && ADMIN_EMAILS.includes(authUser.email || '');
 
@@ -37,7 +83,9 @@ function AdminUserActivity({ authUser }) {
       _supabase.rpc('admin_attempts_with_users'),
       _supabase.from('community_solutions_with_votes').select('*').order('created_at', { ascending: false }).limit(1000),
       _supabase.from('question_reports').select('*').order('created_at', { ascending: false }).limit(1000),
-      _supabase.from('public_questions').select('id,title,topic,difficulty,source').limit(5000),
+      // date_added / original_test / original_question_number feed QuestionMeta's
+      // "source • Problem N" chip and "Added ..." stamp.
+      _supabase.from('public_questions').select('id,title,topic,difficulty,source,date_added,original_test,original_question_number').limit(5000),
     ]).then(([a, s, r, q]) => {
       if (a.error || s.error || r.error || q.error) {
         setError(a.error?.message || s.error?.message || r.error?.message || q.error?.message);
@@ -128,6 +176,13 @@ function AdminUserActivity({ authUser }) {
       rows: q.stats.rows,
     }));
 
+  // QuestionModal is opened from several places (Recent Attempts, the MiniTables,
+  // the report rows) that hold a bare question object with no derived stats on it.
+  // Look them up by id here so the modal renders the same numbers either way
+  // instead of "undefined%" / "NaN:NaN".
+  const statsById = {};
+  questionStats.forEach(q => { statsById[q.id] = q; });
+
   const mostAttempted = [...questionStats].sort((a,b)=>b.attempts-a.attempts).slice(0,10);
   const mostMissed = [...questionStats].filter(q=>q.attempts>=2).sort((a,b)=>b.missRate-a.missRate || b.wrong-a.wrong).slice(0,10);
   const slowest = [...questionStats].filter(q=>q.attempts>=2).sort((a,b)=>b.avgMs-a.avgMs).slice(0,10);
@@ -135,6 +190,9 @@ function AdminUserActivity({ authUser }) {
 
   const updateReportStatus = (reportId, status) => updateReportRowStatus('question_reports', setReports, reportId, status);
   const deleteReport = (reportId) => deleteReportRow('question_reports', setReports, reportId);
+
+  const closedReportCount = reports.filter(isClosedReport).length;
+  const visibleReports = showClosedReports ? reports : reports.filter(r => !isClosedReport(r));
 
   const Card = ({label,value,sub}) => (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
@@ -326,6 +384,7 @@ function AdminUserActivity({ authUser }) {
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {u.rows.slice(0,25).map(r => (
                   <div key={r.id} className="px-4 py-3">
+                    <QuestionMeta q={qMap[r.question_id] || {id:r.question_id, topic:r.topic, difficulty:r.difficulty}} className="mb-1.5" />
                     <QuestionLink q={qMap[r.question_id] || {id:r.question_id,title:r.question_title}} />
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(r.time_taken_ms || 0)} · {new Date(r.created_at).toLocaleString()}</p>
                   </div>
@@ -338,39 +397,49 @@ function AdminUserActivity({ authUser }) {
     );
   };
 
-  const QuestionModal = ({ q, onClose }) => (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-      <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={e=>e.stopPropagation()}>
-        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between gap-4">
-          <div>
-            <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white">{q.title || 'Question #' + q.id}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{q.topic} · {q.difficulty}</p>
+  const QuestionModal = ({ q, onClose }) => {
+    // Merge in the full question record and its derived stats; callers may pass
+    // either a stats row, a plain public_questions row, or an id-only stub.
+    const full = { ...(qMap[q.id] || {}), ...(statsById[q.id] || {}), ...q };
+    const s = statsById[q.id] || {};
+    const rows = s.rows || q.rows || [];
+    const hasAttempts = (s.attempts || 0) > 0;
+    return (
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" onClick={onClose}>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={e=>e.stopPropagation()}>
+          <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between gap-4">
+            <div className="min-w-0">
+              <QuestionMeta q={full} className="mb-2" />
+              <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white">{full.title || 'Question #' + full.id}</h2>
+            </div>
+            <button onClick={onClose} className="w-8 h-8 shrink-0 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
-        </div>
-        <div className="p-5 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card label="Attempts" value={q.attempts} />
-            <Card label="Accuracy" value={q.accuracy + '%'} />
-            <Card label="Miss Rate" value={q.missRate + '%'} />
-            <Card label="Avg Time" value={fmtTime(q.avgMs)} />
-          </div>
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <h3 className="font-bold p-4 border-b border-slate-200 dark:border-slate-800">Recent Attempts</h3>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {(q.rows || []).slice(0,30).map(r => (
-                <div key={r.id} className="px-4 py-3">
-                  <UserLink u={users[r.user_id] || {user_id:r.user_id, user_email:r.user_email, display_name:r.display_name}} />
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(r.time_taken_ms || 0)} · {new Date(r.created_at).toLocaleString()}</p>
-                </div>
-              ))}
+          <div className="p-5 space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card label="Attempts" value={s.attempts || 0} />
+              <Card label="Accuracy" value={hasAttempts ? s.accuracy + '%' : '—'} />
+              <Card label="Miss Rate" value={hasAttempts ? s.missRate + '%' : '—'} />
+              <Card label="Avg Time" value={hasAttempts ? fmtTime(s.avgMs) : '—'} />
+            </div>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <h3 className="font-bold p-4 border-b border-slate-200 dark:border-slate-800">Recent Attempts</h3>
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {rows.length === 0 ? (
+                  <p className="p-4 text-sm text-slate-400">No attempts on this question yet.</p>
+                ) : rows.slice(0,30).map(r => (
+                  <div key={r.id} className="px-4 py-3">
+                    <UserLink u={users[r.user_id] || {user_id:r.user_id, user_email:r.user_email, display_name:r.display_name}} />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(r.time_taken_ms || 0)} · {new Date(r.created_at).toLocaleString()}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -389,14 +458,18 @@ function AdminUserActivity({ authUser }) {
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Recent Attempts</h3>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {recentAttempts.length === 0 ? <p className="p-4 text-sm text-slate-400">No attempts yet.</p> : recentAttempts.map(a => (
-              <div key={a.id} className="px-4 py-3">
-                <p className="text-sm truncate"><QuestionLink q={qMap[a.question_id] || {id:a.question_id,title:a.question_title}} /></p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  <UserLink u={users[a.user_id] || {user_id:a.user_id, user_email:a.user_email, display_name:a.display_name}} /> · {a.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(a.time_taken_ms || 0)} · {new Date(a.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
+            {recentAttempts.length === 0 ? <p className="p-4 text-sm text-slate-400">No attempts yet.</p> : recentAttempts.map(a => {
+              const q = qMap[a.question_id] || {id:a.question_id, title:a.question_title, topic:a.topic, difficulty:a.difficulty};
+              return (
+                <div key={a.id} className="px-4 py-3">
+                  <QuestionMeta q={q} className="mb-1.5" />
+                  <p className="text-sm truncate"><QuestionLink q={q} /></p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <UserLink u={users[a.user_id] || {user_id:a.user_id, user_email:a.user_email, display_name:a.display_name}} /> · {a.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(a.time_taken_ms || 0)} · {new Date(a.created_at).toLocaleString()}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -413,17 +486,21 @@ function AdminUserActivity({ authUser }) {
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Question Issue Reports</h3>
             <p className="text-xs text-slate-400 dark:text-slate-500">{reports.length} total · {reports.filter(r=>r.status==='open').length} open</p>
           </div>
+          <ClosedReportsToggle count={closedReportCount} show={showClosedReports} onToggle={()=>setShowClosedReports(v=>!v)} />
         </div>
-        {reports.length === 0 ? (
-          <p className="p-6 text-sm text-slate-400">No issue reports yet.</p>
+        {visibleReports.length === 0 ? (
+          <p className="p-6 text-sm text-slate-400">
+            {reports.length === 0 ? 'No issue reports yet.' : 'Nothing open — all reports are resolved or dismissed.'}
+          </p>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {reports.slice(0,50).map(r => {
+            {visibleReports.slice(0,50).map(r => {
               const q = qMap[r.question_id] || { id:r.question_id, title:'Question #' + r.question_id };
               return (
-                <div key={r.id} className="px-4 py-3">
+                <div key={r.id} className={`px-4 py-3 ${isClosedReport(r) ? 'opacity-60' : ''}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
+                      {q.topic && <QuestionMeta q={q} className="mb-1.5" />}
                       <button onClick={()=>setSelectedQuestion(q)}
                         className="text-left text-sm font-semibold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                         {q.title || 'Question #' + r.question_id}
@@ -560,6 +637,8 @@ function AdminBugReports({ authUser }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showClosedBugs, setShowClosedBugs] = useState(false);
+  const [showClosedQuestionReports, setShowClosedQuestionReports] = useState(false);
   const isAdmin = authUser && ADMIN_EMAILS.includes(authUser.email || '');
 
   useEffect(() => {
@@ -568,7 +647,7 @@ function AdminBugReports({ authUser }) {
     Promise.all([
       _supabase.from('bug_reports').select('*').order('created_at', { ascending: false }).limit(500),
       _supabase.from('question_reports').select('*').order('created_at', { ascending: false }).limit(500),
-      _supabase.from('public_questions').select('id,title,topic,difficulty').limit(5000),
+      _supabase.from('public_questions').select('id,title,topic,difficulty,source,date_added,original_test,original_question_number').limit(5000),
     ]).then(([b, r, q]) => {
       if (b.error || r.error || q.error) setError(b.error?.message || r.error?.message || q.error?.message);
       setReports(b.data || []);
@@ -589,6 +668,10 @@ function AdminBugReports({ authUser }) {
 
   const openCount = reports.filter(r => r.status === 'open').length;
   const qrOpenCount = questionReports.filter(r => r.status === 'open').length;
+  const closedBugCount = reports.filter(isClosedReport).length;
+  const closedQrCount = questionReports.filter(isClosedReport).length;
+  const visibleBugs = showClosedBugs ? reports : reports.filter(r => !isClosedReport(r));
+  const visibleQuestionReports = showClosedQuestionReports ? questionReports : questionReports.filter(r => !isClosedReport(r));
   const qMap = {};
   questions.forEach(q => qMap[q.id] = q);
 
@@ -610,21 +693,28 @@ function AdminBugReports({ authUser }) {
             <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Bug Reports</h2>
             <p className="text-xs text-slate-400 dark:text-slate-500">{reports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{openCount} open</span></p>
           </div>
-          {openCount > 0 && (
-            <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold">{openCount} need review</span>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {openCount > 0 && (
+              <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold">{openCount} need review</span>
+            )}
+            <ClosedReportsToggle count={closedBugCount} show={showClosedBugs} onToggle={()=>setShowClosedBugs(v=>!v)} />
+          </div>
         </div>
-        {reports.length === 0 ? (
+        {visibleBugs.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="font-semibold text-slate-700 dark:text-slate-300">No bug reports</p>
-            <p className="text-sm text-slate-400 mt-1">Reports submitted from the profile menu will appear here.</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-300">{reports.length === 0 ? 'No bug reports' : 'All caught up'}</p>
+            <p className="text-sm text-slate-400 mt-1">
+              {reports.length === 0
+                ? 'Reports submitted from the profile menu will appear here.'
+                : `${closedBugCount} resolved or dismissed report${closedBugCount !== 1 ? 's' : ''} hidden. They stay on file so reporters keep their Sharp Eye achievement.`}
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {reports.map(r => {
+            {visibleBugs.map(r => {
               const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
               return (
-                <div key={r.id} className="px-5 py-4">
+                <div key={r.id} className={`px-5 py-4 ${isClosedReport(r) ? 'opacity-60' : ''}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -657,22 +747,29 @@ function AdminBugReports({ authUser }) {
             <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Question Issue Reports</h2>
             <p className="text-xs text-slate-400 dark:text-slate-500">{questionReports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{qrOpenCount} open</span></p>
           </div>
-          {qrOpenCount > 0 && (
-            <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold">{qrOpenCount} need review</span>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {qrOpenCount > 0 && (
+              <span className="px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-xs font-bold">{qrOpenCount} need review</span>
+            )}
+            <ClosedReportsToggle count={closedQrCount} show={showClosedQuestionReports} onToggle={()=>setShowClosedQuestionReports(v=>!v)} />
+          </div>
         </div>
-        {questionReports.length === 0 ? (
+        {visibleQuestionReports.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="font-semibold text-slate-700 dark:text-slate-300">No issue reports</p>
-            <p className="text-sm text-slate-400 mt-1">Reports submitted by users will appear here.</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-300">{questionReports.length === 0 ? 'No issue reports' : 'All caught up'}</p>
+            <p className="text-sm text-slate-400 mt-1">
+              {questionReports.length === 0
+                ? 'Reports submitted by users will appear here.'
+                : `${closedQrCount} resolved or dismissed report${closedQrCount !== 1 ? 's' : ''} hidden.`}
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {questionReports.map(r => {
+            {visibleQuestionReports.map(r => {
               const q = qMap[r.question_id] || { id: r.question_id, title: 'Question #' + r.question_id };
               const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
               return (
-                <div key={r.id} className="px-5 py-4">
+                <div key={r.id} className={`px-5 py-4 ${isClosedReport(r) ? 'opacity-60' : ''}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -680,8 +777,8 @@ function AdminBugReports({ authUser }) {
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{r.issue_type}</span>
                         <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
                       </div>
+                      {q.topic && <QuestionMeta q={q} className="mb-1.5" />}
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{q.title || 'Question #' + r.question_id}</p>
-                      {q.topic && <p className="text-xs text-slate-400 dark:text-slate-500 mb-2">{q.topic} · {q.difficulty}</p>}
                       {r.details && (
                         <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                           <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.details}</p>
