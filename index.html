@@ -409,20 +409,22 @@
      CONTACT
 ═══════════════════════════════════════════════════════ -->
 <section class="hero-gradient py-16 px-6 text-center border-t border-white/10">
-  <div class="max-w-2xl mx-auto">
-    <p class="text-sm font-bold uppercase tracking-widest text-white mb-5">Contact</p>
-    <div class="flex flex-wrap items-start justify-center gap-x-10 gap-y-6">
+  <!-- max-w-4xl, not 2xl: at text-xl the three values no longer fit on one row
+       inside a 2xl container and wrap to a ragged second line. -->
+  <div class="max-w-4xl mx-auto">
+    <h2 class="font-display text-3xl sm:text-4xl font-black text-white mb-8">Contact</h2>
+    <div class="flex flex-wrap items-start justify-center gap-x-12 gap-y-8">
       <div class="text-center">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">Email</p>
-        <a href="mailto:daniyalrizvi10@gmail.com" class="contact-link text-white font-semibold">daniyalrizvi10@gmail.com</a>
+        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1.5">Email</p>
+        <a href="mailto:daniyalrizvi10@gmail.com" class="contact-link text-white font-semibold text-lg sm:text-xl">daniyalrizvi10@gmail.com</a>
       </div>
       <div class="text-center">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">Discord</p>
-        <button type="button" id="discord-tag-btn" onclick="copyDiscordTag()" class="contact-link text-white font-semibold">daniyal7216</button>
+        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1.5">Discord</p>
+        <button type="button" id="discord-tag-btn" onclick="copyDiscordTag()" class="contact-link text-white font-semibold text-lg sm:text-xl">daniyal7216</button>
       </div>
       <div class="text-center">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1">GitHub</p>
-        <a href="https://github.com/DaniyalRiz/UIL-General-Math-Practice" target="_blank" rel="noopener" class="contact-link text-white font-semibold">DaniyalRiz/UIL-General-Math-Practice</a>
+        <p class="text-[11px] font-bold uppercase tracking-wider text-blue-300/60 mb-1.5">GitHub</p>
+        <a href="https://github.com/DaniyalRiz/UIL-General-Math-Practice" target="_blank" rel="noopener" class="contact-link text-white font-semibold text-lg sm:text-xl">DaniyalRiz/UIL-General-Math-Practice</a>
       </div>
     </div>
   </div>
