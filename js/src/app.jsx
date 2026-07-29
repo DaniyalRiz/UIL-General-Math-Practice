@@ -37,6 +37,8 @@ const AdminQuestionManager = lazy(async () => {
 // Format: "<what you clicked>: <site>", matching the static <title> on the
 // landing, policy, and reset-password pages.
 const SITE_TITLE = 'UIL Math Practice';
+// Mirrored by the inline pre-mount script in app.html, which paints the correct
+// title before this bundle loads. Change both together.
 const TAB_TITLES = {
   problems: 'Problems',
   analytics: 'Analytics',

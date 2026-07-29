@@ -8,6 +8,34 @@
 <meta http-equiv="Expires" content="0" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Problems: UIL Math Practice</title>
+<script>
+  // Correct the title before the bundle loads. The <title> above is a static
+  // guess, so deep-linking to any other tab showed "Problems" for the few
+  // hundred ms until React mounted and the effect in app.jsx ran. The active
+  // tab is already persisted to localStorage, so the right answer is knowable
+  // at first paint.
+  // Keep TABS in sync with TAB_TITLES in js/src/app.jsx, which takes over from
+  // here once React mounts. Sub-views (Recommended Practice, Redo Misses,
+  // Review Later) are deliberately absent: `view` is not persisted, so a reload
+  // always lands back on the plain list.
+  (function () {
+    var TABS = {
+      problems: 'Problems',
+      analytics: 'Analytics',
+      history: 'History',
+      mastery: 'Mastery',
+      leaderboard: 'Leaderboard',
+      admin: 'Admin',
+      settings: 'Settings',
+      reportBug: 'Report a Bug'
+    };
+    try {
+      // useLocalStorage writes JSON, so the stored value is a quoted string.
+      var tab = JSON.parse(localStorage.getItem('current_tab'));
+      if (TABS[tab]) document.title = TABS[tab] + ': UIL Math Practice';
+    } catch (e) { /* private mode, or a malformed value: keep the static title */ }
+  })();
+</script>
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml"/>
 <meta name="description" content="Practice UIL General Mathematics with real questions from District, Region, and TMSCA tests." />
 <link rel="canonical" href="https://daniyalriz.github.io/UIL-General-Math-Practice/app.html"/>
