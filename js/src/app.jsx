@@ -30,6 +30,31 @@ const AdminQuestionManager = lazy(async () => {
   }
 });
 
+// Tab title tracks whatever the user is looking at, the way a multi-page site
+// would. app.html is a single document, so its static <title> only describes the
+// moment before React mounts; without this the tab would keep saying "Problems"
+// on Analytics, Mastery, Settings and everywhere else.
+// Format: "<what you clicked>: <site>", matching the static <title> on the
+// landing, policy, and reset-password pages.
+const SITE_TITLE = 'UIL Math Practice';
+const TAB_TITLES = {
+  problems: 'Problems',
+  analytics: 'Analytics',
+  history: 'History',
+  mastery: 'Mastery',
+  leaderboard: 'Leaderboard',
+  admin: 'Admin',
+  settings: 'Settings',
+  reportBug: 'Report a Bug',
+};
+// Sub-views of the problems tab, which are separate destinations to the user
+// even though the tab underneath never changes.
+const VIEW_TITLES = {
+  recommended: 'Recommended Practice',
+  misses: 'Redo Misses',
+  review: 'Review Later',
+};
+
 // Every table keyed to a user, in the order they appear in the data export and
 // the deletion summary. `kept` marks rows that outlive the account: the report
 // itself stays so an unfixed bug doesn't vanish from the admin queue, but its
@@ -1119,6 +1144,20 @@ function App() {
     const idx = filtered.findIndex(q => q.id === pendingOpenId);
     if (idx !== -1) { openProblem(idx); setPendingOpenId(null); }
   }, [pendingOpenId, filtered]);
+
+  // An open question wins over the section name: it is the most specific thing
+  // the user clicked, and it makes history entries and multiple tabs tellable
+  // apart. Mirrors the render condition below, which only shows ProblemView on
+  // the problems tab.
+  useEffect(() => {
+    const openQ = (tab === 'problems' && openQuestionId !== null)
+      ? questions.find(q => q.id === openQuestionId)
+      : null;
+    const section = openQ
+      ? (openQ.title || `Question #${openQ.id}`)
+      : (tab === 'problems' && VIEW_TITLES[view]) || TAB_TITLES[tab] || TAB_TITLES.problems;
+    document.title = `${section}: ${SITE_TITLE}`;
+  }, [tab, view, openQuestionId, questions]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageClamped = Math.min(page, totalPages);
