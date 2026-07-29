@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { _supabase } from '../supabaseClient.js';
-import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
+import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, fmtTime, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
 import { updateUserStatsOnly, cropAndResizeAvatar, computeDayStreak } from '../utils.js';
 import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown } from './hooks.jsx';
 import { AppContext, useApp } from './appContext.jsx';
@@ -111,99 +111,100 @@ function SettingsPage({ authUser, navigateTab }) {
       return;
     }
 
-    let all;
+    // One try/finally around both the fetch and the PDF build. Anything thrown in
+    // here has to surface as a message and release the button: an uncaught throw
+    // mid-build leaves "Preparing your PDF..." on screen forever with no clue why.
     try {
-      all = await fetchAllUserData();
+      const all = await fetchAllUserData();
+
+      const doc = new jsPDF();
+      let y = 18;
+      const line = (text, size = 10, bold = false) => {
+        doc.setFont('helvetica', bold ? 'bold' : 'normal');
+        doc.setFontSize(size);
+        doc.splitTextToSize(String(text), 180).forEach(part => {
+          if (y > 280) { doc.addPage(); y = 18; }
+          doc.text(part, 14, y);
+          y += size * 0.45 + 3;
+        });
+      };
+      const spacer = (n = 4) => { y += n; };
+      const when = (t) => t ? new Date(t).toLocaleString() : 'Not recorded';
+
+      line('UIL Math Practice - Your Data', 18, true);
+      line('Exported: ' + new Date().toLocaleString(), 9);
+      spacer();
+
+      line('Account', 13, true);
+      line(`Display name: ${authUser.user_metadata?.display_name || 'Not set'}`);
+      line(`Email: ${authUser.email || 'Not set'}`);
+      line(`Account created: ${when(authUser.created_at)}`);
+      line(`Sign-in method: ${providers.length ? providers.join(', ') : 'Not recorded'}`);
+      if (all.user_stats) {
+        line(`Current streak: ${all.user_stats.current_streak ?? 0} day(s)`);
+        line(`Longest streak: ${all.user_stats.longest_streak ?? 0} day(s)`);
+        line(`Last seen: ${when(all.user_stats.last_seen)}`);
+      }
+      spacer();
+
+      line('Practice attempts', 13, true);
+      const atts = all.attempts;
+      if (atts.length === 0) line('None.', 9);
+      else {
+        const correct = atts.filter(a => a.is_correct).length;
+        line(`${atts.length} attempts · ${correct} correct · ${Math.round(100 * correct / atts.length)}% accuracy`, 9);
+        spacer(2);
+        atts.forEach(a => line(
+          `${when(a.created_at)} · ${a.is_correct ? 'Correct' : 'Incorrect'} · ${fmtTime(a.time_taken_ms || 0)} · `
+          + `${a.question_title || 'Question #' + a.question_id} (${a.topic || 'Unknown topic'}, ${a.difficulty || 'Unknown difficulty'}) · `
+          + `answered ${a.selected_answer ?? 'no answer'}, correct answer ${a.correct_answer ?? 'not recorded'}`, 8));
+      }
+      spacer();
+
+      line('Saved notes', 13, true);
+      if (all.notes.length === 0) line('None.', 9);
+      else all.notes.forEach(n => line(`${when(n.created_at)} · Question #${n.question_id}: ${n.note_text}`, 8));
+      spacer();
+
+      line('Community solutions you posted', 13, true);
+      if (all.community_solutions.length === 0) line('None.', 9);
+      else all.community_solutions.forEach(s => line(
+        `${when(s.created_at)} · Question #${s.question_id}${s.hidden ? ' (hidden)' : ''}: ${s.solution_text}`, 8));
+      spacer();
+
+      line('Upvotes you gave', 13, true);
+      if (all.community_solution_votes.length === 0) line('None.', 9);
+      else all.community_solution_votes.forEach(v => line(`${when(v.created_at)} · Solution ${v.solution_id}`, 8));
+      spacer();
+
+      line('Questions mastered', 13, true);
+      if (all.user_question_mastery.length === 0) line('None.', 9);
+      else all.user_question_mastery.forEach(m => line(`${when(m.mastered_at)} · Question #${m.question_id}`, 8));
+      spacer();
+
+      line('Question sessions', 13, true);
+      if (all.question_sessions.length === 0) line('None.', 9);
+      else all.question_sessions.forEach(s => line(
+        `${when(s.created_at)} · Question #${s.question_id} · ${s.used ? 'used ' + when(s.used_at) : 'unused'}`, 8));
+      spacer();
+
+      line('Question reports you filed', 13, true);
+      if (all.question_reports.length === 0) line('None.', 9);
+      else all.question_reports.forEach(r => line(
+        `${when(r.created_at)} · Question #${r.question_id} · ${r.issue_type} · ${r.status}${r.details ? ' · ' + r.details : ''}`, 8));
+      spacer();
+
+      line('Bug reports you filed', 13, true);
+      if (all.bug_reports.length === 0) line('None.', 9);
+      else all.bug_reports.forEach(r => line(`${when(r.created_at)} · ${r.status} · ${r.subject}: ${r.description}`, 8));
+
+      doc.save('uil-math-my-data.pdf');
+      showToast('Your data has been downloaded.');
     } catch (e) {
+      setExportMsg(`Could not build your PDF: ${e.message}`);
+    } finally {
       setExporting(false);
-      setExportMsg(`Could not load your data: ${e.message}`);
-      return;
     }
-
-    const doc = new jsPDF();
-    let y = 18;
-    const line = (text, size = 10, bold = false) => {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size);
-      doc.splitTextToSize(String(text), 180).forEach(part => {
-        if (y > 280) { doc.addPage(); y = 18; }
-        doc.text(part, 14, y);
-        y += size * 0.45 + 3;
-      });
-    };
-    const spacer = (n = 4) => { y += n; };
-    const when = (t) => t ? new Date(t).toLocaleString() : '—';
-
-    line('UIL Math Practice — Your Data', 18, true);
-    line('Exported: ' + new Date().toLocaleString(), 9);
-    spacer();
-
-    line('Account', 13, true);
-    line(`Display name: ${authUser.user_metadata?.display_name || '—'}`);
-    line(`Email: ${authUser.email || '—'}`);
-    line(`Account created: ${when(authUser.created_at)}`);
-    line(`Sign-in method: ${providers.length ? providers.join(', ') : '—'}`);
-    if (all.user_stats) {
-      line(`Current streak: ${all.user_stats.current_streak ?? 0} day(s)`);
-      line(`Longest streak: ${all.user_stats.longest_streak ?? 0} day(s)`);
-      line(`Last seen: ${when(all.user_stats.last_seen)}`);
-    }
-    spacer();
-
-    line('Practice attempts', 13, true);
-    const atts = all.attempts;
-    if (atts.length === 0) line('None.', 9);
-    else {
-      const correct = atts.filter(a => a.is_correct).length;
-      line(`${atts.length} attempts · ${correct} correct · ${Math.round(100 * correct / atts.length)}% accuracy`, 9);
-      spacer(2);
-      atts.forEach(a => line(
-        `${when(a.created_at)} · ${a.is_correct ? 'Correct' : 'Incorrect'} · ${fmtTime(a.time_taken_ms || 0)} · `
-        + `${a.question_title || 'Question #' + a.question_id} (${a.topic || '—'}, ${a.difficulty || '—'}) · `
-        + `answered ${a.selected_answer ?? '—'}, correct answer ${a.correct_answer ?? '—'}`, 8));
-    }
-    spacer();
-
-    line('Saved notes', 13, true);
-    if (all.notes.length === 0) line('None.', 9);
-    else all.notes.forEach(n => line(`${when(n.created_at)} · Question #${n.question_id}: ${n.note_text}`, 8));
-    spacer();
-
-    line('Community solutions you posted', 13, true);
-    if (all.community_solutions.length === 0) line('None.', 9);
-    else all.community_solutions.forEach(s => line(
-      `${when(s.created_at)} · Question #${s.question_id}${s.hidden ? ' (hidden)' : ''}: ${s.solution_text}`, 8));
-    spacer();
-
-    line('Upvotes you gave', 13, true);
-    if (all.community_solution_votes.length === 0) line('None.', 9);
-    else all.community_solution_votes.forEach(v => line(`${when(v.created_at)} · Solution ${v.solution_id}`, 8));
-    spacer();
-
-    line('Questions mastered', 13, true);
-    if (all.user_question_mastery.length === 0) line('None.', 9);
-    else all.user_question_mastery.forEach(m => line(`${when(m.mastered_at)} · Question #${m.question_id}`, 8));
-    spacer();
-
-    line('Question sessions', 13, true);
-    if (all.question_sessions.length === 0) line('None.', 9);
-    else all.question_sessions.forEach(s => line(
-      `${when(s.created_at)} · Question #${s.question_id} · ${s.used ? 'used ' + when(s.used_at) : 'unused'}`, 8));
-    spacer();
-
-    line('Question reports you filed', 13, true);
-    if (all.question_reports.length === 0) line('None.', 9);
-    else all.question_reports.forEach(r => line(
-      `${when(r.created_at)} · Question #${r.question_id} · ${r.issue_type} · ${r.status}${r.details ? ' · ' + r.details : ''}`, 8));
-    spacer();
-
-    line('Bug reports you filed', 13, true);
-    if (all.bug_reports.length === 0) line('None.', 9);
-    else all.bug_reports.forEach(r => line(`${when(r.created_at)} · ${r.status} · ${r.subject}: ${r.description}`, 8));
-
-    doc.save('uil-math-my-data.pdf');
-    setExporting(false);
-    showToast('Your data has been downloaded.');
   };
 
   const openDeleteConfirm = async () => {
@@ -412,7 +413,7 @@ function SettingsPage({ authUser, navigateTab }) {
         <div className="border-t border-slate-100 dark:border-slate-800 pt-5 mt-5">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Your data</label>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-            Download everything this site stores about you as a PDF — your account details, every
+            Download everything this site stores about you as a PDF: your account details, every
             practice attempt, notes, community solutions, upvotes, mastery, and any reports you filed.
           </p>
           <button onClick={exportMyDataPdf} disabled={exporting}
@@ -429,7 +430,7 @@ function SettingsPage({ authUser, navigateTab }) {
         {deleteStage !== 'confirm' ? (
           <>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-              Permanently delete your account and everything tied to it. This cannot be undone —
+              Permanently delete your account and everything tied to it. This cannot be undone, so
               download your data first if you want to keep a copy.
             </p>
             <button onClick={openDeleteConfirm}
