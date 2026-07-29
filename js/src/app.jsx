@@ -30,6 +30,22 @@ const AdminQuestionManager = lazy(async () => {
   }
 });
 
+// Every table keyed to a user, in the order they appear in the data export and
+// the deletion summary. `kept` marks rows that outlive the account: the report
+// itself stays so an unfixed bug doesn't vanish from the admin queue, but its
+// user_id is set to null (see account_deletion.sql), so nothing identifies the
+// person who filed it.
+const USER_DATA_TABLES = [
+  { table: 'attempts',                 label: 'Practice attempts',    select: 'question_id,question_title,topic,difficulty,selected_answer,correct_answer,is_correct,time_taken_ms,created_at' },
+  { table: 'notes',                    label: 'Saved notes',          select: 'question_id,note_text,created_at' },
+  { table: 'community_solutions',      label: 'Community solutions',  select: 'question_id,solution_text,display_name,hidden,created_at' },
+  { table: 'community_solution_votes', label: 'Upvotes given',        select: 'solution_id,created_at' },
+  { table: 'user_question_mastery',    label: 'Questions mastered',   select: 'question_id,mastered_at' },
+  { table: 'question_sessions',        label: 'Question sessions',    select: 'question_id,used,created_at,used_at' },
+  { table: 'question_reports',         label: 'Question reports',     select: 'question_id,issue_type,details,status,created_at', kept: true },
+  { table: 'bug_reports',              label: 'Bug reports',          select: 'subject,description,status,created_at', kept: true },
+];
+
 function SettingsPage({ authUser, navigateTab }) {
   const providers = authUser?.app_metadata?.providers || [];
   const hasPasswordAuth = providers.includes('email');
@@ -49,10 +65,176 @@ function SettingsPage({ authUser, navigateTab }) {
   const [pwMsg, setPwMsg] = useState('');
   const [pwConfirming, setPwConfirming] = useState(false);
 
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState('');
+
+  // null = not started, otherwise the confirmation screen is open. counts is null
+  // while the row tallies for that screen are still loading.
+  const [deleteStage, setDeleteStage] = useState(null);
+  const [deleteCounts, setDeleteCounts] = useState(null);
+  const [deleteTyped, setDeleteTyped] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState('');
+
   const [toast, setToast] = useState('');
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(''), 2500);
+  };
+
+  const fetchAllUserData = async () => {
+    const out = {};
+    for (const t of USER_DATA_TABLES) {
+      const { data, error } = await _supabase.from(t.table).select(t.select).eq('user_id', authUser.id);
+      if (error) throw new Error(`${t.label}: ${error.message}`);
+      out[t.table] = data || [];
+    }
+    const { data: stats } = await _supabase.from('user_stats')
+      .select('display_name,current_streak,longest_streak,last_seen,used_recommended_practice,has_resolved_bug_report')
+      .eq('user_id', authUser.id).maybeSingle();
+    out.user_stats = stats || null;
+    return out;
+  };
+
+  const exportMyDataPdf = async () => {
+    setExportMsg('');
+    setExporting(true);
+    // Loaded on click so the PDF library stays out of the main bundle, matching
+    // the analytics export. A stale chunk 404s after a deploy -- say so rather
+    // than failing silently.
+    let jsPDF;
+    try {
+      ({ jsPDF } = await import('jspdf'));
+    } catch (e) {
+      setExporting(false);
+      setExportMsg('The PDF exporter could not load. The site was probably just updated - refresh the page and try again.');
+      return;
+    }
+
+    let all;
+    try {
+      all = await fetchAllUserData();
+    } catch (e) {
+      setExporting(false);
+      setExportMsg(`Could not load your data: ${e.message}`);
+      return;
+    }
+
+    const doc = new jsPDF();
+    let y = 18;
+    const line = (text, size = 10, bold = false) => {
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(size);
+      doc.splitTextToSize(String(text), 180).forEach(part => {
+        if (y > 280) { doc.addPage(); y = 18; }
+        doc.text(part, 14, y);
+        y += size * 0.45 + 3;
+      });
+    };
+    const spacer = (n = 4) => { y += n; };
+    const when = (t) => t ? new Date(t).toLocaleString() : '—';
+
+    line('UIL Math Practice — Your Data', 18, true);
+    line('Exported: ' + new Date().toLocaleString(), 9);
+    spacer();
+
+    line('Account', 13, true);
+    line(`Display name: ${authUser.user_metadata?.display_name || '—'}`);
+    line(`Email: ${authUser.email || '—'}`);
+    line(`Account created: ${when(authUser.created_at)}`);
+    line(`Sign-in method: ${providers.length ? providers.join(', ') : '—'}`);
+    if (all.user_stats) {
+      line(`Current streak: ${all.user_stats.current_streak ?? 0} day(s)`);
+      line(`Longest streak: ${all.user_stats.longest_streak ?? 0} day(s)`);
+      line(`Last seen: ${when(all.user_stats.last_seen)}`);
+    }
+    spacer();
+
+    line('Practice attempts', 13, true);
+    const atts = all.attempts;
+    if (atts.length === 0) line('None.', 9);
+    else {
+      const correct = atts.filter(a => a.is_correct).length;
+      line(`${atts.length} attempts · ${correct} correct · ${Math.round(100 * correct / atts.length)}% accuracy`, 9);
+      spacer(2);
+      atts.forEach(a => line(
+        `${when(a.created_at)} · ${a.is_correct ? 'Correct' : 'Incorrect'} · ${fmtTime(a.time_taken_ms || 0)} · `
+        + `${a.question_title || 'Question #' + a.question_id} (${a.topic || '—'}, ${a.difficulty || '—'}) · `
+        + `answered ${a.selected_answer ?? '—'}, correct answer ${a.correct_answer ?? '—'}`, 8));
+    }
+    spacer();
+
+    line('Saved notes', 13, true);
+    if (all.notes.length === 0) line('None.', 9);
+    else all.notes.forEach(n => line(`${when(n.created_at)} · Question #${n.question_id}: ${n.note_text}`, 8));
+    spacer();
+
+    line('Community solutions you posted', 13, true);
+    if (all.community_solutions.length === 0) line('None.', 9);
+    else all.community_solutions.forEach(s => line(
+      `${when(s.created_at)} · Question #${s.question_id}${s.hidden ? ' (hidden)' : ''}: ${s.solution_text}`, 8));
+    spacer();
+
+    line('Upvotes you gave', 13, true);
+    if (all.community_solution_votes.length === 0) line('None.', 9);
+    else all.community_solution_votes.forEach(v => line(`${when(v.created_at)} · Solution ${v.solution_id}`, 8));
+    spacer();
+
+    line('Questions mastered', 13, true);
+    if (all.user_question_mastery.length === 0) line('None.', 9);
+    else all.user_question_mastery.forEach(m => line(`${when(m.mastered_at)} · Question #${m.question_id}`, 8));
+    spacer();
+
+    line('Question sessions', 13, true);
+    if (all.question_sessions.length === 0) line('None.', 9);
+    else all.question_sessions.forEach(s => line(
+      `${when(s.created_at)} · Question #${s.question_id} · ${s.used ? 'used ' + when(s.used_at) : 'unused'}`, 8));
+    spacer();
+
+    line('Question reports you filed', 13, true);
+    if (all.question_reports.length === 0) line('None.', 9);
+    else all.question_reports.forEach(r => line(
+      `${when(r.created_at)} · Question #${r.question_id} · ${r.issue_type} · ${r.status}${r.details ? ' · ' + r.details : ''}`, 8));
+    spacer();
+
+    line('Bug reports you filed', 13, true);
+    if (all.bug_reports.length === 0) line('None.', 9);
+    else all.bug_reports.forEach(r => line(`${when(r.created_at)} · ${r.status} · ${r.subject}: ${r.description}`, 8));
+
+    doc.save('uil-math-my-data.pdf');
+    setExporting(false);
+    showToast('Your data has been downloaded.');
+  };
+
+  const openDeleteConfirm = async () => {
+    setDeleteErr('');
+    setDeleteTyped('');
+    setDeleteCounts(null);
+    setDeleteStage('confirm');
+    // Exact tallies, so the confirmation names what is actually being destroyed
+    // rather than a vague warning.
+    const counts = {};
+    for (const t of USER_DATA_TABLES) {
+      const { count } = await _supabase.from(t.table)
+        .select('*', { count: 'exact', head: true }).eq('user_id', authUser.id);
+      counts[t.table] = count || 0;
+    }
+    setDeleteCounts(counts);
+  };
+
+  const confirmDeleteAccount = async () => {
+    setDeleteErr('');
+    setDeleting(true);
+    const { error } = await _supabase.rpc('delete_my_account');
+    if (error) {
+      setDeleting(false);
+      setDeleteErr(error.message || 'Could not delete your account. Please try again.');
+      return;
+    }
+    // The account is gone, so the access token no longer resolves to a user and a
+    // server-side sign-out would 401. Clear the local session and leave.
+    try { await _supabase.auth.signOut({ scope: 'local' }); } catch (e) { /* already invalid */ }
+    window.location.replace('./index.html');
   };
 
   const uploadAvatar = async (file) => {
@@ -225,6 +407,83 @@ function SettingsPage({ authUser, navigateTab }) {
             </div>
           )}
         </div>
+
+        {/* Data export */}
+        <div className="border-t border-slate-100 dark:border-slate-800 pt-5 mt-5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Your data</label>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+            Download everything this site stores about you as a PDF — your account details, every
+            practice attempt, notes, community solutions, upvotes, mastery, and any reports you filed.
+          </p>
+          <button onClick={exportMyDataPdf} disabled={exporting}
+            className="w-full py-2 rounded-lg text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-60 transition-colors">
+            {exporting ? 'Preparing your PDF…' : 'Download my data (PDF)'}
+          </button>
+          {exportMsg && <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{exportMsg}</p>}
+        </div>
+      </div>
+
+      {/* Danger zone */}
+      <div className="mt-6 bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-500/30 p-5">
+        <label className="block text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-2">Delete account</label>
+        {deleteStage !== 'confirm' ? (
+          <>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+              Permanently delete your account and everything tied to it. This cannot be undone —
+              download your data first if you want to keep a copy.
+            </p>
+            <button onClick={openDeleteConfirm}
+              className="w-full py-2 rounded-lg text-sm font-semibold border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
+              Delete my account
+            </button>
+          </>
+        ) : (
+          <div className="rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 p-4">
+            <p className="font-bold text-rose-800 dark:text-rose-200 mb-1">Delete your account?</p>
+            <p className="text-sm text-rose-800/80 dark:text-rose-200/80 mb-3">
+              This permanently erases, for <span className="font-semibold">{authUser?.email}</span>:
+            </p>
+
+            {deleteCounts === null ? (
+              <p className="text-sm text-rose-800/70 dark:text-rose-200/70 mb-3">Counting your data…</p>
+            ) : (
+              <ul className="text-sm text-rose-800/90 dark:text-rose-200/90 mb-3 space-y-0.5">
+                {USER_DATA_TABLES.filter(t => !t.kept).map(t => (
+                  <li key={t.table}>• {deleteCounts[t.table]} {t.label.toLowerCase()}</li>
+                ))}
+                <li>• your streak, mastery progress, and achievements</li>
+                <li>• your profile picture and display name</li>
+              </ul>
+            )}
+
+            {deleteCounts !== null && USER_DATA_TABLES.some(t => t.kept && deleteCounts[t.table] > 0) && (
+              <p className="text-xs text-rose-800/70 dark:text-rose-200/70 mb-3">
+                Reports you filed stay on file so open issues aren't lost, but they will no longer be
+                linked to you or to any name or email.
+              </p>
+            )}
+
+            <p className="text-sm font-semibold text-rose-800 dark:text-rose-200 mb-1.5">
+              Type <span className="font-mono">DELETE</span> to confirm
+            </p>
+            <input value={deleteTyped} onChange={e=>setDeleteTyped(e.target.value)} autoFocus
+              disabled={deleting} placeholder="DELETE"
+              className="w-full px-3 py-2 mb-3 rounded-lg border bg-white border-rose-200 text-slate-800 dark:bg-slate-900 dark:border-rose-500/40 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm disabled:opacity-60" />
+
+            {deleteErr && <p className="text-xs text-rose-700 dark:text-rose-300 mb-2">{deleteErr}</p>}
+
+            <div className="flex gap-2">
+              <button onClick={()=>{ setDeleteStage(null); setDeleteTyped(''); setDeleteErr(''); }} disabled={deleting}
+                className="flex-1 py-2 rounded-lg text-sm font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-60">
+                Cancel
+              </button>
+              <button onClick={confirmDeleteAccount} disabled={deleteTyped !== 'DELETE' || deleting || deleteCounts === null}
+                className="flex-1 py-2 rounded-lg text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                {deleting ? 'Deleting…' : 'Delete forever'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {toast && (
