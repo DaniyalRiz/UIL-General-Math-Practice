@@ -180,11 +180,18 @@ function ShareMenu({ q, open, setOpen }) {
 
   return (
     <div className="relative" ref={wrapRef}>
+      {/* Solid dark pill, inverted in dark mode so it stays legible against the
+          near-black background rather than disappearing into it. */}
       <button onClick={()=>setOpen(o=>!o)} title="Share this problem" aria-label="Share this problem"
         aria-haspopup="menu" aria-expanded={open}
-        className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-all">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        <span className="hidden sm:inline">Share</span>
+        className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap
+                   bg-slate-900 text-white hover:bg-slate-700
+                   dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white transition-colors">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M5 18c0-6.4 4.6-10 11-10"/>
+          <path d="M12.5 3.5 17 8l-4.5 4.5"/>
+        </svg>
+        <span>Share</span>
       </button>
 
       {open && (

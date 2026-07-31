@@ -204,6 +204,40 @@
           Sign Out
         </button>
       </div>
+      <!-- The tab strip above is hidden below sm, so without this every
+           destination except Sign In is unreachable on a phone. 44px target. -->
+      <button id="nav-menu-btn" onclick="toggleNavMenu()" aria-label="Open menu"
+        aria-expanded="false" aria-controls="nav-mobile-menu"
+        class="sm:hidden w-11 h-11 -mr-2 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+        <svg id="nav-menu-icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg id="nav-menu-icon-close" class="hidden" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="nav-mobile-menu" class="hidden sm:hidden border-t border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950 max-h-[calc(100dvh-3.5rem)] overflow-y-auto">
+    <div class="px-3 py-2 flex flex-col">
+      <a href="./index.html" class="px-3 py-3 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20">Home</a>
+      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('problems'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Problems</a>
+      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('analytics'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Analytics</a>
+      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('history'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">History</a>
+      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('mastery'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Mastery</a>
+      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('leaderboard'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Leaderboard</a>
+      <a id="nav-admin-tab-mobile" href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('admin'))" class="hidden px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Admin</a>
+
+      <div class="border-t border-slate-200 dark:border-slate-800 mt-2 pt-2">
+        <!-- Signed out: Get Started is hidden in the bar at this width. -->
+        <button id="nav-menu-signup" onclick="closeNavMenu(); openAuth('signup')"
+          class="w-full text-left px-3 py-3 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/10">
+          Create an account
+        </button>
+        <!-- Signed in: Sign Out is hidden in the bar at this width. -->
+        <button id="nav-menu-signout" onclick="closeNavMenu(); handleSignOut()"
+          class="hidden w-full text-left px-3 py-3 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+          Sign Out
+        </button>
+      </div>
     </div>
   </div>
 </nav>

@@ -43,6 +43,34 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   const ADMIN_EMAILS = ['daniyalrizvi10@gmail.com'];
 
+  // ─── MOBILE MENU ──────────────────────────────────────────────────────────
+  // Below sm the tab strip is hidden, so this is the only way to reach
+  // Problems/Analytics/History/Mastery/Leaderboard on a phone.
+  function setNavMenu(open) {
+    const menu = document.getElementById('nav-mobile-menu');
+    const btn = document.getElementById('nav-menu-btn');
+    if (!menu || !btn) return;
+    menu.classList.toggle('hidden', !open);
+    document.getElementById('nav-menu-icon-open').classList.toggle('hidden', open);
+    document.getElementById('nav-menu-icon-close').classList.toggle('hidden', !open);
+    btn.setAttribute('aria-expanded', String(open));
+    btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+  const isNavMenuOpen = () => !document.getElementById('nav-mobile-menu').classList.contains('hidden');
+  window.toggleNavMenu = () => setNavMenu(!isNavMenuOpen());
+  window.closeNavMenu = () => setNavMenu(false);
+
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setNavMenu(false); });
+  // Tapping the page behind the menu closes it, matching every other sheet.
+  document.addEventListener('click', (e) => {
+    if (!isNavMenuOpen()) return;
+    if (e.target.closest('#nav-mobile-menu') || e.target.closest('#nav-menu-btn')) return;
+    setNavMenu(false);
+  });
+  // Growing past the breakpoint brings the real tab strip back; leaving the
+  // menu open would stack two navigations on top of each other.
+  window.addEventListener('resize', () => { if (window.innerWidth >= 640) setNavMenu(false); });
+
   function setNavState(user) {
     const loggedIn = !!user;
     const isAdmin = loggedIn && ADMIN_EMAILS.includes(user.email || '');
@@ -52,6 +80,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('cta-create-btn').classList.toggle('hidden', loggedIn);
     document.getElementById('cta-browse-btn').textContent = loggedIn ? 'Browse Problems' : 'Browse Problems First';
     document.getElementById('nav-admin-tab').classList.toggle('hidden', !isAdmin);
+    // Mobile menu mirrors the same three auth-dependent entries.
+    document.getElementById('nav-admin-tab-mobile').classList.toggle('hidden', !isAdmin);
+    document.getElementById('nav-menu-signup').classList.toggle('hidden', loggedIn);
+    document.getElementById('nav-menu-signout').classList.toggle('hidden', !loggedIn);
     if (loggedIn) {
       const name = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
       document.getElementById('nav-username').textContent = `Hi, ${name}`;

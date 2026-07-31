@@ -37,6 +37,17 @@ const AdminQuestionManager = lazy(async () => {
 // on Analytics, Mastery, Settings and everywhere else.
 // Format: "<what you clicked>: <site>", matching the static <title> on the
 // landing, policy, and reset-password pages.
+// Destinations in the mobile nav sheet, in the order the desktop tab strip
+// shows them. Admin is filtered out for non-admins at render time.
+const NAV_TABS = [
+  { key: 'problems', label: 'Problems' },
+  { key: 'analytics', label: 'Analytics' },
+  { key: 'history', label: 'History' },
+  { key: 'mastery', label: 'Mastery' },
+  { key: 'leaderboard', label: 'Leaderboard' },
+  { key: 'admin', label: 'Admin' },
+];
+
 // Shared by the four search boxes so they stay visually identical.
 const SEARCH_INPUT_CLS = "w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -806,6 +817,19 @@ function App() {
   const [authModalTab, setAuthModalTab] = useState(null);
   const openAuth = (t = 'signin') => setAuthModalTab(t);
   const closeAuth = () => setAuthModalTab(null);
+  // Mobile nav sheet. Below sm the tab strip is hidden, so this is the only
+  // route to Analytics, History, Mastery, Leaderboard and Admin on a phone.
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
+  useEffect(() => {
+    if (!navMenuOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') setNavMenuOpen(false); };
+    // Growing past the breakpoint restores the real tab strip; leaving the
+    // sheet open would show two navigations at once.
+    const onResize = () => { if (window.innerWidth >= 640) setNavMenuOpen(false); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize); };
+  }, [navMenuOpen]);
 
   // Auth state listener — use getSession() which reliably restores persisted sessions
   useEffect(() => {
@@ -1358,8 +1382,15 @@ function App() {
       {/* NAV */}
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-1 sm:gap-4">
-          {/* Left: logo + tabs — scrollable on mobile */}
-          <div className="flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar flex-1">
+          {/* Below sm the tab strip is replaced by the menu button on the right:
+              scrolled horizontally it cut Leaderboard and Admin off-screen with
+              no affordance that more existed. */}
+          <a href="./index.html" className="sm:hidden flex items-center gap-2 shrink-0">
+            <img src="./assets/logo-icon.svg" alt="" aria-hidden="true" className="h-7 w-auto" />
+            <span className="font-display font-black text-sm text-slate-900 dark:text-white whitespace-nowrap">UIL Math Practice</span>
+          </a>
+          {/* Left: logo + tabs — scrollable between sm and lg */}
+          <div className="hidden sm:flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar flex-1">
             <img src="./assets/logo-icon.svg" alt="UIL Math Practice" className="hidden lg:block h-7 w-auto flex-shrink-0 mr-1" />
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <a href="./index.html"
@@ -1448,9 +1479,52 @@ function App() {
                 Sign In
               </button>
             )}
+            <button onClick={()=>setNavMenuOpen(o=>!o)}
+              aria-label={navMenuOpen ? 'Close menu' : 'Open menu'} aria-expanded={navMenuOpen} aria-controls="app-nav-menu"
+              className="sm:hidden w-11 h-11 -mr-2 flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              {navMenuOpen ? (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile nav sheet */}
+        {navMenuOpen && (
+          <div id="app-nav-menu" className="sm:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 max-h-[calc(100dvh-3.5rem)] overflow-y-auto">
+            <div className="px-3 py-2 flex flex-col">
+              <a href="./index.html" className="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                Home
+              </a>
+              {NAV_TABS.map(({ key, label }) => (
+                (key !== 'admin' || (authUser && ADMIN_EMAILS.includes(authUser.email || ''))) && (
+                  <button key={key}
+                    onClick={()=>{
+                      setNavMenuOpen(false);
+                      navigateTab(key);
+                      // Same reset the desktop Problems tab performs, so the two
+                      // routes to the list cannot end up in different states.
+                      if (key === 'problems') { setView('list'); setRecommendedMode(false); }
+                    }}
+                    className={`text-left px-3 py-3 rounded-lg text-sm font-semibold transition-colors
+                      ${tab === key
+                        ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                    {label}
+                  </button>
+                )
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
+      {/* Tapping the page behind the sheet closes it. Below the nav's z-30 so
+          the sheet itself stays clickable. */}
+      {navMenuOpen && (
+        <div className="sm:hidden fixed inset-0 z-20" aria-hidden="true" onClick={()=>setNavMenuOpen(false)} />
+      )}
 
       {tab === 'mastery' ? (
         <MasteryPage authUser={authUser} masteryStats={authUser ? masteryStats : guestMasteryStats} bookmarksCount={bookmarks.length} navigateTab={navigateTab} totalQuestions={totalQuestions} topicTotals={topicTotals} />
