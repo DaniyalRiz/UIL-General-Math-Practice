@@ -5,6 +5,7 @@ import { TOPIC_DOT, fmtTime, sourceDisplay, plainText } from '../constants.js';
 import { MathText, DiffPill, useTimer, TimerDisplay } from './hooks.jsx';
 import { useApp } from './appContext.jsx';
 import { ReportIssueModal, CommunitySolutions } from './community.jsx';
+import { problemShareUrl } from './urlState.js';
 
 export function ProblemRow({ q, n, onOpen, status }) {
   const dotCls = status === "correct" ? "bg-emerald-500"
@@ -136,6 +137,80 @@ function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, 
   );
 }
 
+// Share a link to one problem. The point is pasting into Discord or a group
+// chat instead of screenshotting, so the link is what matters; the OS share
+// sheet is offered where it exists (phones, and Safari on desktop) because it
+// reaches every installed app without this needing to know about any of them.
+function ShareMenu({ q, open, setOpen }) {
+  const [copied, setCopied] = useState('');
+  const wrapRef = useRef(null);
+  const url = problemShareUrl(q.id);
+  // navigator.share is undefined on most desktop browsers, and on http origins.
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open, setOpen]);
+
+  const copy = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setTimeout(() => { setCopied(''); setOpen(false); }, 1200);
+    } catch (e) {
+      // Clipboard API needs a secure context and can be blocked outright, so
+      // fall back to selecting the text for a manual copy rather than failing
+      // silently with nothing on the clipboard.
+      window.prompt('Copy this link', text);
+      setOpen(false);
+    }
+  };
+
+  const nativeShare = async () => {
+    try {
+      await navigator.share({ title: q.title || `Problem #${q.id}`, url });
+      setOpen(false);
+    } catch (e) { /* user dismissed the sheet */ }
+  };
+
+  const itemCls = "w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors";
+
+  return (
+    <div className="relative" ref={wrapRef}>
+      <button onClick={()=>setOpen(o=>!o)} title="Share this problem" aria-label="Share this problem"
+        aria-haspopup="menu" aria-expanded={open}
+        className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-all">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span className="hidden sm:inline">Share</span>
+      </button>
+
+      {open && (
+        <div role="menu"
+          className="absolute right-0 top-full mt-1.5 w-56 z-50 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+          {copied ? (
+            <p className="px-3 py-2.5 text-sm font-semibold text-emerald-600 dark:text-emerald-400">{copied}</p>
+          ) : (
+            <>
+              <button role="menuitem" className={itemCls} onClick={()=>copy(url, 'Link copied')}>Copy link</button>
+              <button role="menuitem" className={itemCls}
+                onClick={()=>copy(`${q.title || 'Problem #' + q.id}\n${url}`, 'Link and title copied')}>
+                Copy link and title
+              </button>
+              {canNativeShare && (
+                <button role="menuitem" className={itemCls} onClick={nativeShare}>Share...</button>
+              )}
+              <p className="px-3 py-2 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800 break-all">{url}</p>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, allQuestions }) {
   const { authUser } = useApp();
   const [pending, setPending]   = useState(null);
@@ -151,6 +226,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
   const [serverResult, setServerResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [showReportIssue, setShowReportIssue] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const timer = useTimer();
   const startRef = useRef(Date.now());
   // Updated synchronously on every render so async RPC callbacks can detect stale results.
@@ -165,17 +241,19 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
     dialogRef.current?.focus();
   }, []);
 
-  // Escape closes: the report modal first if it's open, otherwise the problem.
-  // Ignored while a submission is in flight, matching the disabled Close button.
+  // Escape closes the innermost thing first: report modal, then share menu,
+  // then the problem itself. Ignored while a submission is in flight, matching
+  // the disabled Close button.
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'Escape') return;
       if (showReportIssue) { setShowReportIssue(false); return; }
+      if (showShare) { setShowShare(false); return; }
       if (!submitting) onClose();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [showReportIssue, submitting, onClose]);
+  }, [showReportIssue, showShare, submitting, onClose]);
 
   // Keep Tab cycling inside the dialog -- without this, keyboard focus walks
   // out into the page hidden behind the full-screen problem view.
@@ -473,6 +551,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 </svg>
                 <TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
               </div>
+              <ShareMenu q={q} open={showShare} setOpen={setShowShare} />
               <button onClick={()=>setShowReportIssue(true)} title="Report a question issue" aria-label="Report a question issue"
                 className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-rose-500 dark:hover:text-rose-400 transition-all">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { DIFF_PILL } from '../constants.js';
@@ -114,6 +114,123 @@ export function DiffPill({ d }) {
 
 export const SunIcon = () => (<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>);
 export const MoonIcon = () => (<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>);
+
+// ── Recent searches ─────────────────────────────────────────────────────────
+// One shared list across every search box. Problems, Recommended Practice and
+// Redo Misses already share a single search state, so separate lists would be a
+// fiction there; History gets the same list so a term searched once is offered
+// everywhere.
+const RECENT_SEARCHES_KEY = 'recent_searches';
+const MAX_RECENT_SEARCHES = 8;
+const MIN_RECORDED_LENGTH = 2; // single characters are never a search worth keeping
+
+function readRecentSearches() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY));
+    return Array.isArray(raw) ? raw.filter(s => typeof s === 'string') : [];
+  } catch (e) { return []; }
+}
+
+export function useRecentSearches() {
+  const [recents, setRecents] = useState(readRecentSearches);
+
+  // Re-read rather than trusting local state: another search box on another tab
+  // may have written since this one mounted.
+  const refresh = () => setRecents(readRecentSearches());
+
+  const record = (raw) => {
+    const term = String(raw || '').trim();
+    if (term.length < MIN_RECORDED_LENGTH) return;
+    const next = [term, ...readRecentSearches().filter(s => s.toLowerCase() !== term.toLowerCase())]
+      .slice(0, MAX_RECENT_SEARCHES);
+    setRecents(next);
+    try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next)); } catch (e) {}
+  };
+
+  const remove = (term) => {
+    const next = readRecentSearches().filter(s => s !== term);
+    setRecents(next);
+    try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next)); } catch (e) {}
+  };
+
+  const clear = () => {
+    setRecents([]);
+    try { localStorage.removeItem(RECENT_SEARCHES_KEY); } catch (e) {}
+  };
+
+  return { recents, record, remove, clear, refresh };
+}
+
+// Search input with a recent-searches dropdown. Terms are recorded on Enter or
+// on leaving the field, never per keystroke, so typing "geometry" stores one
+// entry instead of eight prefixes of it.
+export function SearchWithHistory({ value, onChange, placeholder, wrapperClassName = '', inputClassName = '' }) {
+  const { recents, record, remove, clear, refresh } = useRecentSearches();
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (wrapRef.current?.contains(e.target)) return;
+      record(value);           // clicking away is finishing the search
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open, value]);
+
+  // Once the user is typing, narrow the list to terms that actually relate to
+  // what is in the box; an empty box offers everything.
+  const shown = value.trim()
+    ? recents.filter(s => s.toLowerCase().includes(value.trim().toLowerCase()) && s.toLowerCase() !== value.trim().toLowerCase())
+    : recents;
+
+  const pick = (term) => { onChange(term); record(term); setOpen(false); };
+
+  return (
+    <div className={`relative ${wrapperClassName}`} ref={wrapRef}>
+      <input type="text" placeholder={placeholder} value={value} className={inputClassName}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => { refresh(); setOpen(true); }}
+        // Also on click: pressing Enter closes the list, and clicking a field
+        // that already has focus fires no focus event, so without this the list
+        // could not be reopened without clicking away and back.
+        onClick={() => { refresh(); setOpen(true); }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') { record(value); setOpen(false); }
+          if (e.key === 'Escape') { setOpen(false); }
+        }} />
+
+      {open && shown.length > 0 && (
+        <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Recent</span>
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={clear}
+              className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400">
+              Clear
+            </button>
+          </div>
+          {shown.map(term => (
+            <div key={term} className="flex items-center group">
+              {/* onMouseDown, not onClick: the input's blur would otherwise close
+                  the menu and the click would land on nothing. */}
+              <button type="button" onMouseDown={e => { e.preventDefault(); pick(term); }}
+                className="flex-1 text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 truncate">
+                {term}
+              </button>
+              <button type="button" aria-label={`Remove ${term} from recent searches`}
+                onMouseDown={e => { e.preventDefault(); remove(term); }}
+                className="px-2 py-2 text-slate-300 hover:text-rose-600 dark:text-slate-600 dark:hover:text-rose-400">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Dropdown({ label, value, options, onChange }) {
   return (

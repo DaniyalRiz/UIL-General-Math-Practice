@@ -3,9 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { _supabase } from '../supabaseClient.js';
 import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, fmtTime, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
 import { updateUserStatsOnly, cropAndResizeAvatar, computeDayStreak } from '../utils.js';
-import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown } from './hooks.jsx';
+import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown, SearchWithHistory } from './hooks.jsx';
 import { AppContext, useApp } from './appContext.jsx';
 import { AuthModal } from './authModal.jsx';
+import { readAppUrl, buildAppQuery } from './urlState.js';
 import { AnalyticsPage, HistoryPage } from './analytics.jsx';
 import { ProblemRow, ProblemView } from './problemView.jsx';
 import { LeaderboardPage } from './leaderboard.jsx';
@@ -36,6 +37,9 @@ const AdminQuestionManager = lazy(async () => {
 // on Analytics, Mastery, Settings and everywhere else.
 // Format: "<what you clicked>: <site>", matching the static <title> on the
 // landing, policy, and reset-password pages.
+// Shared by the four search boxes so they stay visually identical.
+const SEARCH_INPUT_CLS = "w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500";
+
 const SITE_TITLE = 'UIL Math Practice';
 // Mirrored by the inline pre-mount script in app.html, which paints the correct
 // title before this bundle loads. Change both together.
@@ -724,17 +728,40 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
 // + page) and the values derived purely from it. Extracted from App so that
 // cluster of state lives in one named place. `counts`, `uniqueSources`, and
 // `filtered` stay in App because they also depend on `questions`/`qStats`.
-function useProblemFilters() {
-  const [topic, setTopic] = useState("All Topics");
-  const [diff, setDiff] = useState("All Difficulties");
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("All Types");
-  const [sourceFilter, setSourceFilter] = useState("All Sources");
-  const [statusFilter, setStatusFilter] = useState("All Status");
-  const [page, setPage] = useState(1);
+// `initial` comes from the URL, so a shared link renders its filtered list on
+// the first paint instead of flashing the unfiltered one and correcting itself.
+function useProblemFilters(initial = {}) {
+  const [topic, setTopic] = useState(initial.topic ?? "All Topics");
+  const [diff, setDiff] = useState(initial.diff ?? "All Difficulties");
+  const [search, setSearch] = useState(initial.q ?? "");
+  const [typeFilter, setTypeFilter] = useState(initial.type ?? "All Types");
+  const [sourceFilter, setSourceFilter] = useState(initial.source ?? "All Sources");
+  const [statusFilter, setStatusFilter] = useState(initial.status ?? "All Status");
+  const [page, setPage] = useState(initial.page ?? 1);
 
-  // Reset specific source when type changes so stale selections don't persist
-  useEffect(() => { setSourceFilter("All Sources"); setPage(1); }, [typeFilter]);
+  // Reset specific source when type changes so stale selections don't persist.
+  // Skipped on the first run (it would wipe a source that arrived in the URL)
+  // and on a back/forward restore (it would wipe the source being restored).
+  const typeSettled = useRef(false);
+  const suppressTypeReset = useRef(false);
+  useEffect(() => {
+    if (!typeSettled.current) { typeSettled.current = true; return; }
+    if (suppressTypeReset.current) { suppressTypeReset.current = false; return; }
+    setSourceFilter("All Sources"); setPage(1);
+  }, [typeFilter]);
+
+  // Restore every filter from a URL, for back/forward. The functional updater
+  // compares against the live value rather than a closure, because the popstate
+  // listener is registered once and would otherwise read a stale typeFilter.
+  const applyFiltersFromUrl = (u) => {
+    setTypeFilter(prev => {
+      if (prev !== u.type) suppressTypeReset.current = true;
+      return u.type;
+    });
+    setTopic(u.topic); setDiff(u.diff);
+    setSourceFilter(u.source); setStatusFilter(u.status);
+    setSearch(u.q); setPage(u.page);
+  };
 
   const matchesBaseFilters = (q) => {
     if (topic !== "All Topics") {
@@ -764,13 +791,16 @@ function useProblemFilters() {
   return {
     topic, setTopic, diff, setDiff, search, setSearch,
     typeFilter, setTypeFilter, sourceFilter, setSourceFilter, statusFilter, setStatusFilter,
-    page, setPage, matchesBaseFilters, onFilter, resetFilters,
+    page, setPage, matchesBaseFilters, onFilter, resetFilters, applyFiltersFromUrl,
   };
 }
 
 function App() {
   const [dark, toggleTheme] = useTheme();
   const [authUser, setAuthUser] = useState(null);
+  // Read once, at mount. Every piece of visible state seeds from here so a
+  // shared link renders its destination on the first paint.
+  const urlInit = useRef(readAppUrl()).current;
   const [tab, setTab] = useLocalStorage('current_tab', 'problems'); // 'problems' | 'analytics' | 'history' | 'admin'
   // null when closed, otherwise the tab the modal opens on: 'signin' | 'signup'
   const [authModalTab, setAuthModalTab] = useState(null);
@@ -805,8 +835,8 @@ function App() {
   const {
     topic, setTopic, diff, setDiff, search, setSearch,
     typeFilter, setTypeFilter, sourceFilter, setSourceFilter, statusFilter, setStatusFilter,
-    page, setPage, matchesBaseFilters, onFilter, resetFilters,
-  } = useProblemFilters();
+    page, setPage, matchesBaseFilters, onFilter, resetFilters, applyFiltersFromUrl,
+  } = useProblemFilters(urlInit);
   const [openIdx, setOpenIdx] = useState(null);
   const [openQuestionId, setOpenQuestionId] = useState(null);
   // When opening a question by id that the current filters exclude, we clear the
@@ -818,7 +848,7 @@ function App() {
   // actually was, so closing the question returns them there instead of leaving
   // them in a problem list they never asked for.
   const [returnTab, setReturnTab] = useState(null);
-  const [view, setView] = useState("list");
+  const [view, setView] = useState(urlInit.view);
   const [jumpValue, setJumpValue] = useState('');
   const [jumpActive, setJumpActive] = useState(null);
 
@@ -915,22 +945,62 @@ function App() {
     setTimeout(() => { pushingHistory.current = false; }, 0);
   };
 
-  // Seed the initial history entry on mount
+  // Seed the initial history entry on mount. A ?tab= in the link beats the tab
+  // remembered in localStorage, so a shared link lands where it says it will;
+  // a bare app.html has no ?tab= and keeps restoring the remembered tab.
   useEffect(() => {
-    window.history.replaceState({ tab: 'problems', openIdx: null, view: 'list', recommendedMode: false }, '');
+    // An ?id= link forces the problems tab: the question only renders there, so
+    // honoring a remembered tab of "analytics" would silently drop the whole
+    // point of the shared link.
+    const wantTab = urlInit.id != null ? 'problems' : (urlInit.hasTab ? urlInit.tab : tab);
+    if (wantTab !== tab) setTab(wantTab);
+    if (urlInit.id != null) setPendingOpenId(urlInit.id);
+    window.history.replaceState(
+      { tab: wantTab, openIdx: null, view: urlInit.view, recommendedMode: urlInit.view === 'recommended' },
+      '');
   }, []);
+
+  // Mirror the visible state back into the address bar. replaceState, not push:
+  // a history entry per keystroke would make the back button useless, and the
+  // two deliberate push points (openProblem, navigateTab) already exist.
+  // Debounced because Safari throttles history calls to roughly 100 per 30s and
+  // typing in the search box would otherwise blow straight through that.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const query = buildAppQuery({
+        tab,
+        view: tab === 'problems' ? view : 'list',
+        topic, diff, type: typeFilter, source: sourceFilter, status: statusFilter,
+        q: search, page,
+        // pendingOpenId counts too: on a ?id= link the questions are still
+        // loading, so openQuestionId is null for a moment and the id would be
+        // stripped from the address bar before the question ever opened.
+        id: tab === 'problems' ? (openQuestionId ?? pendingOpenId ?? '') : '',
+      });
+      window.history.replaceState(window.history.state, '', query);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [tab, view, topic, diff, typeFilter, sourceFilter, statusFilter, search, page, openQuestionId, pendingOpenId]);
 
   // Restore in-app state on browser back/forward
   useEffect(() => {
     const onPop = (e) => {
       if (pushingHistory.current) return;
-      const s = e.state;
-      if (!s) return;
-      setTab(s.tab || 'problems');
-      setView(s.view || 'list');
-      setRecommendedMode(!!s.recommendedMode);
-      setOpenIdx(s.openIdx ?? null);
-      setReturnTab(s.returnTab ?? null);
+      // The URL is authoritative: it carries the filters and the open question,
+      // and it is what a shared link or a typed address supplies. e.state only
+      // adds returnTab, which has no URL representation.
+      const u = readAppUrl();
+      setTab(u.tab);
+      setView(u.view);
+      setRecommendedMode(u.view === 'recommended');
+      applyFiltersFromUrl(u);
+      setReturnTab(e.state?.returnTab ?? null);
+      if (u.id != null) {
+        setPendingOpenId(u.id);
+      } else {
+        setOpenIdx(null);
+        setOpenQuestionId(null);
+      }
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
@@ -1432,11 +1502,10 @@ function App() {
 
           {/* RECOMMENDED FILTER BAR */}
           <div className="flex flex-wrap items-center gap-3 mb-5">
-            <div className="relative flex-1 min-w-[220px]">
-              <input type="text" placeholder="Search title, text, topic, tags..." value={search}
-                onChange={e=>{setSearch(e.target.value); setPage(1);}}
-                className="w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
+            <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
+              placeholder="Search title, text, topic, tags..."
+              wrapperClassName="flex-1 min-w-[220px]"
+              inputClassName={SEARCH_INPUT_CLS} />
             <Dropdown label="Status" value={recStatus} options={["All","Unattempted","Correct","Missed"]} onChange={v=>{setRecStatus(v); setPage(1);}} />
             <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
             <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
@@ -1489,11 +1558,10 @@ function App() {
 
           {/* Filters (no status filter -- everything here is missed by definition) */}
           <div className="flex flex-wrap items-center gap-3 mb-5">
-            <div className="relative flex-1 min-w-[200px]">
-              <input type="text" placeholder="Search problems…" value={search}
-                onChange={e=>{setSearch(e.target.value); setPage(1);}}
-                className="w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
+            <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
+              placeholder="Search problems…"
+              wrapperClassName="flex-1 min-w-[200px]"
+              inputClassName={SEARCH_INPUT_CLS} />
             <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
             <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
             <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
@@ -1591,11 +1659,10 @@ function App() {
 
         {/* FILTER BAR */}
         <div className="flex flex-wrap items-center gap-3 mb-5">
-          <div className="relative flex-1 min-w-[200px]">
-            <input type="text" placeholder="Search problems…" value={search}
-              onChange={e=>{setSearch(e.target.value); setPage(1);}}
-              className="w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
+          <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
+            placeholder="Search problems…"
+            wrapperClassName="flex-1 min-w-[200px]"
+            inputClassName={SEARCH_INPUT_CLS} />
           <Dropdown label="Status" value={statusFilter} options={["All Status","Unattempted","Correct","Incorrect"]} onChange={v=>onFilter(setStatusFilter,v)} />
           <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
           <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />

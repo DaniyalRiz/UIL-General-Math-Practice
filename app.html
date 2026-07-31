@@ -29,11 +29,20 @@
       settings: 'Settings',
       reportBug: 'Report a Bug'
     };
+    var tab = null;
+    // A ?tab= in the link beats the remembered tab, and an ?id= link is always
+    // the problems tab. Matches how the app itself resolves the two.
     try {
-      // useLocalStorage writes JSON, so the stored value is a quoted string.
-      var tab = JSON.parse(localStorage.getItem('current_tab'));
-      if (TABS[tab]) document.title = TABS[tab] + ': UIL Math Practice';
-    } catch (e) { /* private mode, or a malformed value: keep the static title */ }
+      var sp = new URLSearchParams(location.search);
+      tab = sp.get('id') ? 'problems' : sp.get('tab');
+    } catch (e) {}
+    if (!tab) {
+      try {
+        // useLocalStorage writes JSON, so the stored value is a quoted string.
+        tab = JSON.parse(localStorage.getItem('current_tab'));
+      } catch (e) { /* private mode, or a malformed value: fall through */ }
+    }
+    if (TABS[tab]) document.title = TABS[tab] + ': UIL Math Practice';
   })();
 </script>
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml"/>
