@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { getColumnCategory, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText } from '../constants.js';
-import { MathText, DiffPill, Dropdown, useLocalStorage, SearchWithHistory } from './hooks.jsx';
+import { MathText, DiffPill, Dropdown, useLocalStorage, SearchWithHistory, readSavedFilters, saveFilters } from './hooks.jsx';
+
+const HISTORY_FILTERS_KEY = 'history_filters';
 import { useApp } from './appContext.jsx';
 import { computeDayStreak } from '../utils.js';
 
@@ -478,12 +480,22 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
   const getSolutionQuestion = (solution) => allQuestions.find(q => q.id === solution.question_id);
 
   // filters
-  const [filterCorrect, setFilterCorrect] = useState('All');
-  const [filterTopic,   setFilterTopic]   = useState('All Topics');
-  const [filterDiff,    setFilterDiff]    = useState('All Difficulties');
-  const [filterDate,    setFilterDate]    = useState('Most Recent');
-  const [filterSource,  setFilterSource]  = useState('All Sources');
-  const [filterType,    setFilterType]    = useState('All Types');
+  // Filters and the Date sort persist across sessions, matching the problem
+  // lists. The search text is deliberately excluded: see PROBLEM_FILTERS_KEY.
+  const savedHistory = useRef(readSavedFilters(HISTORY_FILTERS_KEY)).current;
+  const [filterCorrect, setFilterCorrect] = useState(savedHistory.correct ?? 'All');
+  const [filterTopic,   setFilterTopic]   = useState(savedHistory.topic   ?? 'All Topics');
+  const [filterDiff,    setFilterDiff]    = useState(savedHistory.diff    ?? 'All Difficulties');
+  const [filterDate,    setFilterDate]    = useState(savedHistory.date    ?? 'Most Recent');
+  const [filterSource,  setFilterSource]  = useState(savedHistory.source  ?? 'All Sources');
+  const [filterType,    setFilterType]    = useState(savedHistory.type    ?? 'All Types');
+
+  useEffect(() => {
+    saveFilters(HISTORY_FILTERS_KEY, {
+      correct: filterCorrect, topic: filterTopic, diff: filterDiff,
+      date: filterDate, source: filterSource, type: filterType,
+    });
+  }, [filterCorrect, filterTopic, filterDiff, filterDate, filterSource, filterType]);
   const [search, setSearch]               = useState('');
 
   const questionSourceMap = useMemo(() => {

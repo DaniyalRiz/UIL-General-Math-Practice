@@ -115,6 +115,19 @@ export function DiffPill({ d }) {
 export const SunIcon = () => (<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>);
 export const MoonIcon = () => (<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>);
 
+// Saved filter/sort selections. Stored as one object per list rather than a key
+// per control, so a partially-written set can never leave a list half-filtered.
+export function readSavedFilters(key) {
+  try {
+    const o = JSON.parse(localStorage.getItem(key));
+    return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+  } catch (e) { return {}; }
+}
+
+export function saveFilters(key, values) {
+  try { localStorage.setItem(key, JSON.stringify(values)); } catch (e) {}
+}
+
 // ── Recent searches ─────────────────────────────────────────────────────────
 // One shared list across every search box. Problems, Recommended Practice and
 // Redo Misses already share a single search state, so separate lists would be a

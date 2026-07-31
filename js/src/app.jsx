@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { _supabase } from '../supabaseClient.js';
 import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, fmtTime, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
 import { updateUserStatsOnly, cropAndResizeAvatar, computeDayStreak } from '../utils.js';
-import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown, SearchWithHistory } from './hooks.jsx';
+import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown, SearchWithHistory, readSavedFilters, saveFilters } from './hooks.jsx';
 import { AppContext, useApp } from './appContext.jsx';
 import { AuthModal } from './authModal.jsx';
 import { readAppUrl, buildAppQuery } from './urlState.js';
@@ -739,16 +739,35 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
 // + page) and the values derived purely from it. Extracted from App so that
 // cluster of state lives in one named place. `counts`, `uniqueSources`, and
 // `filtered` stay in App because they also depend on `questions`/`qStats`.
+// Filters and sorts persist across sessions, so returning to the app does not
+// silently reset a narrowed list. The search text deliberately does NOT persist:
+// coming back to a text-filtered list looks like missing data, and recent
+// searches already makes a previous term one click away.
+const PROBLEM_FILTERS_KEY = 'problem_filters';
+
 // `initial` comes from the URL, so a shared link renders its filtered list on
 // the first paint instead of flashing the unfiltered one and correcting itself.
+// Precedence: URL param, then the saved selection, then the default. A link
+// always wins, otherwise a shared "all topics" view would inherit whatever the
+// recipient happened to have filtered last.
 function useProblemFilters(initial = {}) {
-  const [topic, setTopic] = useState(initial.topic ?? "All Topics");
-  const [diff, setDiff] = useState(initial.diff ?? "All Difficulties");
+  const saved = useRef(readSavedFilters(PROBLEM_FILTERS_KEY)).current;
+  const raw = initial.raw || {};
+  const seed = (urlValue, savedValue, fallback) => urlValue ?? savedValue ?? fallback;
+
+  const [topic, setTopic] = useState(() => seed(raw.topic, saved.topic, "All Topics"));
+  const [diff, setDiff] = useState(() => seed(raw.diff, saved.diff, "All Difficulties"));
   const [search, setSearch] = useState(initial.q ?? "");
-  const [typeFilter, setTypeFilter] = useState(initial.type ?? "All Types");
-  const [sourceFilter, setSourceFilter] = useState(initial.source ?? "All Sources");
-  const [statusFilter, setStatusFilter] = useState(initial.status ?? "All Status");
+  const [typeFilter, setTypeFilter] = useState(() => seed(raw.type, saved.type, "All Types"));
+  const [sourceFilter, setSourceFilter] = useState(() => seed(raw.source, saved.source, "All Sources"));
+  const [statusFilter, setStatusFilter] = useState(() => seed(raw.status, saved.status, "All Status"));
   const [page, setPage] = useState(initial.page ?? 1);
+
+  useEffect(() => {
+    saveFilters(PROBLEM_FILTERS_KEY, {
+      topic, diff, type: typeFilter, source: sourceFilter, status: statusFilter,
+    });
+  }, [topic, diff, typeFilter, sourceFilter, statusFilter]);
 
   // Reset specific source when type changes so stale selections don't persist.
   // Skipped on the first run (it would wipe a source that arrived in the URL)
@@ -886,6 +905,7 @@ function App() {
   const [attemptsError, setAttemptsError] = useState('');
   const [qStats, setQStats] = useLocalStorage("uilmath-qstats", {});
   const [bookmarks, setBookmarks] = useLocalStorage("uilmath-bookmarks", []);
+  const [reviewSort, setReviewSort] = useLocalStorage('review_sort', 'Recently Saved');
   const [masteryStats, setMasteryStats] = useState(null);
   const [recommendedMode, setRecommendedMode] = useState(false);
   const [recStatus, setRecStatus] = useState("All");
@@ -1214,6 +1234,30 @@ function App() {
     () => missedQueue.filter(matchesBaseFilters),
     [missedQueue, topic, diff, search, typeFilter, sourceFilter]
   );
+
+  // Review Later gets the same controls as History, adapted to a list of
+  // questions rather than attempts: History's "Result" becomes Status, and its
+  // "Date" becomes the sort below. `bookmarks` is stored in save order, so both
+  // readings of "date" are offered instead of guessing which one is meant.
+  const reviewVisible = useMemo(() => {
+    const saveOrder = new Map(bookmarks.map((id, i) => [id, i]));
+    const rows = questions.filter(q => saveOrder.has(q.id)).filter(q => {
+      if (!matchesBaseFilters(q)) return false;
+      const s = qStats[q.id];
+      if (statusFilter === "Unattempted" && s?.attempts > 0) return false;
+      if (statusFilter === "Correct" && !(s?.correct > 0)) return false;
+      if (statusFilter === "Incorrect" && !(s?.attempts > 0 && s?.correct === 0)) return false;
+      return true;
+    });
+    const addedAt = (q) => (q.date_added ? new Date(q.date_added).getTime() : 0);
+    const cmp = {
+      'Recently Saved': (a, b) => saveOrder.get(b.id) - saveOrder.get(a.id),
+      'First Saved':    (a, b) => saveOrder.get(a.id) - saveOrder.get(b.id),
+      'Newest Added':   (a, b) => addedAt(b) - addedAt(a),
+      'Oldest Added':   (a, b) => addedAt(a) - addedAt(b),
+    }[reviewSort];
+    return cmp ? [...rows].sort(cmp) : rows;
+  }, [questions, bookmarks, qStats, topic, diff, search, typeFilter, sourceFilter, statusFilter, reviewSort]);
 
   // Open a question by id from anywhere (History, Review Later, Redo Misses, the
   // "similar problems" list). If the current filters already show it, open it
@@ -1685,7 +1729,11 @@ function App() {
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
               <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Review Later</h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">{bookmarks.length} problem{bookmarks.length!==1?"s":""} in Review Later</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                {reviewVisible.length === bookmarks.length
+                  ? `${bookmarks.length} problem${bookmarks.length!==1?"s":""} in Review Later`
+                  : `Showing ${reviewVisible.length} of ${bookmarks.length} saved`}
+              </p>
             </div>
             <div className="flex items-center gap-2 mt-1 shrink-0">
               {bookmarks.length>0 && (
@@ -1710,17 +1758,40 @@ function App() {
               </button>
             </div>
           ) : (
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-              <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
+            <>
+              {/* REVIEW LATER FILTER BAR */}
+              <div className="flex flex-wrap items-center gap-3 mb-5">
+                <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
+                  placeholder="Search problems…"
+                  wrapperClassName="flex-1 min-w-[200px]"
+                  inputClassName={SEARCH_INPUT_CLS} />
+                <Dropdown label="Status" value={statusFilter} options={["All Status","Unattempted","Correct","Incorrect"]} onChange={v=>onFilter(setStatusFilter,v)} />
+                <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
+                <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
+                <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
+                <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
+                <Dropdown label="Sort" value={reviewSort} options={["Recently Saved","First Saved","Newest Added","Oldest Added"]} onChange={setReviewSort} />
               </div>
-              {questions.filter(q=>bookmarks.includes(q.id)).map((q,i) => {
-                const rec = qStats[q.id];
-                const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
-                return <ProblemRow key={q.id} q={q} n={i+1} status={status}
-                  onOpen={()=>requestOpenById(q.id)} />;
-              })}
-            </div>
+
+              {reviewVisible.length === 0 ? (
+                <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No saved problems match these filters</p>
+                  <p className="text-sm text-slate-400 dark:text-slate-500">{bookmarks.length} problem{bookmarks.length!==1?"s":""} saved in total.</p>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+                  <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
+                  </div>
+                  {reviewVisible.map((q,i) => {
+                    const rec = qStats[q.id];
+                    const status = rec?.attempts > 0 ? (rec.correct > 0 ? "correct" : "incorrect") : null;
+                    return <ProblemRow key={q.id} q={q} n={i+1} status={status}
+                      onOpen={()=>requestOpenById(q.id)} />;
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
       ) : (

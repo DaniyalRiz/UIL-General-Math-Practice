@@ -51,6 +51,14 @@ export function readAppUrl(searchString = window.location.search) {
     // Whether the caller explicitly asked for a tab, so a link can override the
     // tab remembered in localStorage without a bare app.html resetting it.
     hasTab: raw('tab') != null,
+    // Params exactly as supplied, null when absent. Saved filters fall back to
+    // these: "not in the URL" and "in the URL but set to the default" have to be
+    // told apart, or a shared link could never clear a remembered filter.
+    raw: {
+      topic: raw('topic'), diff: raw('diff'), type: raw('type'),
+      source: raw('source'), status: raw('status'), q: raw('q'),
+      page: raw('page') ? (parseInt(raw('page'), 10) || null) : null,
+    },
   };
 }
 
