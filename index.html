@@ -22,6 +22,13 @@
   /* Auth modal: a native <dialog>, so the UA handles show/hide.
      Only the open state needs laying out. */
   #auth-modal[open] { display:block; }
+  /* One navy tone for every feature icon, matching .hero-gradient.
+     Colour carries meaning inside the app: emerald = correct, rose = incorrect,
+     amber = flagged for Review Later. The grid used to run blue, amber, violet,
+     emerald, amber, indigo, amber -- five hues picked per card rather than by
+     meaning, which drained those three of the only job they do. 9.85:1. */
+  .icon-tile { background-color: #e8eef6; color: #1e3a5f; }
+
   /* Contact links: underline grows in from the left on hover, no background/box */
   .contact-link {
     position: relative;
@@ -156,27 +163,27 @@
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">
           Home
         </a>
-        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('problems'))"
+        <a href="./app.html?tab=problems"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Problems
         </a>
-        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('analytics'))"
+        <a href="./app.html?tab=analytics"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Analytics
         </a>
-        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('history'))"
+        <a href="./app.html?tab=history"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           History
         </a>
-        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('mastery'))"
+        <a href="./app.html?tab=mastery"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Mastery
         </a>
-        <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('leaderboard'))"
+        <a href="./app.html?tab=leaderboard"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Leaderboard
         </a>
-        <a id="nav-admin-tab" href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('admin'))"
+        <a id="nav-admin-tab" href="./app.html?tab=admin"
           class="hidden px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Admin
         </a>
@@ -221,12 +228,12 @@
   <div id="nav-mobile-menu" class="hidden sm:hidden border-t border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950 max-h-[calc(100dvh-3.5rem)] overflow-y-auto">
     <div class="px-3 py-2 flex flex-col">
       <a href="./index.html" class="px-3 py-3 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20">Home</a>
-      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('problems'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Problems</a>
-      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('analytics'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Analytics</a>
-      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('history'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">History</a>
-      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('mastery'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Mastery</a>
-      <a href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('leaderboard'))" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Leaderboard</a>
-      <a id="nav-admin-tab-mobile" href="./app.html" onclick="localStorage.setItem('current_tab',JSON.stringify('admin'))" class="hidden px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Admin</a>
+      <a href="./app.html?tab=problems" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Problems</a>
+      <a href="./app.html?tab=analytics" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Analytics</a>
+      <a href="./app.html?tab=history" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">History</a>
+      <a href="./app.html?tab=mastery" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Mastery</a>
+      <a href="./app.html?tab=leaderboard" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Leaderboard</a>
+      <a id="nav-admin-tab-mobile" href="./app.html?tab=admin" class="hidden px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Admin</a>
 
       <div class="border-t border-slate-200 dark:border-slate-800 mt-2 pt-2">
         <!-- Signed out: Get Started is hidden in the bar at this width. -->
@@ -304,49 +311,49 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Feature cards -->
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center mb-4 text-blue-600 dark:text-blue-400">
+        <div class="w-10 h-10 rounded-xl icon-tile flex items-center justify-center mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="2.5" fill="currentColor" stroke="none"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Topic & Difficulty Practice</h3>
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Filter by Algebra 1 & 2, Geometry, Precalculus, AP Calculus, and AP Statistics with targeted difficulty levels.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-700 dark:text-amber-400">
+        <div class="w-10 h-10 rounded-xl icon-tile flex items-center justify-center mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 3"/><path d="M9.5 2.5h5M12 2.5V5"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Timed UIL-Style Sessions</h3>
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Live timer, answer submission, cross-out, and instant correctness feedback modeled after real UIL competition pacing.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center mb-4 text-violet-600 dark:text-violet-400">
+        <div class="w-10 h-10 rounded-xl icon-tile flex items-center justify-center mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Full Worked Solutions</h3>
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Complete explanations rendered inline with KaTeX-typeset math: integrals, fractions, trig functions, and more.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-700 dark:text-emerald-400">
+        <div class="w-10 h-10 rounded-xl icon-tile flex items-center justify-center mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Personal Analytics Dashboard</h3>
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Track accuracy, average solve time, streaks, and performance trends across every practice session.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-700 dark:text-amber-400">
+        <div class="w-10 h-10 rounded-xl icon-tile flex items-center justify-center mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Review & Saved Problems</h3>
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Bookmark missed or important problems and revisit them anytime from a dedicated review area.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-4 text-indigo-600 dark:text-indigo-400">
+        <div class="w-10 h-10 rounded-xl icon-tile flex items-center justify-center mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Mastery System</h3>
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Track topic-level progress, surface weak areas, and see exactly which concepts need more practice.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-700 dark:text-amber-400">
+        <div class="w-10 h-10 rounded-xl icon-tile flex items-center justify-center mb-4">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4"/><path d="M5 3h14l-1.5 8A5.5 5.5 0 0 1 12 16a5.5 5.5 0 0 1-5.5-5L5 3z"/><path d="M4 3H2l1.5 5A4 4 0 0 0 7 11M20 3h2l-1.5 5A4 4 0 0 1 17 11"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Competitive Leaderboard</h3>
@@ -385,7 +392,7 @@
           These are real questions from real tests, with real worked solutions. The kind of resource I wish I had.
         </p>
         <div class="flex flex-wrap gap-3">
-          <span class="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-400 text-sm font-semibold px-3 py-1.5 rounded-full">
+          <span class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-400 text-sm font-semibold px-3 py-1.5 rounded-full">
             UIL State 6A Champion 2026
           </span>
           <span class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-800 dark:text-blue-400 text-sm font-semibold px-3 py-1.5 rounded-full">
@@ -413,7 +420,7 @@
           </div>
           <div class="flex justify-between text-sm">
             <span class="text-blue-200">Historic</span>
-            <span class="font-semibold text-amber-300">First-ever state title</span>
+            <span class="font-semibold text-white">First-ever state title</span>
           </div>
         </div>
       </div>
