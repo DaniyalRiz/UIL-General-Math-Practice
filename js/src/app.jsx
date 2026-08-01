@@ -40,19 +40,12 @@ const AdminQuestionManager = lazy(async () => {
 // Destinations in the mobile nav sheet, in the order the desktop tab strip
 // shows them. Admin is filtered out for non-admins at render time.
 const NAV_TABS = [
-  { key: 'problems', label: 'Practice' },
-  { key: 'analytics', label: 'Progress', authOnly: true },
-  { key: 'leaderboard', label: 'Leaderboard' },
-  { key: 'admin', label: 'Admin' },
-];
-
-// The three tabs that live under Progress. They remain separate `tab` values so
-// every existing ?tab=analytics / history / mastery link keeps working; Progress
-// is a grouping in the nav, not a new destination.
-const PROGRESS_TABS = [
+  { key: 'problems', label: 'Problems' },
   { key: 'analytics', label: 'Analytics' },
   { key: 'history', label: 'History' },
   { key: 'mastery', label: 'Mastery' },
+  { key: 'leaderboard', label: 'Leaderboard' },
+  { key: 'admin', label: 'Admin' },
 ];
 
 const SITE_TITLE = 'UIL Math Practice';
@@ -868,8 +861,6 @@ function App() {
   // Mobile nav sheet. Below sm the tab strip is hidden, so this is the only
   // route to Analytics, History, Mastery, Leaderboard and Admin on a phone.
   const [navMenuOpen, setNavMenuOpen] = useState(false);
-  // Analytics / History / Mastery are presented as one "Progress" destination.
-  const inProgress = PROGRESS_TABS.some(t => t.key === tab);
   useEffect(() => {
     if (!navMenuOpen) return;
     const onKey = (e) => { if (e.key === 'Escape') setNavMenuOpen(false); };
@@ -1469,7 +1460,11 @@ function App() {
           <div className="hidden sm:flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar flex-1">
             <img src="./assets/logo-icon.svg" alt="UIL Math Practice" className="hidden lg:block h-7 w-auto flex-shrink-0 mr-1" />
             <div className="flex items-center gap-0.5 flex-shrink-0">
-              <button onClick={()=>{
+              <a href="./index.html"
+                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">
+                Home
+              </a>
+              <button onClick={()=>{ 
                   navigateTab('problems');
                   setView('list');
                   setRecommendedMode(false);
@@ -1484,21 +1479,29 @@ function App() {
                   ${tab==='problems'
                     ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                Practice
+                Problems
               </button>
-              {/* Analytics, History and Mastery are one mental model, so they are
-                  one nav entry with a sub-tab strip below. Hidden when signed
-                  out, where all three are empty and only advertise emptiness.
-                  The three ?tab= values still work as deep links. */}
-              {authUser && (
-                <button onClick={()=>navigateTab('analytics')}
-                  className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
-                    ${inProgress
-                      ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-                  Progress
-                </button>
-              )}
+              <button onClick={()=>navigateTab('analytics')}
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
+                  ${tab==='analytics'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                Analytics
+              </button>
+              <button onClick={()=>navigateTab('history')}
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
+                  ${tab==='history'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                History
+              </button>
+              <button onClick={()=>navigateTab('mastery')}
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
+                  ${tab==='mastery'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                Mastery
+              </button>
               <button onClick={()=>navigateTab('leaderboard')}
                 className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap
                   ${tab==='leaderboard'
@@ -1515,12 +1518,6 @@ function App() {
                   Admin
                 </button>
               )}
-              {/* index.html already is the about page: what the site is, the
-                  feature grid, the builder story, contact. */}
-              <a href="./index.html"
-                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">
-                About
-              </a>
             </div>
           </div>
           {/* Right: actions */}
@@ -1565,9 +1562,11 @@ function App() {
         {navMenuOpen && (
           <div id="app-nav-menu" className="sm:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 max-h-[calc(100dvh-3.5rem)] overflow-y-auto">
             <div className="px-3 py-2 flex flex-col">
-              {NAV_TABS.map(({ key, label, authOnly }) => (
-                (key !== 'admin' || (authUser && ADMIN_EMAILS.includes(authUser.email || ''))) &&
-                (!authOnly || authUser) && (
+              <a href="./index.html" className="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                Home
+              </a>
+              {NAV_TABS.map(({ key, label }) => (
+                (key !== 'admin' || (authUser && ADMIN_EMAILS.includes(authUser.email || ''))) && (
                   <button key={key}
                     onClick={()=>{
                       setNavMenuOpen(false);
@@ -1577,17 +1576,13 @@ function App() {
                       if (key === 'problems') { setView('list'); setRecommendedMode(false); }
                     }}
                     className={`text-left px-3 py-3 rounded-lg text-sm font-semibold transition-colors
-                      ${(key === 'analytics' ? inProgress : tab === key)
+                      ${tab === key
                         ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                         : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                     {label}
                   </button>
                 )
               ))}
-              <a href="./index.html"
-                className="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
-                About
-              </a>
             </div>
           </div>
         )}
@@ -1596,25 +1591,6 @@ function App() {
           the sheet itself stays clickable. */}
       {navMenuOpen && (
         <div className="sm:hidden fixed inset-0 z-20" aria-hidden="true" onClick={()=>setNavMenuOpen(false)} />
-      )}
-
-      {/* Progress sub-tabs. Rendered above whichever of the three pages is
-          showing, so they read as one destination with three views rather than
-          three separate tabs. */}
-      {inProgress && (
-        <div className="max-w-6xl mx-auto px-4 pt-6">
-          <div className="flex gap-0 border-b border-slate-200 dark:border-slate-800">
-            {PROGRESS_TABS.map(({ key, label }) => (
-              <button key={key} onClick={()=>navigateTab(key)}
-                className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors
-                  ${tab === key
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400'
-                    : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
       )}
 
       {tab === 'mastery' ? (
