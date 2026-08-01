@@ -54,7 +54,7 @@ function LBRankBadge({ rank }) {
   if (rank === 3) return (
     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-200 dark:bg-orange-700/30 text-orange-800 dark:text-orange-500 text-xs font-black">3</span>
   );
-  return <span className="text-sm font-semibold text-slate-400 dark:text-slate-500">#{rank}</span>;
+  return <span className="text-sm font-semibold text-slate-500 dark:text-slate-500">#{rank}</span>;
 }
 
 export function LeaderboardPage({ authUser, questions }) {
@@ -119,13 +119,13 @@ export function LeaderboardPage({ authUser, questions }) {
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Leaderboard</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">UIL Math Practice · ranked by practice performance</p>
+        <p className="text-slate-600 dark:text-slate-400 text-[15px]">UIL Math Practice · ranked by practice performance</p>
       </div>
 
       {/* Sign-in prompt */}
       {!authUser && (
         <div className="mb-5 rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
-          <p className="text-sm text-blue-800 dark:text-blue-200">Sign in to appear on the leaderboard and track your rank.</p>
+          <p className="text-[15px] text-blue-800 dark:text-blue-200">Sign in to appear on the leaderboard and track your rank.</p>
           <button onClick={()=>openAuth('signin')} className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">Sign In</button>
         </div>
       )}
@@ -133,7 +133,7 @@ export function LeaderboardPage({ authUser, questions }) {
       {/* Scoring explanation */}
       <div className="mb-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 space-y-1">
         <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">How scoring works</p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
           <span className="font-medium text-slate-600 dark:text-slate-300">Score</span> = difficulty-weighted correct answers &times; topic variety.
           Each question counts once. Easy = 1 pt, Medium = 2 pts, Hard = 3 pts.
           The variety multiplier ranges from 0.6&times; (1 topic) to 1.0&times; (all 5 topics) —
@@ -163,12 +163,12 @@ export function LeaderboardPage({ authUser, questions }) {
         </div>
       ) : error ? (
         <div className="text-center py-16 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10">
-          <p className="text-rose-600 dark:text-rose-400 text-sm font-semibold mb-1">Could not load leaderboard</p>
-          <p className="text-slate-400 dark:text-slate-500 text-xs">{error}</p>
+          <p className="text-rose-600 dark:text-rose-400 text-[15px] font-semibold mb-1">Could not load leaderboard</p>
+          <p className="text-slate-500 dark:text-slate-500 text-xs">{error}</p>
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-20 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-500">
             <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
           </div>
           {/* A search that matches nobody is a different situation from an empty
@@ -176,7 +176,7 @@ export function LeaderboardPage({ authUser, questions }) {
           <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
             {search.trim() && allEntries.length > 0 ? 'No students match that search' : 'No entries yet'}
           </p>
-          <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
+          <p className="text-[15px] text-slate-500 dark:text-slate-500 max-w-xs mx-auto">
             {search.trim() && allEntries.length > 0
               ? `${allEntries.length} student${allEntries.length !== 1 ? 's' : ''} on the leaderboard for these filters.`
               : 'Answer at least 5 questions correctly to appear on the leaderboard.'}
@@ -186,7 +186,7 @@ export function LeaderboardPage({ authUser, questions }) {
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
 
           {/* Desktop column header */}
-          <div className="hidden sm:grid grid-cols-[2.5rem_1fr_5.5rem_8rem_6rem_5.5rem_6rem] gap-2 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <div className="hidden sm:grid grid-cols-[2.5rem_1fr_5.5rem_8rem_6rem_5.5rem_6rem] gap-2 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">
             <span>#</span>
             <span>Name</span>
             <span className="text-right">Score</span>
@@ -214,14 +214,14 @@ export function LeaderboardPage({ authUser, questions }) {
               <div className="flex items-center gap-2.5 min-w-0">
                 <LBAvatar name={e.display_name} avatarUrl={e.avatar_url} />
                 <div className="min-w-0">
-                  <p className={`text-sm font-semibold truncate ${e.is_current_user ? 'text-blue-700 dark:text-blue-300' : 'text-slate-800 dark:text-slate-100'}`}>
+                  <p className={`text-[15px] font-semibold truncate ${e.is_current_user ? 'text-blue-700 dark:text-blue-300' : 'text-slate-800 dark:text-slate-100'}`}>
                     {e.display_name}
                     {e.is_current_user && (
                       <span className="ml-1.5 text-xs font-normal text-blue-500 dark:text-blue-400">(you)</span>
                     )}
                   </p>
                   {/* Mobile: compact stats */}
-                  <p className="sm:hidden text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  <p className="sm:hidden text-xs text-slate-500 dark:text-slate-500 mt-0.5">
                     Score {e.score} &middot; {e.correct_count}/{e.total_questions} correct &middot; {e.accuracy_percent}% &middot; {e.topic_count}/{LB_TOTAL_TOPICS} topics
                   </p>
                 </div>
@@ -236,7 +236,7 @@ export function LeaderboardPage({ authUser, questions }) {
               <div className="hidden sm:flex justify-end">
                 <span className="text-sm text-slate-700 dark:text-slate-200">
                   {e.correct_count}
-                  <span className="text-slate-400 dark:text-slate-500">/{e.total_questions}</span>
+                  <span className="text-slate-500 dark:text-slate-500">/{e.total_questions}</span>
                 </span>
               </div>
 
@@ -256,16 +256,16 @@ export function LeaderboardPage({ authUser, questions }) {
                 <span className={`text-sm font-medium ${
                   Number(e.topic_count) >= 4 ? 'text-emerald-600 dark:text-emerald-400'
                   : Number(e.topic_count) >= 2 ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-slate-500 dark:text-slate-400'
+                  : 'text-slate-600 dark:text-slate-400'
                 }`}>
                   {e.topic_count}
                 </span>
-                <span className="text-xs text-slate-400 dark:text-slate-500">/{LB_TOTAL_TOPICS}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-500">/{LB_TOTAL_TOPICS}</span>
               </div>
 
               {/* Last Active */}
               <div className="hidden sm:flex justify-end">
-                <span className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-slate-500 dark:text-slate-500">
                   {lbRelTime(e.latest_attempt)}
                 </span>
               </div>
@@ -277,7 +277,7 @@ export function LeaderboardPage({ authUser, questions }) {
       {/* Signed in but not on board */}
       {authUser && !loading && !error && entries.length > 0 && !myEntry && (
         <div className="mt-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 px-4 py-3 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-[15px] text-slate-600 dark:text-slate-400">
             You're not on this board yet — answer at least 5 questions correctly to appear.
           </p>
         </div>

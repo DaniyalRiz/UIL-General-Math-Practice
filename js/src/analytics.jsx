@@ -68,16 +68,16 @@ function WeeklyTrend({ attempts }) {
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm mb-8">
       <div className="flex items-baseline justify-between mb-4">
         <h2 className="font-bold text-slate-800 dark:text-slate-100">Weekly Trend</h2>
-        <span className="text-xs text-slate-400 dark:text-slate-500">Last 8 weeks</span>
+        <span className="text-xs text-slate-500 dark:text-slate-500">Last 8 weeks</span>
       </div>
 
       <div className="relative">
         {/* Accuracy panel */}
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Accuracy</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-2">Accuracy</p>
         <div className="relative h-28 mb-1">
           {[0, 50, 100].map(v => (
             <div key={v} className="absolute inset-x-0 border-t border-slate-100 dark:border-slate-800" style={{ top: `${100 - v}%` }}>
-              <span className={`absolute left-0 text-[10px] text-slate-400 dark:text-slate-500 tabular-nums ${v === 100 ? 'pt-px' : '-translate-y-full pb-px'}`}>{v}%</span>
+              <span className={`absolute left-0 text-[10px] text-slate-500 dark:text-slate-500 tabular-nums ${v === 100 ? 'pt-px' : '-translate-y-full pb-px'}`}>{v}%</span>
             </div>
           ))}
           <svg aria-hidden="true" className="absolute inset-0 w-full h-full text-blue-600 dark:text-blue-500 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -100,7 +100,7 @@ function WeeklyTrend({ attempts }) {
         </div>
 
         {/* Attempts panel */}
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 mt-4">Attempts</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-2 mt-4">Attempts</p>
         <div className="flex items-end gap-0.5 h-16 border-b border-slate-100 dark:border-slate-800">
           {weeks.map((w, i) => (
             <div key={i} className="flex-1 flex items-end justify-center h-full">
@@ -113,7 +113,7 @@ function WeeklyTrend({ attempts }) {
         {/* X labels */}
         <div className="flex mt-1.5">
           {weeks.map((w, i) => (
-            <span key={i} className={`flex-1 text-center text-[10px] text-slate-400 dark:text-slate-500 ${i % 2 ? 'invisible sm:visible' : ''}`}>{w.label}</span>
+            <span key={i} className={`flex-1 text-center text-[10px] text-slate-500 dark:text-slate-500 ${i % 2 ? 'invisible sm:visible' : ''}`}>{w.label}</span>
           ))}
         </div>
 
@@ -128,9 +128,9 @@ function WeeklyTrend({ attempts }) {
                   {w.attempts
                     ? <>
                         <p className="text-slate-600 dark:text-slate-300">{w.accuracy}% accuracy ({w.correct}/{w.attempts})</p>
-                        <p className="text-slate-400 dark:text-slate-500">{w.attempts} attempt{w.attempts !== 1 ? 's' : ''}</p>
+                        <p className="text-slate-500 dark:text-slate-500">{w.attempts} attempt{w.attempts !== 1 ? 's' : ''}</p>
                       </>
-                    : <p className="text-slate-400 dark:text-slate-500">No attempts</p>}
+                    : <p className="text-slate-500 dark:text-slate-500">No attempts</p>}
                 </div>
               )}
             </div>
@@ -232,17 +232,17 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
   if (attemptsError) return (
     <div className="max-w-6xl mx-auto px-4 py-12 text-center">
       <p className="text-rose-500 font-semibold">Error loading analytics: {attemptsError}</p>
-      <p className="text-slate-400 text-sm mt-1">Make sure the attempts table exists in Supabase.</p>
+      <p className="text-slate-500 text-[15px] mt-1">Make sure the attempts table exists in Supabase.</p>
     </div>
   );
 
   if (!data || data.length === 0) return (
     <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-      <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+      <div className="w-14 h-14 mx-auto mb-5 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-500">
         <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
       </div>
       <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">No data yet</p>
-      <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">Answer some problems and your analytics will appear here.</p>
+      <p className="text-slate-600 dark:text-slate-400 max-w-xs mx-auto">Answer some problems and your analytics will appear here.</p>
     </div>
   );
 
@@ -321,7 +321,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Analytics</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Your personal performance across all practice sessions</p>
+          <p className="text-slate-600 dark:text-slate-400 text-[15px]">Your personal performance across all practice sessions</p>
         </div>
         <button onClick={exportAnalyticsPdf}
           className="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors">
@@ -343,7 +343,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
         ].map(({ label, value, color, border, large }) => (
           <div key={label} className={`rounded-xl border ${border||'border-slate-200 dark:border-slate-800'} bg-white dark:bg-slate-900 p-4 text-center shadow-sm`}>
             <p className={`${large ? 'text-3xl' : 'text-2xl'} font-black ${color}`}>{value}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium uppercase tracking-wide">{label}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium uppercase tracking-wide">{label}</p>
           </div>
         ))}
       </div>
@@ -369,10 +369,10 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
                 <div key={label} className={`rounded-xl border ${s.border} bg-white dark:bg-slate-900 p-4 shadow-sm`}>
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`}></span>
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">{label}</p>
                   </div>
-                  <p className={`text-sm font-bold ${s.text} leading-tight`}>{value || '—'}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{sub}</p>
+                  <p className={`text-[15px] font-bold ${s.text} leading-tight`}>{value || '—'}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{sub}</p>
                 </div>
               );
             })}
@@ -387,7 +387,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6">
           <h2 className="font-bold text-slate-800 dark:text-slate-100 mb-5">Performance by Topic</h2>
           {byTopic.length === 0
-            ? <p className="text-slate-400 text-sm">No data yet.</p>
+            ? <p className="text-slate-500 text-[15px]">No data yet.</p>
             : <div className="space-y-5">
               {byTopic.map(t => (
                 <div key={t.topic}>
@@ -396,7 +396,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
                       <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[t.topic]||'bg-slate-400'}`}></span>
                       {t.topic}
                     </span>
-                    <span className="text-slate-500 dark:text-slate-400 text-xs tabular-nums">
+                    <span className="text-slate-600 dark:text-slate-400 text-xs tabular-nums">
                       {t.correct}/{t.attempts} · {t.accuracy}% · {fmtTime(t.avgMs)}
                     </span>
                   </div>
@@ -413,7 +413,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
         {/* ── By Column ── */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6">
           <h2 className="font-bold text-slate-800 dark:text-slate-100 mb-2">Performance by Column</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-5">
             Column 1 = Algebra 1 & 2 + Geometry · Column 2 = Precalculus · Column 3 = AP Calculus + AP Statistics
           </p>
           <div className="space-y-5">
@@ -424,7 +424,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
                     <span className={`w-2 h-2 rounded-full ${COLUMN_BAR[c.column]||'bg-slate-400'}`}></span>
                     {c.column}
                   </span>
-                  <span className="text-slate-500 dark:text-slate-400 text-xs tabular-nums">
+                  <span className="text-slate-600 dark:text-slate-400 text-xs tabular-nums">
                     {c.attempts > 0 ? `${c.correct}/${c.attempts} · ${c.accuracy}% · ${fmtTime(c.avgMs)}` : 'No attempts yet'}
                   </span>
                 </div>
@@ -447,7 +447,7 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
                   <span className="flex items-center gap-2">
                     <DiffPill d={d.difficulty} />
                   </span>
-                  <span className="text-slate-500 dark:text-slate-400 text-xs tabular-nums">
+                  <span className="text-slate-600 dark:text-slate-400 text-xs tabular-nums">
                     {d.attempts > 0 ? `${d.correct}/${d.attempts} · ${d.accuracy}% · ${fmtTime(d.avgMs)}` : 'No attempts yet'}
                   </span>
                 </div>
@@ -610,7 +610,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
   if (error) return (
     <div className="max-w-6xl mx-auto px-4 py-12 text-center">
       <p className="text-rose-500 font-semibold">Error loading history: {error}</p>
-      <p className="text-slate-400 text-sm mt-1">Make sure the attempts table exists in Supabase.</p>
+      <p className="text-slate-500 text-[15px] mt-1">Make sure the attempts table exists in Supabase.</p>
     </div>
   );
 
@@ -640,15 +640,15 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
       )}
       <div className="mb-6">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">History</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">{activeSubTab === 'attempts' ? `${rows.length} total attempt${rows.length !== 1 ? 's' : ''} · showing ${sorted.length}` : `${mySolutions.length} community solution${mySolutions.length !== 1 ? 's' : ''}`}</p>
+        <p className="text-slate-600 dark:text-slate-400 text-[15px]">{activeSubTab === 'attempts' ? `${rows.length} total attempt${rows.length !== 1 ? 's' : ''} · showing ${sorted.length}` : `${mySolutions.length} community solution${mySolutions.length !== 1 ? 's' : ''}`}</p>
         <div className="mt-4 flex gap-0 border-b border-slate-200 dark:border-slate-800">
           <button onClick={()=>setHistorySubTab('attempts')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${activeSubTab==='attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${activeSubTab==='attempts' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             Attempts
           </button>
           {authUser && (
           <button onClick={()=>setHistorySubTab('solutions')}
-            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${activeSubTab==='solutions' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+            className={`px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${activeSubTab==='solutions' ? 'border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             My Community Solutions
           </button>
           )}
@@ -659,11 +659,11 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
           {mySolutions.length === 0 ? (
             <div className="py-20 text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-500">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No community solutions yet</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">Solutions you post under questions will appear here.</p>
+              <p className="text-[15px] text-slate-500 dark:text-slate-500 max-w-xs mx-auto">Solutions you post under questions will appear here.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -692,7 +692,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
                           className="text-left text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                           {q?.title || `Question #${s.question_id}`}
                         </button>
-                        <p className="text-xs text-slate-400 dark:text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-500">
                           {new Date(s.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · {s.upvotes || 0} upvote{(s.upvotes || 0) !== 1 ? 's' : ''}
                         </p>
                       </div>
@@ -713,10 +713,10 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
                           : { left: tooltipMeta.rect.left + 16, top: tooltipMeta.rect.bottom + 8 }}>
                         <div className="flex items-center gap-2 mb-2">
                           <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[q.topic] || 'bg-slate-400'}`}></span>
-                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{q.topic}</span>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{q.topic}</span>
                           <DiffPill d={q.difficulty} />
                         </div>
-                        <p className="text-sm font-bold text-slate-900 dark:text-white mb-2">{q.title}</p>
+                        <p className="text-[15px] font-bold text-slate-900 dark:text-white mb-2">{q.title}</p>
                         <p className="text-xs text-slate-600 dark:text-slate-300">
                           <MathText text={preview.slice(0, 260) + (preview.length > 260 ? '...' : '')} />
                         </p>
@@ -759,13 +759,13 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
       {/* ── Table ── */}
       {sorted.length === 0 ? (
         <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-          <div className={`w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center ${rows.length === 0 ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-500 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+          <div className={`w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center ${rows.length === 0 ? 'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-500 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500'}`}>
             <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           </div>
           <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
             {rows.length === 0 ? 'No attempts yet' : 'No results match your filters'}
           </p>
-          <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto mb-5">
+          <p className="text-[15px] text-slate-500 dark:text-slate-500 max-w-xs mx-auto mb-5">
             {rows.length === 0 ? 'Answer some problems and your history will appear here.' : 'Try adjusting your filters or search.'}
           </p>
           {rows.length === 0 && navigateTab && (
@@ -777,7 +777,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
         </div>
       ) : (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-          <div className="hidden md:grid grid-cols-[1fr_8rem_6rem_6rem_6rem_6rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <div className="hidden md:grid grid-cols-[1fr_8rem_6rem_6rem_6rem_6rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">
             <span>Problem</span><span>Topic</span><span>Difficulty</span><span>Result</span><span>Time</span><span>Date</span>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -785,13 +785,13 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
               <button key={row.id} onClick={() => setSelected(row)}
                 className="group w-full text-left grid grid-cols-[1fr_auto] md:grid-cols-[1fr_8rem_6rem_6rem_6rem_6rem] gap-3 items-center px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-900/60 transition-colors">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                  <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     {row.question_title || plainText(row.question_text) || 'Question #' + row.question_id}
                   </p>
                   {questionSourceMap[row.question_id] && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{questionSourceMap[row.question_id]}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-500 truncate">{questionSourceMap[row.question_id]}</p>
                   )}
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 md:hidden">
+                  <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5 md:hidden">
                     {row.topic} · {row.difficulty} · {new Date(row.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
                   </p>
                 </div>
@@ -808,15 +808,15 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
                     {row.is_correct ? '✓ Correct' : '✗ Wrong'}
                   </span>
                 </div>
-                <div className="hidden md:block text-xs text-slate-500 dark:text-slate-400 tabular-nums">{fmtTime(row.time_taken_ms)}</div>
-                <div className="hidden md:block text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                <div className="hidden md:block text-xs text-slate-600 dark:text-slate-400 tabular-nums">{fmtTime(row.time_taken_ms)}</div>
+                <div className="hidden md:block text-xs text-slate-500 dark:text-slate-500 whitespace-nowrap">
                   {new Date(row.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
                 </div>
                 <div className="md:hidden flex flex-col items-end gap-1">
                   <span className={`text-xs font-bold ${row.is_correct ? 'text-emerald-500' : 'text-rose-500'}`}>
                     {row.is_correct ? '✓' : '✗'}
                   </span>
-                  <span className="text-xs text-slate-400 tabular-nums">{fmtTime(row.time_taken_ms)}</span>
+                  <span className="text-xs text-slate-500 tabular-nums">{fmtTime(row.time_taken_ms)}</span>
                 </div>
               </button>
             ))}
@@ -851,22 +851,22 @@ function HistoryDetailModal({ row, q, onClose }) {
                 {row.topic}
               </span>
               <DiffPill d={row.difficulty} />
-              <span className="text-xs text-slate-400 dark:text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-500">
                 {new Date(row.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}
               </span>
             </div>
-            <h2 className="font-display text-lg font-black text-slate-900 dark:text-white leading-tight">
+            <h2 className="font-display text-lg font-bold text-slate-900 dark:text-white leading-tight">
               {q.title || plainText(q.question)}
             </h2>
           </div>
           <button onClick={onClose}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl leading-none">×</button>
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl leading-none">×</button>
         </div>
 
         <div className="p-5 space-y-4">
           {/* question text */}
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4">
-            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+            <p className="text-[15px] text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line">
               <MathText text={q.question || row.question_text || ''} />
             </p>
           </div>
@@ -882,7 +882,7 @@ function HistoryDetailModal({ row, q, onClose }) {
                   <div key={i} className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 text-sm font-medium
                     ${isCorrect  ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-300'
                     : isSelected ? 'border-rose-400 bg-rose-50 dark:bg-rose-500/10 dark:border-rose-500/50 text-rose-800 dark:text-rose-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-500 dark:text-slate-400'}`}>
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-400'}`}>
                     <span className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-xs font-bold shrink-0">{letter}</span>
                     <span className="flex-1"><MathText text={choice} /></span>
                     {isCorrect  && <span className="ml-auto font-bold text-base">✓</span>}
@@ -897,11 +897,11 @@ function HistoryDetailModal({ row, q, onClose }) {
           {(!q.choices || q.choices.length === 0) && (
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
-                <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Your Answer</p>
+                <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide">Your Answer</p>
                 <p className={`font-bold text-lg ${row.is_correct ? 'text-emerald-500' : 'text-rose-500'}`}>{row.selected_answer || '—'}</p>
               </div>
               <div className="rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 p-3 text-center">
-                <p className="text-xs text-slate-400 mb-1 font-medium uppercase tracking-wide">Correct Answer</p>
+                <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide">Correct Answer</p>
                 <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400">{row.correct_answer || '—'}</p>
               </div>
             </div>
@@ -926,7 +926,7 @@ function HistoryDetailModal({ row, q, onClose }) {
           {(row.tags || []).length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {row.tags.map(t => (
-                <span key={t} className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full">#{t}</span>
+                <span key={t} className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full">#{t}</span>
               ))}
             </div>
           )}

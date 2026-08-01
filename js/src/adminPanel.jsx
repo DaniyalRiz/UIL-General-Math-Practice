@@ -23,7 +23,7 @@ function QuestionMeta({ q, className = '' }) {
         </span>
       )}
       {q.date_added && (
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+        <span className="text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
           Added {new Date(q.date_added).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })}
         </span>
       )}
@@ -113,7 +113,7 @@ function AdminUserActivity({ authUser }) {
   if (error) return (
     <div className="rounded-2xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-500/10 p-6 text-rose-700 dark:text-rose-300">
       Error loading admin activity: {error}
-      <p className="text-sm mt-2">Make sure you ran <code>admin_activity_rpc.sql</code> in Supabase.</p>
+      <p className="text-[15px] mt-2">Make sure you ran <code>admin_activity_rpc.sql</code> in Supabase.</p>
     </div>
   );
 
@@ -197,8 +197,8 @@ function AdminUserActivity({ authUser }) {
   const Card = ({label,value,sub}) => (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
       <p className="text-2xl font-black text-slate-900 dark:text-white">{value}</p>
-      <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-1">{label}</p>
-      {sub && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sub}</p>}
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mt-1">{label}</p>
+      {sub && <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{sub}</p>}
     </div>
   );
 
@@ -222,12 +222,12 @@ function AdminUserActivity({ authUser }) {
         <h3 className="font-bold text-slate-800 dark:text-slate-100">{title}</h3>
       </div>
       <div className="divide-y divide-slate-100 dark:divide-slate-800">
-        {rows.length === 0 ? <p className="p-4 text-sm text-slate-400">No data yet.</p> : rows.map((row, i) => (
+        {rows.length === 0 ? <p className="p-4 text-[15px] text-slate-500">No data yet.</p> : rows.map((row, i) => (
           <div key={row.id || row.user_id || i} className="px-4 py-3">
-            <p className="text-sm truncate">
+            <p className="text-[15px] truncate">
               {type === 'user' ? <UserLink u={row} /> : <QuestionLink q={row} />}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
               {type === 'user'
                 ? `${row.attempts} attempts · ${row.accuracy}% accuracy · avg ${fmtTime(row.avgMs)} · last ${row.lastActive ? row.lastActive.toLocaleDateString() : '—'}`
                 : `${row.attempts} attempts · ${row.missRate ?? 0}% missed · avg ${fmtTime(row.avgMs || 0)} · ${row.topic || ''}`}
@@ -322,10 +322,10 @@ function AdminUserActivity({ authUser }) {
         <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={e=>e.stopPropagation()}>
           <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between gap-4">
             <div>
-              <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white">{displayUser(u)}</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{u.user_email || u.user_id}</p>
+              <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">{displayUser(u)}</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400">{u.user_email || u.user_id}</p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
+            <button onClick={onClose} className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
           </div>
           <div className="p-5 space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -372,11 +372,11 @@ function AdminUserActivity({ authUser }) {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
                 <h3 className="font-bold mb-3">Column Performance</h3>
-                {colRows.map(c => <p key={c.column} className="text-sm text-slate-600 dark:text-slate-300 mb-1">{c.column}: {c.correct}/{c.attempts} · {c.accuracy}%</p>)}
+                {colRows.map(c => <p key={c.column} className="text-[15px] text-slate-600 dark:text-slate-300 mb-1">{c.column}: {c.correct}/{c.attempts} · {c.accuracy}%</p>)}
               </div>
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
                 <h3 className="font-bold mb-3">Weakest Topics</h3>
-                {topicRows.slice(0,5).map(t => <p key={t.topic} className="text-sm text-slate-600 dark:text-slate-300 mb-1">{t.topic}: {t.correct}/{t.attempts} · {t.accuracy}%</p>)}
+                {topicRows.slice(0,5).map(t => <p key={t.topic} className="text-[15px] text-slate-600 dark:text-slate-300 mb-1">{t.topic}: {t.correct}/{t.attempts} · {t.accuracy}%</p>)}
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -386,7 +386,7 @@ function AdminUserActivity({ authUser }) {
                   <div key={r.id} className="px-4 py-3">
                     <QuestionMeta q={qMap[r.question_id] || {id:r.question_id, topic:r.topic, difficulty:r.difficulty}} className="mb-1.5" />
                     <QuestionLink q={qMap[r.question_id] || {id:r.question_id,title:r.question_title}} />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(r.time_taken_ms || 0)} · {new Date(r.created_at).toLocaleString()}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{r.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(r.time_taken_ms || 0)} · {new Date(r.created_at).toLocaleString()}</p>
                   </div>
                 ))}
               </div>
@@ -411,9 +411,9 @@ function AdminUserActivity({ authUser }) {
           <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between gap-4">
             <div className="min-w-0">
               <QuestionMeta q={full} className="mb-2" />
-              <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white">{full.title || 'Question #' + full.id}</h2>
+              <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">{full.title || 'Question #' + full.id}</h2>
             </div>
-            <button onClick={onClose} className="w-8 h-8 shrink-0 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
+            <button onClick={onClose} className="w-8 h-8 shrink-0 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
           </div>
           <div className="p-5 space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -426,11 +426,11 @@ function AdminUserActivity({ authUser }) {
               <h3 className="font-bold p-4 border-b border-slate-200 dark:border-slate-800">Recent Attempts</h3>
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {rows.length === 0 ? (
-                  <p className="p-4 text-sm text-slate-400">No attempts on this question yet.</p>
+                  <p className="p-4 text-[15px] text-slate-500">No attempts on this question yet.</p>
                 ) : rows.slice(0,30).map(r => (
                   <div key={r.id} className="px-4 py-3">
                     <UserLink u={users[r.user_id] || {user_id:r.user_id, user_email:r.user_email, display_name:r.display_name}} />
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{r.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(r.time_taken_ms || 0)} · {new Date(r.created_at).toLocaleString()}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{r.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(r.time_taken_ms || 0)} · {new Date(r.created_at).toLocaleString()}</p>
                   </div>
                 ))}
               </div>
@@ -458,13 +458,13 @@ function AdminUserActivity({ authUser }) {
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Recent Attempts</h3>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {recentAttempts.length === 0 ? <p className="p-4 text-sm text-slate-400">No attempts yet.</p> : recentAttempts.map(a => {
+            {recentAttempts.length === 0 ? <p className="p-4 text-[15px] text-slate-500">No attempts yet.</p> : recentAttempts.map(a => {
               const q = qMap[a.question_id] || {id:a.question_id, title:a.question_title, topic:a.topic, difficulty:a.difficulty};
               return (
                 <div key={a.id} className="px-4 py-3">
                   <QuestionMeta q={q} className="mb-1.5" />
-                  <p className="text-sm truncate"><QuestionLink q={q} /></p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <p className="text-[15px] truncate"><QuestionLink q={q} /></p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                     <UserLink u={users[a.user_id] || {user_id:a.user_id, user_email:a.user_email, display_name:a.display_name}} /> · {a.is_correct ? 'Correct' : 'Wrong'} · {fmtTime(a.time_taken_ms || 0)} · {new Date(a.created_at).toLocaleString()}
                   </p>
                 </div>
@@ -484,12 +484,12 @@ function AdminUserActivity({ authUser }) {
         <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Question Issue Reports</h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500">{reports.length} total · {reports.filter(r=>r.status==='open').length} open</p>
+            <p className="text-xs text-slate-500 dark:text-slate-500">{reports.length} total · {reports.filter(r=>r.status==='open').length} open</p>
           </div>
           <ClosedReportsToggle count={closedReportCount} show={showClosedReports} onToggle={()=>setShowClosedReports(v=>!v)} />
         </div>
         {visibleReports.length === 0 ? (
-          <p className="p-6 text-sm text-slate-400">
+          <p className="p-6 text-[15px] text-slate-500">
             {reports.length === 0 ? 'No issue reports yet.' : 'Nothing open — all reports are resolved or dismissed.'}
           </p>
         ) : (
@@ -505,10 +505,10 @@ function AdminUserActivity({ authUser }) {
                         className="text-left text-sm font-semibold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                         {q.title || 'Question #' + r.question_id}
                       </button>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                         {r.issue_type} · {r.status} · {new Date(r.created_at).toLocaleString()}
                       </p>
-                      {r.details && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{r.details}</p>}
+                      {r.details && <p className="mt-2 text-[15px] text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{r.details}</p>}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <select value={r.status || 'open'} onChange={e=>updateReportStatus(r.id, e.target.value)}
@@ -597,7 +597,7 @@ function AdminBugReports({ authUser }) {
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <div>
             <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Bug Reports</h2>
-            <p className="text-xs text-slate-400 dark:text-slate-500">{reports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{openCount} open</span></p>
+            <p className="text-xs text-slate-500 dark:text-slate-500">{reports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{openCount} open</span></p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {openCount > 0 && (
@@ -609,7 +609,7 @@ function AdminBugReports({ authUser }) {
         {visibleBugs.length === 0 ? (
           <div className="py-16 text-center">
             <p className="font-semibold text-slate-700 dark:text-slate-300">{reports.length === 0 ? 'No bug reports' : 'All caught up'}</p>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-[15px] text-slate-500 mt-1">
               {reports.length === 0
                 ? 'Reports submitted from the profile menu will appear here.'
                 : `${closedBugCount} resolved or dismissed report${closedBugCount !== 1 ? 's' : ''} hidden.`}
@@ -618,18 +618,18 @@ function AdminBugReports({ authUser }) {
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {visibleBugs.map(r => {
-              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
+              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400';
               return (
                 <div key={r.id} className={`px-5 py-4 ${isClosedReport(r) ? 'opacity-60' : ''}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>{r.status || 'open'}</span>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
                       </div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{r.subject}</p>
+                      <p className="text-[15px] font-bold text-slate-800 dark:text-slate-100 mb-1">{r.subject}</p>
                       <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.description}</p>
+                        <p className="text-[15px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -651,7 +651,7 @@ function AdminBugReports({ authUser }) {
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <div>
             <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Question Issue Reports</h2>
-            <p className="text-xs text-slate-400 dark:text-slate-500">{questionReports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{qrOpenCount} open</span></p>
+            <p className="text-xs text-slate-500 dark:text-slate-500">{questionReports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{qrOpenCount} open</span></p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {qrOpenCount > 0 && (
@@ -663,7 +663,7 @@ function AdminBugReports({ authUser }) {
         {visibleQuestionReports.length === 0 ? (
           <div className="py-16 text-center">
             <p className="font-semibold text-slate-700 dark:text-slate-300">{questionReports.length === 0 ? 'No issue reports' : 'All caught up'}</p>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-[15px] text-slate-500 mt-1">
               {questionReports.length === 0
                 ? 'Reports submitted by users will appear here.'
                 : `${closedQrCount} resolved or dismissed report${closedQrCount !== 1 ? 's' : ''} hidden.`}
@@ -673,7 +673,7 @@ function AdminBugReports({ authUser }) {
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {visibleQuestionReports.map(r => {
               const q = qMap[r.question_id] || { id: r.question_id, title: 'Question #' + r.question_id };
-              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400';
+              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400';
               return (
                 <div key={r.id} className={`px-5 py-4 ${isClosedReport(r) ? 'opacity-60' : ''}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -681,13 +681,13 @@ function AdminBugReports({ authUser }) {
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>{r.status || 'open'}</span>
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{r.issue_type}</span>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
                       </div>
                       {q.topic && <QuestionMeta q={q} className="mb-1.5" />}
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">{q.title || 'Question #' + r.question_id}</p>
+                      <p className="text-[15px] font-bold text-slate-800 dark:text-slate-100 mb-1">{q.title || 'Question #' + r.question_id}</p>
                       {r.details && (
                         <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.details}</p>
+                          <p className="text-[15px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{r.details}</p>
                         </div>
                       )}
                     </div>
@@ -1698,7 +1698,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
         <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">Admin Only</p>
-        <p className="text-slate-500 dark:text-slate-400">Review Imports is only available to the Rizvi admin account.</p>
+        <p className="text-slate-600 dark:text-slate-400">Review Imports is only available to the Rizvi admin account.</p>
       </div>
     );
   }
@@ -1706,15 +1706,15 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-        <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white mb-1">Review Imports</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-1">Review Imports</h2>
+        <p className="text-[15px] text-slate-600 dark:text-slate-400 mb-4">
           Load a draft JSON file (extracted from a PDF), review/edit each question with a live preview, then approve
           and publish only the ones you've checked. Nothing is saved to Supabase until you click Publish Approved.
         </p>
         {resumeBannerInfo && (
           <div className="mb-4 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-500/10 p-4 flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
+              <p className="text-[15px] font-bold text-amber-800 dark:text-amber-300">
                 Resume active import{resumeBannerInfo.testName ? ` — ${resumeBannerInfo.testName}` : ''}
               </p>
               <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">{resumeBannerInfo.stage} — picked up automatically from where it left off.</p>
@@ -1733,15 +1733,15 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
         )}
         {pastBatches.length > 0 && (
           <div className="mb-4 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-500/10 p-4">
-            <p className="text-sm font-bold text-blue-800 dark:text-blue-300 mb-2">
+            <p className="text-[15px] font-bold text-blue-800 dark:text-blue-300 mb-2">
               {pastBatches.length} import{pastBatches.length === 1 ? '' : 's'} finished and waiting for review
             </p>
             <div className="space-y-2">
               {pastBatches.map(b => (
                 <div key={b.id} className={`flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border px-3 py-2 ${b.id === selectedReviewBatchId ? 'border-blue-500 ring-2 ring-blue-400/50' : 'border-slate-200 dark:border-slate-700'}`}>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                    <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-500">
                       {b.status === 'needs_attention' ? '⚠ needs attention' : '✓ completed'} · {b.questions_extracted ?? '?'} question(s)
                       {b.started_at ? ` · ${new Date(b.started_at).toLocaleDateString()}` : ''}
                     </p>
@@ -1769,15 +1769,15 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
           </button>
           {showAllBatches && (
             <div className="mt-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-3">
                 All past imports ({allBatches.length}) — includes ones already marked reviewed
               </p>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {allBatches.map(b => (
                   <div key={b.id} className={`flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border px-3 py-2 ${b.id === selectedReviewBatchId ? 'border-blue-500 ring-2 ring-blue-400/50' : 'border-slate-200 dark:border-slate-700'}`}>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500">
+                      <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-500">
                         {b.source_pdf_path == null ? 'manual extraction' : (b.status === 'needs_attention' ? '⚠ needs attention' : '✓ completed')} · {b.questions_extracted ?? '?'} question(s)
                         {b.started_at ? ` · ${new Date(b.started_at).toLocaleDateString()}` : ''}
                       </p>
@@ -1801,7 +1801,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
           )}
         </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-4 mb-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Import from PDF (automatic)</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-3">Import from PDF (automatic)</p>
           <div className="grid sm:grid-cols-2 gap-3">
             <input type="file" accept="application/pdf" onChange={e => setPdfFile(e.target.files?.[0] || null)}
               className="text-sm text-slate-600 dark:text-slate-300 sm:col-span-2" />
@@ -1813,7 +1813,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                 <input type="file" accept="application/pdf,image/*" className="hidden" disabled={answerKeyExtracting}
                   onChange={e => extractAnswerKeyFile(e.target.files?.[0])} />
               </label>
-              {answerKeyExtractMsg && <span className="text-xs text-slate-500 dark:text-slate-400">{answerKeyExtractMsg}</span>}
+              {answerKeyExtractMsg && <span className="text-xs text-slate-600 dark:text-slate-400">{answerKeyExtractMsg}</span>}
             </div>
             <textarea value={pdfAnswerKey} onChange={e => setPdfAnswerKey(e.target.value)} rows={2}
               placeholder="Answer key (optional), e.g. 1.C 2.C 3.D 4.E or just C, C, D, E"
@@ -1837,27 +1837,27 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
               </button>
             )}
             {pdfImportMessage && (
-              <p className={`text-sm ${/failed/i.test(pdfImportMessage) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{pdfImportMessage}</p>
+              <p className={`text-[15px] ${/failed/i.test(pdfImportMessage) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{pdfImportMessage}</p>
             )}
           </div>
-          <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
             Diagrams aren't auto-cropped yet — questions that need one are flagged below for manual follow-up before publishing.
           </p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Or load a draft questions JSON (manual extraction)</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Or load a draft questions JSON (manual extraction)</span>
             <input type="file" accept="application/json" onChange={e => loadDraftFile(e.target.files?.[0])}
               className="text-sm text-slate-600 dark:text-slate-300" />
           </label>
           <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Diagram images for the manual path (optional, can pick multiple)</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Diagram images for the manual path (optional, can pick multiple)</span>
             <input type="file" accept="image/*" multiple onChange={e => loadImageFiles(e.target.files)}
               className="text-sm text-slate-600 dark:text-slate-300" />
           </label>
         </div>
-        {parseError && <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">{parseError}</p>}
+        {parseError && <p className="mt-3 text-[15px] text-rose-600 dark:text-rose-400">{parseError}</p>}
         {draftRows.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{draftRows.length} loaded</span>
@@ -1882,8 +1882,8 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
             </button>
           </div>
         )}
-        {verifyMessage && <p className={`mt-3 text-sm ${/failed/i.test(verifyMessage) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{verifyMessage}</p>}
-        {publishMessage && <p className={`mt-3 text-sm ${publishMessage.startsWith('Published') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{publishMessage}</p>}
+        {verifyMessage && <p className={`mt-3 text-[15px] ${/failed/i.test(verifyMessage) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{verifyMessage}</p>}
+        {publishMessage && <p className={`mt-3 text-[15px] ${publishMessage.startsWith('Published') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{publishMessage}</p>}
       </div>
 
       {draftRows.map(r => {
@@ -1924,7 +1924,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                     className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white">Reject</button>
                   {r._status !== 'pending' && (
                     <button onClick={()=>setStatus(r._key, 'pending')}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400">Reset</button>
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">Reset</button>
                   )}
                   {r._draftId && (
                     <button onClick={()=>redoQuestion(r._key, r._draftId)} disabled={r._redoing}
@@ -1975,7 +1975,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
 
                 {r.image_pending_filename && (
                   <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-3">
-                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
                       Needs image: <code>{r.image_pending_filename}</code>
                     </p>
                     {matchedImage ? (
@@ -2000,7 +2000,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                           Remove image
                         </button>
                       </div>
-                      {r._imageUploadMsg && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{r._imageUploadMsg}</p>}
+                      {r._imageUploadMsg && <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{r._imageUploadMsg}</p>}
                     </div>
                   ) : r.needs_image ? (
                     <div className="rounded-xl border border-dashed border-amber-300 dark:border-amber-700 p-3 bg-amber-50 dark:bg-amber-500/10">
@@ -2010,7 +2010,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                         {r._imageUploading ? 'Uploading…' : 'Upload diagram'}
                         <input type="file" accept="image/*" className="hidden" disabled={r._imageUploading} onChange={e=>uploadDraftDiagram(r._key, e.target.files?.[0])} />
                       </label>
-                      {r._imageUploadMsg && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{r._imageUploadMsg}</p>}
+                      {r._imageUploadMsg && <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{r._imageUploadMsg}</p>}
                     </div>
                   ) : (
                     <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 p-3">
@@ -2018,7 +2018,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                         {r._imageUploading ? 'Uploading…' : 'Add diagram (optional)'}
                         <input type="file" accept="image/*" className="hidden" disabled={r._imageUploading} onChange={e=>uploadDraftDiagram(r._key, e.target.files?.[0])} />
                       </label>
-                      {r._imageUploadMsg && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{r._imageUploadMsg}</p>}
+                      {r._imageUploadMsg && <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{r._imageUploadMsg}</p>}
                     </div>
                   )
                 )}
@@ -2026,9 +2026,9 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
 
               {/* Live preview */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-4 overflow-x-auto">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Live Preview</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-2">Live Preview</p>
                 <p className="font-display text-base font-black text-slate-900 dark:text-white mb-2 break-words">{r.title || 'Untitled Question'}</p>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed break-words"><MathText text={r.question || 'Question preview will appear here.'} /></p>
+                <p className="text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed break-words"><MathText text={r.question || 'Question preview will appear here.'} /></p>
                 {matchedImage && <img src={matchedImage.url} alt="Diagram" loading="lazy" decoding="async" className="mt-3 max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />}
                 <div className="mt-3 space-y-1.5">
                   {r.choices.filter(Boolean).map((c,i)=>(
@@ -2038,10 +2038,10 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                   ))}
                 </div>
                 {r.answer && (
-                  <p className="mt-3 text-sm font-semibold text-emerald-700 dark:text-emerald-400 break-words">Answer: <MathText text={r.answer} /></p>
+                  <p className="mt-3 text-[15px] font-semibold text-emerald-700 dark:text-emerald-400 break-words">Answer: <MathText text={r.answer} /></p>
                 )}
                 {r.explanation && (
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 break-words"><MathText text={r.explanation} /></p>
+                  <p className="mt-2 text-[15px] text-slate-600 dark:text-slate-300 break-words"><MathText text={r.explanation} /></p>
                 )}
               </div>
             </div>
@@ -2200,7 +2200,7 @@ function AdminQuestionManager({ authUser }) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
         <p className="font-display text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">Admin Only</p>
-        <p className="text-slate-500 dark:text-slate-400">This question manager is only available to the Rizvi admin account.</p>
+        <p className="text-slate-600 dark:text-slate-400">This question manager is only available to the Rizvi admin account.</p>
       </div>
     );
   }
@@ -2309,7 +2309,7 @@ function AdminQuestionManager({ authUser }) {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Admin</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">Monitor usage and manage the question bank.</p>
+        <p className="text-slate-600 dark:text-slate-400 text-[15px]">Monitor usage and manage the question bank.</p>
         <div className="mt-4 inline-flex rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1">
           <button onClick={()=>setAdminPanelTab('activity')}
             className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='activity' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
@@ -2348,8 +2348,8 @@ function AdminQuestionManager({ authUser }) {
       ) : adminPanelTab === 'editQuestions' ? (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
           <div className="p-5 border-b border-slate-200 dark:border-slate-800">
-            <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white mb-1">Edit Existing Questions</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Search/select a question. It will open in the same question manager form with all fields filled in.</p>
+            <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-1">Edit Existing Questions</h2>
+            <p className="text-[15px] text-slate-600 dark:text-slate-400 mb-4">Search/select a question. It will open in the same question manager form with all fields filled in.</p>
             <div className="relative">
               <input value={questionSearch} onChange={e=>setQuestionSearch(e.target.value)}
                 placeholder="Search by title, question text, topic, source, tags, or ID..."
@@ -2366,7 +2366,7 @@ function AdminQuestionManager({ authUser }) {
           {questionListLoading ? (
             <div className="py-20 text-center">
               <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Loading questions...</p>
+              <p className="text-[15px] text-slate-600 dark:text-slate-400">Loading questions...</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[70vh] overflow-y-auto">
@@ -2393,16 +2393,16 @@ function AdminQuestionManager({ authUser }) {
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="text-xs font-mono text-slate-400">#{q.id}</span>
+                          <span className="text-xs font-mono text-slate-500">#{q.id}</span>
                           <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[q.topic] || 'bg-slate-400'}`}></span>
-                          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{q.topic}</span>
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{q.topic}</span>
                           <DiffPill d={q.difficulty} />
-                          {q.source && <span className="text-xs text-slate-400 dark:text-slate-500">{q.source}</span>}
+                          {q.source && <span className="text-xs text-slate-500 dark:text-slate-500">{q.source}</span>}
                         </div>
                         <p className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
                           {q.title || plainText(q.question) || 'Untitled Question'}
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 line-clamp-2">
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1 line-clamp-2">
                           {plainText(q.question)}
                         </p>
                       </div>
@@ -2413,7 +2413,7 @@ function AdminQuestionManager({ authUser }) {
                   </button>
                 ))}
               {questionList.length === 0 && (
-                <div className="py-20 text-center text-sm text-slate-400">No questions found.</div>
+                <div className="py-20 text-center text-sm text-slate-500">No questions found.</div>
               )}
             </div>
           )}
@@ -2425,9 +2425,9 @@ function AdminQuestionManager({ authUser }) {
           {/* Auto-generated ID + date row */}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Question ID</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Question ID</span>
               <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200">
-                {idLoading ? <span className="text-slate-400">…</span> : form.id || '—'}
+                {idLoading ? <span className="text-slate-500">…</span> : form.id || '—'}
               </span>
               {editingExisting && <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">Editing</span>}
             </div>
@@ -2438,9 +2438,9 @@ function AdminQuestionManager({ authUser }) {
               </button>
             )}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 dark:text-slate-500">Date added: <span className="font-semibold text-slate-600 dark:text-slate-300">{form.date_added || 'today'}</span></span>
+              <span className="text-xs text-slate-500 dark:text-slate-500">Date added: <span className="font-semibold text-slate-600 dark:text-slate-300">{form.date_added || 'today'}</span></span>
               <button type="button" onClick={()=>setShowDateOverride(v=>!v)}
-                className="text-xs px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                className="text-xs px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
                 {showDateOverride ? 'Use today' : 'Change date'}
               </button>
             </div>
@@ -2468,7 +2468,7 @@ function AdminQuestionManager({ authUser }) {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Question</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Question</label>
             <textarea value={form.question} onChange={e=>set('question', e.target.value)} rows={5}
               placeholder="Type the question. Use \\( ... \\) for inline math."
               className="w-full px-3 py-2 rounded-xl border bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700 resize-none"></textarea>
@@ -2482,7 +2482,7 @@ function AdminQuestionManager({ authUser }) {
                 ['Display', ['\\[ y = mx+b \\]','\\[ ax^2+bx+c=0 \\]','\\[ \\frac{-b\\pm\\sqrt{b^2-4ac}}{2a} \\]']]
               ].map(([group, items]) => (
                 <div key={group}>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">{group}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-1">{group}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {items.map(s => (
                       <button key={s} onClick={()=>insertLatex(s)}
@@ -2518,29 +2518,29 @@ function AdminQuestionManager({ authUser }) {
             className="w-full px-3 py-2 rounded-lg border bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700"/>
 
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Question Image</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">Question Image</label>
             <label onDragOver={e=>{e.preventDefault(); e.currentTarget.classList.add('ring-2','ring-blue-500');}}
               onDragLeave={e=>e.currentTarget.classList.remove('ring-2','ring-blue-500')}
               onDrop={e=>{e.preventDefault(); e.currentTarget.classList.remove('ring-2','ring-blue-500'); uploadImage(e.dataTransfer.files?.[0]);}}
               className="flex flex-col items-center justify-center gap-2 min-h-[140px] rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer transition-colors text-center px-4">
               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Drag image here</span>
-              <span className="text-xs text-slate-400 dark:text-slate-500">or click to upload a screenshot/graph</span>
+              <span className="text-xs text-slate-500 dark:text-slate-500">or click to upload a screenshot/graph</span>
               <input type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0])} className="hidden" />
             </label>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
               Screenshots work best as PNG/JPG. The question ID is auto-assigned.
             </p>
             {imageUploading && <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">Uploading image…</p>}
             {form.image && (
               <div className="mt-3">
                 <img src={form.image} alt={form.image_alt || 'Question image preview'} loading="lazy" decoding="async" className="max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 break-all">{form.image}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-1 break-all">{form.image}</p>
               </div>
             )}
             <div className="mt-3">
               <input value={form.image_alt} onChange={e=>set('image_alt', e.target.value)} placeholder="Image description for accessibility, e.g. graph of hyperbola with asymptotes"
                 className="w-full px-3 py-2 rounded-lg border bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700"/>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                 Image description helps screen readers and gives fallback text if the image fails to load.
               </p>
             </div>
@@ -2551,25 +2551,25 @@ function AdminQuestionManager({ authUser }) {
               className="px-5 py-2.5 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white">
               {saving ? 'Saving…' : editingExisting ? 'Save Changes' : 'Save Question'}
             </button>
-            {message && <p className={`text-sm ${message.includes('saved') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{message}</p>}
+            {message && <p className={`text-[15px] ${message.includes('saved') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{message}</p>}
           </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">{editingExisting ? 'Editing Preview' : 'Live Preview'}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-3">{editingExisting ? 'Editing Preview' : 'Live Preview'}</p>
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-400 font-mono">#{form.id || '…'}</span>
+                <span className="text-xs text-slate-500 font-mono">#{form.id || '…'}</span>
                 <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[form.topic]||'bg-slate-400'}`}></span>
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{form.topic}</span>
                 <DiffPill d={form.difficulty} />
               </div>
               <p className="mt-2 font-display text-lg font-black text-slate-900 dark:text-white">{form.title || 'Untitled Question'}</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{form.source || 'Source'} {form.original_question_number ? `· Problem ${form.original_question_number}` : ''}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{form.source || 'Source'} {form.original_question_number ? `· Problem ${form.original_question_number}` : ''}</p>
             </div>
             <div className="p-4">
-              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed"><MathText text={form.question || 'Question preview will appear here.'} /></p>
+              <p className="text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed"><MathText text={form.question || 'Question preview will appear here.'} /></p>
               {form.image && <img src={form.image} alt={form.image_alt || 'Question image preview'} loading="lazy" decoding="async" className="mt-3 max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />}
               <div className="mt-3 space-y-2">
                 {form.choices.filter(Boolean).map((c,i)=>(
@@ -2580,7 +2580,7 @@ function AdminQuestionManager({ authUser }) {
               </div>
             </div>
           </div>
-          <div className="mt-4 text-xs text-slate-500 dark:text-slate-400 space-y-2">
+          <div className="mt-4 text-xs text-slate-600 dark:text-slate-400 space-y-2">
             <p className="font-bold text-slate-600 dark:text-slate-300">LaTeX quick guide</p>
             <p>Inline math: <code>\\(x^2+1\\)</code></p>
             <p>Fraction: <code>\\(\\frac&#123;a&#125;&#123;b&#125;\\)</code></p>

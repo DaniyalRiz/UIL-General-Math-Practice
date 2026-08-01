@@ -28,7 +28,7 @@ function GoogleIcon() {
 }
 
 const FIELD_CLS = "w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
-const LABEL_CLS = "block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider";
+const LABEL_CLS = "block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 uppercase tracking-wider";
 
 export function AuthModal({ initialTab = 'signin', onClose }) {
   const [tab, setTab] = useState(initialTab === 'signup' ? 'signup' : 'signin');
@@ -120,7 +120,7 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
 
   const isSignin = tab === 'signin';
   const tabCls = (active) => `flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
-    active ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`;
+    active ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'}`;
 
   return (
     <div onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -129,7 +129,7 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
       <div ref={panelRef} onKeyDown={trapTab}
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92dvh] overflow-y-auto p-5 sm:p-8 relative">
         <button onClick={onClose} aria-label="Close"
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none">
+          className="absolute top-4 right-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none">
           ×
         </button>
 
@@ -141,8 +141,8 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
 
         {isSignin ? (
           <form onSubmit={handleSignIn}>
-            <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white mb-1">Welcome back</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Sign in to track your progress</p>
+            <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-1">Welcome back</h2>
+            <p className="text-slate-600 dark:text-slate-400 text-[15px] mb-6">Sign in to track your progress</p>
             <div className="space-y-4">
               <div>
                 <label className={LABEL_CLS} htmlFor="auth-signin-email">Email</label>
@@ -174,8 +174,8 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
           </form>
         ) : (
           <form onSubmit={handleSignUp}>
-            <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white mb-1">Create account</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Start tracking your UIL Math progress</p>
+            <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-1">Create account</h2>
+            <p className="text-slate-600 dark:text-slate-400 text-[15px] mb-6">Start tracking your UIL Math progress</p>
             <div className="space-y-4">
               <div>
                 <label className={LABEL_CLS} htmlFor="auth-signup-name">Display Name</label>

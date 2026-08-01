@@ -277,17 +277,17 @@ export function PastSortsButton({ entries, onApply, onRemove, onClear, onOpen, c
         <div role="menu"
           className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1 z-40 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Past sorts</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Past sorts</span>
             {entries.length > 0 && (
               <button type="button" onClick={onClear}
-                className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400">
+                className="text-[11px] font-semibold text-slate-500 hover:text-rose-600 dark:hover:text-rose-400">
                 Clear all
               </button>
             )}
           </div>
 
           {entries.length === 0 ? (
-            <p className="px-3 py-3 text-sm text-slate-400 dark:text-slate-500">
+            <p className="px-3 py-3 text-[15px] text-slate-500 dark:text-slate-500">
               No past sorts yet. Change any filter above and the combination is saved here.
             </p>
           ) : (
@@ -360,7 +360,7 @@ export function SearchWithHistory({ value, onChange, placeholder, wrapperClassNa
         aria-haspopup="menu" aria-expanded={open}
         className={`absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md transition-colors
           ${open ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/15'
-                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800'}`}>
+                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800'}`}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M3 3v5h5"/>
           <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
@@ -372,10 +372,10 @@ export function SearchWithHistory({ value, onChange, placeholder, wrapperClassNa
         <div role="menu"
           className="absolute left-0 right-0 top-full mt-1 z-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Past searches</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Past searches</span>
             {recents.length > 0 && (
               <button type="button" onClick={clear}
-                className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400">
+                className="text-[11px] font-semibold text-slate-500 hover:text-rose-600 dark:hover:text-rose-400">
                 Clear all
               </button>
             )}
@@ -384,7 +384,7 @@ export function SearchWithHistory({ value, onChange, placeholder, wrapperClassNa
           {recents.length === 0 ? (
             // Never show an empty popup: the button is always visible, so it has
             // to explain itself before anything has been searched.
-            <p className="px-3 py-3 text-sm text-slate-400 dark:text-slate-500">
+            <p className="px-3 py-3 text-[15px] text-slate-500 dark:text-slate-500">
               No past searches yet. Search for something and press Enter to save it here.
             </p>
           ) : (
@@ -420,7 +420,7 @@ export function Dropdown({ label, value, options, onChange }) {
                    focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▾</span>
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">▾</span>
     </div>
   );
 }
