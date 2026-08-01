@@ -155,6 +155,9 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
   const { openAuth } = useApp();
   // Shared attempt history owned by App (one fetch per login). null = still loading.
   const data = attempts;
+  // For a signed-out visitor `attempts` is the session log, so this is what
+  // they would lose by leaving. Drives the conversion banner below.
+  const solvedThisSession = (attempts || []).filter(a => a.is_correct).length;
 
   // ── compute stats (memoized: only re-runs when the data itself changes) ────
   const stats = useMemo(() => {
@@ -315,7 +318,11 @@ export function AnalyticsPage({ authUser, attempts, attemptsError }) {
       {!authUser && (
         <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <button onClick={()=>openAuth('signin')} className="font-semibold underline">Sign in</button> to save your progress.</span>
+          <span className="text-blue-800 dark:text-blue-200">
+            {solvedThisSession > 0
+              ? <>You&rsquo;ve solved {solvedThisSession} problem{solvedThisSession !== 1 ? 's' : ''} this session. <button onClick={()=>openAuth('signup')} className="font-semibold underline">Create an account</button> to keep {solvedThisSession !== 1 ? 'them' : 'it'} and track progress over time.</>
+              : <>Showing this session only. <button onClick={()=>openAuth('signin')} className="font-semibold underline">Sign in</button> to save your progress.</>}
+          </span>
         </div>
       )}
       <div className="mb-6 flex items-start justify-between gap-4">
@@ -468,6 +475,9 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
   const { openAuth } = useApp();
   // Shared attempt history owned by App (one fetch per login). null = still loading.
   const rows = attempts || [];
+  // For a signed-out visitor `attempts` is the session log, so this is what
+  // they would lose by leaving. Drives the conversion banner below.
+  const solvedThisSession = (attempts || []).filter(a => a.is_correct).length;
   const loading = authUser && attempts === null;
   const error = attemptsError || null;
   const [selected, setSelected] = useState(null);
@@ -635,7 +645,11 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
       {!authUser && (
         <div className="mb-4 flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl text-sm">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span className="text-blue-800 dark:text-blue-200">Showing this session only. <button onClick={()=>openAuth('signin')} className="font-semibold underline">Sign in</button> to save your history.</span>
+          <span className="text-blue-800 dark:text-blue-200">
+            {solvedThisSession > 0
+              ? <>You&rsquo;ve solved {solvedThisSession} problem{solvedThisSession !== 1 ? 's' : ''} this session. <button onClick={()=>openAuth('signup')} className="font-semibold underline">Create an account</button> to keep {solvedThisSession !== 1 ? 'them' : 'it'} and build a full history.</>
+              : <>Showing this session only. <button onClick={()=>openAuth('signin')} className="font-semibold underline">Sign in</button> to save your progress.</>}
+          </span>
         </div>
       )}
       <div className="mb-6">

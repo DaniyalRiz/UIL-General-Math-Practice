@@ -920,6 +920,23 @@ function App() {
   const answersRef = useRef({});
   const [answerVersion, setAnswerVersion] = useState(0);
   const [sessionAnswers, setSessionAnswers] = useState([]);
+  // Guest conversion prompt. The account is asked for at the moment it becomes
+  // worth something -- a run of correct answers the visitor would lose -- rather
+  // than cold on the landing page before the product has shown anything.
+  // Session-scoped on purpose: it must not follow someone across visits.
+  const [guestStreak, setGuestStreak] = useState(0);
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+  const guestPromptDismissed = useRef(
+    typeof sessionStorage !== 'undefined' && sessionStorage.getItem('guest_prompt_dismissed') === '1');
+  const dismissGuestPrompt = () => {
+    guestPromptDismissed.current = true;
+    try { sessionStorage.setItem('guest_prompt_dismissed', '1'); } catch (e) {}
+    setShowGuestPrompt(false);
+  };
+  // Correct answers this session, which is what the prompt offers to preserve.
+  const guestSolved = useMemo(
+    () => sessionAnswers.filter(a => a.is_correct).length,
+    [sessionAnswers]);
   // Single shared fetch of the signed-in user's attempt history -- Analytics,
   // History, and the qStats rebuild all read from this one load instead of
   // each fetching the attempts table separately. null = not loaded yet.
@@ -1326,9 +1343,20 @@ function App() {
   const pageClamped = Math.min(page, totalPages);
   const pageItems = filtered.slice((pageClamped-1)*PAGE_SIZE, pageClamped*PAGE_SIZE);
 
+  const GUEST_PROMPT_STREAK = 3;
+
   const recordAnswer = (rec) => {
     answersRef.current[rec.questionId] = rec;
     setAnswerVersion(v=>v+1);
+    // Three right in a row is the earned moment: they are on a run, and the run
+    // is exactly what signing out would cost them.
+    if (!authUser) {
+      setGuestStreak(prev => {
+        const next = rec.correct ? prev + 1 : 0;
+        if (next >= GUEST_PROMPT_STREAK && !guestPromptDismissed.current) setShowGuestPrompt(true);
+        return next;
+      });
+    }
     updateUserStatsOnly(authUser);
     if (rec.correct) loadMasteryStats();
     // Accumulate persistent per-question stats
@@ -1446,6 +1474,43 @@ function App() {
     <AppContext.Provider value={{ authUser, navigateTab, requestOpenById, openAuth }}>
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
       {authModalTab && <AuthModal initialTab={authModalTab} onClose={closeAuth} />}
+
+      {/* Earned-moment prompt. Deliberately not a modal: interrupting a run of
+          correct answers to demand a signup would undo the very thing that
+          makes the moment persuasive. Sits in the corner, dismissible, and
+          never returns once dismissed in this session. */}
+      {showGuestPrompt && !authUser && (
+        <div role="status"
+          className="fixed bottom-4 right-4 left-4 sm:left-auto z-40 sm:max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl p-4">
+          <div className="flex items-start gap-3">
+            <span aria-hidden="true" className="shrink-0 w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-black">
+              {guestStreak}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-slate-900 dark:text-white text-[15px]">
+                {guestStreak} correct in a row.
+              </p>
+              <p className="text-[15px] text-slate-600 dark:text-slate-300 mt-0.5">
+                You&rsquo;ve solved {guestSolved} this session. Create an account to keep {guestSolved === 1 ? 'it' : 'them'} and start a streak.
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <button onClick={()=>{ dismissGuestPrompt(); openAuth('signup'); }}
+                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors">
+                  Create an account
+                </button>
+                <button onClick={dismissGuestPrompt}
+                  className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                  Not now
+                </button>
+              </div>
+            </div>
+            <button onClick={dismissGuestPrompt} aria-label="Dismiss"
+              className="shrink-0 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-xl leading-none">
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       {/* NAV */}
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-1 sm:gap-4">
