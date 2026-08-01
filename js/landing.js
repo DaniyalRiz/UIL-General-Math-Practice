@@ -120,9 +120,10 @@ document.addEventListener('DOMContentLoaded', function () {
     renderAdminLinks(isAdmin);
     document.getElementById('nav-loggedout').classList.toggle('hidden', loggedIn);
     document.getElementById('nav-loggedin').classList.toggle('hidden', !loggedIn);
-    document.getElementById('hero-create-btn').classList.toggle('hidden', loggedIn);
+    // The hero no longer carries a "Create an Account" button: practising is the
+    // primary action there, and the account lives in the nav.
     document.getElementById('cta-create-btn').classList.toggle('hidden', loggedIn);
-    document.getElementById('cta-browse-btn').textContent = loggedIn ? 'Browse Problems' : 'Browse Problems First';
+    document.getElementById('cta-browse-btn').textContent = loggedIn ? 'Keep practicing' : 'Start practicing';
     // Admin links are built by renderAdminLinks above, not toggled here: they
     // do not exist in the markup at all unless the server says you are an admin.
     document.getElementById('nav-menu-signup').classList.toggle('hidden', loggedIn);
@@ -196,6 +197,75 @@ document.addEventListener('DOMContentLoaded', function () {
   supabase.auth.getSession().then(({ data: { session } }) => {
     setNavState(session?.user ?? null);
   });
+
+  // ─── HERO PROBLEM CARD ────────────────────────────────────────────────────
+  // A real question (24-25 UIL State, problem 6, id 887) answerable without an
+  // account. Answering it is the pitch: instant verdict, worked solution, and
+  // how the reader's time compares. Hard-coded rather than fetched so the hero
+  // renders instantly and cannot be broken by a slow or failing query.
+  const HERO_QUESTION_ID = 887;
+  const HERO_CHOICES = ['139', '141', '143', '145', '147'];
+  const HERO_ANSWER_INDEX = 2; // (C) 143
+  let heroStart = Date.now();
+  let heroAnswered = false;
+  let heroMedianMs = null;
+
+  const heroChoicesEl = document.getElementById('hero-choices');
+  if (heroChoicesEl) {
+    const timerEl = document.getElementById('hero-timer');
+    const tick = () => {
+      if (heroAnswered) return;
+      const s = Math.floor((Date.now() - heroStart) / 1000);
+      timerEl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    };
+    const timerId = setInterval(tick, 250);
+
+    const answer = (idx) => {
+      if (heroAnswered) return;
+      heroAnswered = true;
+      clearInterval(timerId);
+      const elapsedMs = Date.now() - heroStart;
+      const correct = idx === HERO_ANSWER_INDEX;
+
+      [...heroChoicesEl.children].forEach((btn, i) => {
+        btn.disabled = true;
+        btn.className = btn.className.replace(/border-slate-200|hover:[^\s]+/g, '').trim();
+        if (i === HERO_ANSWER_INDEX) btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+        else if (i === idx) btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+        else btn.classList.add('border-slate-200', 'opacity-60');
+      });
+
+      const verdict = document.getElementById('hero-verdict');
+      verdict.textContent = correct ? '✓ Correct — 143' : '✗ Not quite — the answer is 143';
+      verdict.className = `font-bold text-[15px] mb-2 ${correct ? 'text-emerald-700' : 'text-rose-700'}`;
+
+      const secs = Math.max(1, Math.round(elapsedMs / 1000));
+      const medianEl = document.getElementById('hero-median');
+      medianEl.textContent = heroMedianMs
+        ? `You: ${secs}s · median: ${Math.round(heroMedianMs / 1000)}s`
+        : `You: ${secs}s`;
+
+      document.getElementById('hero-hint').classList.add('hidden');
+      document.getElementById('hero-result').classList.remove('hidden');
+    };
+
+    HERO_CHOICES.forEach((text, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'w-full text-left px-4 py-2.5 rounded-lg border-2 border-slate-200 text-slate-800 text-[15px] font-medium transition-colors hover:border-blue-400 hover:bg-blue-50';
+      btn.textContent = `${String.fromCharCode(65 + i)}. ${text}`;
+      btn.addEventListener('click', () => answer(i));
+      heroChoicesEl.appendChild(btn);
+    });
+
+    // Real median from the same RPC the app uses, so the number is never stale.
+    supabase.rpc('get_question_time_stats', { p_question_id: HERO_QUESTION_ID })
+      .then(({ data, error }) => {
+        if (error) return;
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row?.median_ms > 0) heroMedianMs = row.median_ms;
+      });
+  }
 
   // ─── LIVE STATS (Users / Problems / Topics / Real Tests) ──────────────────
   supabase.from('public_questions').select('topic, source').limit(5000).then(({ data, error }) => {

@@ -13,7 +13,7 @@
 <style>
   body { font-family: 'Inter', system-ui, sans-serif; }
   .font-display { font-family: 'Fraunces', Georgia, serif; }
-  .hero-gradient { background: #1e3a5f; }
+  .hero-navy { background: #1e3a5f; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
   .fade-up { animation: fadeUp 0.7s ease forwards; }
   .fade-up-2 { animation: fadeUp 0.7s 0.15s ease both; }
@@ -22,7 +22,7 @@
   /* Auth modal: a native <dialog>, so the UA handles show/hide.
      Only the open state needs laying out. */
   #auth-modal[open] { display:block; }
-  /* One navy tone for every feature icon, matching .hero-gradient.
+  /* One navy tone for every feature icon, matching .hero-navy.
      Colour carries meaning inside the app: emerald = correct, rose = incorrect,
      amber = flagged for Review Later. The grid used to run blue, amber, violet,
      emerald, amber, indigo, amber -- five hues picked per card rather than by
@@ -249,47 +249,85 @@
 <!-- ═══════════════════════════════════════════════════════
      HERO
 ═══════════════════════════════════════════════════════ -->
-<section class="hero-gradient min-h-screen flex flex-col items-center justify-center text-center px-6 pt-16 pb-24 relative overflow-hidden">
-  <div class="relative max-w-4xl mx-auto">
-    <h1 class="fade-up font-display text-5xl sm:text-7xl font-black text-white tracking-tight leading-tight mb-6">
-      Compete at the<br/>
-      <span class="text-blue-300">highest level.</span>
-    </h1>
+<section class="hero-navy min-h-[80vh] flex items-center px-6 py-16 sm:py-20 relative overflow-hidden">
+  <!-- Two columns: the claim on the left, a real problem you can answer on the
+       right. Order matters on mobile -- the headline has to land before the
+       card, so the card is second in the DOM and stacks underneath. -->
+  <div class="relative max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
 
-    <p class="fade-up-2 text-blue-200 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-      Practice UIL General Mathematics with authentic competition questions from invitationals, district, regional, state, and TMSCA contests.
-      Track your progress, strengthen weak topics, and prepare to compete with confidence.
-    </p>
+    <div class="fade-up">
+      <p class="text-blue-300 text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-5">
+        1,000 problems · District · Region · State · TMSCA
+      </p>
+      <h1 class="font-display text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.05] mb-5">
+        Train on the<br/>real tests.
+      </h1>
+      <p class="text-blue-100 text-[17px] leading-relaxed mb-8 max-w-lg">
+        Every question here was on an actual UIL or TMSCA contest, with a full worked
+        solution. Start now &mdash; an account only matters once you want your progress saved.
+      </p>
 
-    <div class="fade-up-3 flex flex-col sm:flex-row gap-4 justify-center">
-      <button id="hero-create-btn" onclick="openAuth('signup')"
-        class="px-8 py-4 bg-white text-blue-700 font-bold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-lg">
-        Create an Account
-      </button>
-      <a id="hero-browse-btn" href="./app.html"
-        class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base rounded-xl transition-colors border border-white/20">
-        Browse Problems →
-      </a>
+      <div class="fade-up-2 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <a id="hero-practice-btn" href="./app.html?tab=problems"
+          class="px-7 py-3.5 bg-white text-blue-800 font-bold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-lg">
+          Start practicing
+        </a>
+        <!-- The single highest-value sentence on the page. -->
+        <span class="text-blue-200 text-[15px] font-medium">No account needed</span>
+      </div>
+
+      <!-- Stats row -->
+      <div class="mt-10 flex items-center divide-x divide-white/15 max-w-lg">
+        <div class="flex-1 pr-4">
+          <p id="stat-users" class="text-2xl font-black text-white">&mdash;</p>
+          <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Users</p>
+        </div>
+        <div class="flex-1 px-4">
+          <p id="stat-problems" class="text-2xl font-black text-white">&mdash;</p>
+          <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Problems</p>
+        </div>
+        <div class="flex-1 px-4">
+          <p id="stat-topics" class="text-2xl font-black text-white">&mdash;</p>
+          <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Topics</p>
+        </div>
+        <div class="flex-1 pl-4">
+          <p id="stat-tests" class="text-2xl font-black text-white">&mdash;</p>
+          <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Real Tests</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Stats row -->
-    <div class="mt-16 flex items-center justify-center divide-x divide-white/10 max-w-2xl mx-auto">
-      <div class="flex-1 text-center px-4">
-        <p id="stat-users" class="text-3xl font-black text-white">&mdash;</p>
-        <p class="text-blue-300 text-xs font-semibold mt-1">Users</p>
+    <!-- Live problem card. Real question: 24-25 UIL State, problem 6.
+         Answerable in place; the solution and the field comparison appear the
+         moment a choice is picked. That is the product, demonstrated. -->
+    <div class="fade-up-3 bg-white rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-lg lg:justify-self-end">
+      <div class="flex items-center justify-between mb-4 text-[11px] font-bold uppercase tracking-wider">
+        <span class="text-slate-500">Algebra 1 &amp; 2 &middot; 24-25 UIL State</span>
+        <span id="hero-timer" class="font-mono text-blue-700 tabular-nums normal-case tracking-normal text-sm">0:00</span>
       </div>
-      <div class="flex-1 text-center px-4">
-        <p id="stat-problems" class="text-3xl font-black text-white">&mdash;</p>
-        <p class="text-blue-300 text-xs font-semibold mt-1">Problems</p>
+
+      <p class="text-slate-900 text-[17px] font-medium leading-relaxed mb-4">
+        Consider the sequence 5, 12, 19, 26, 33, 40, &hellip; Find the sum of the 8th term and the 13th term.
+      </p>
+
+      <div id="hero-choices" class="grid gap-2"></div>
+
+      <div id="hero-result" class="hidden mt-4 pt-4 border-t border-slate-200">
+        <p id="hero-verdict" class="font-bold text-[15px] mb-2"></p>
+        <p class="text-slate-700 text-[15px] leading-relaxed">
+          a<sub>1</sub> = 5, d = 7. &nbsp;a<sub>8</sub> = 5 + 7(7) = 54, &nbsp;a<sub>13</sub> = 5 + 7(12) = 89.
+          <br/>54 + 89 = <strong>143</strong>.
+        </p>
+        <p id="hero-median" class="text-slate-600 text-sm mt-3 font-medium"></p>
+        <a href="./app.html?tab=problems"
+          class="mt-4 inline-block px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm rounded-lg transition-colors">
+          Next problem &rarr;
+        </a>
       </div>
-      <div class="flex-1 text-center px-4">
-        <p id="stat-topics" class="text-3xl font-black text-white">&mdash;</p>
-        <p class="text-blue-300 text-xs font-semibold mt-1">Topics</p>
-      </div>
-      <div class="flex-1 text-center px-4">
-        <p id="stat-tests" class="text-3xl font-black text-white">&mdash;</p>
-        <p class="text-blue-300 text-xs font-semibold mt-1">Real Tests</p>
-      </div>
+
+      <p id="hero-hint" class="text-slate-500 text-xs mt-4">
+        Pick an answer &mdash; the worked solution appears here straight away.
+      </p>
     </div>
   </div>
 </section>
@@ -426,20 +464,21 @@
 <!-- ═══════════════════════════════════════════════════════
      CTA
 ═══════════════════════════════════════════════════════ -->
-<section class="hero-gradient py-24 px-6 text-center">
+<section class="hero-navy py-24 px-6 text-center">
   <div class="max-w-2xl mx-auto">
     <h2 class="font-display text-4xl sm:text-5xl font-bold text-white mb-6">Ready to compete?</h2>
     <p class="text-blue-200 text-lg mb-10">Create an account and start tracking your progress today.</p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-      <button id="cta-create-btn" onclick="openAuth('signup')"
-        class="px-8 py-4 bg-white text-blue-700 font-bold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-lg">
-        Create an Account
-      </button>
-      <a id="cta-browse-btn" href="./app.html"
-        class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base rounded-xl transition-colors border border-white/20">
-        Browse Problems First
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <a id="cta-browse-btn" href="./app.html?tab=problems"
+        class="px-8 py-4 bg-white text-blue-800 font-bold text-base rounded-xl hover:bg-blue-50 transition-colors shadow-lg">
+        Start practicing
       </a>
+      <button id="cta-create-btn" onclick="openAuth('signup')"
+        class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold text-base rounded-xl transition-colors border border-white/20">
+        Create an account
+      </button>
     </div>
+    <p class="text-blue-200 text-[15px] mt-4">No account needed to start.</p>
   </div>
 </section>
 
