@@ -39,17 +39,40 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
   const [success, setSuccess] = useState('');
   const [busy, setBusy] = useState(false);
   const firstFieldRef = useRef(null);
+  const panelRef = useRef(null);
 
   const clearMessages = () => { setError(''); setSuccess(''); };
   const switchTab = (next) => { setTab(next); clearMessages(); };
 
   useEffect(() => { firstFieldRef.current?.focus(); }, [tab]);
 
+  // Return focus to whatever opened the dialog. Without this the caret lands
+  // back at the top of the document and a keyboard user has to tab all the way
+  // to where they were.
+  const openerRef = useRef(typeof document !== 'undefined' ? document.activeElement : null);
+  useEffect(() => () => {
+    const opener = openerRef.current;
+    if (opener && typeof opener.focus === 'function' && document.contains(opener)) opener.focus();
+  }, []);
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  // Keep Tab inside the dialog. Without it, tabbing walks straight out into the
+  // page behind, which is still fully interactive underneath the overlay.
+  const trapTab = (e) => {
+    if (e.key !== 'Tab') return;
+    const focusable = panelRef.current?.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusable || focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -103,7 +126,8 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
     <div onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       role="dialog" aria-modal="true" aria-label={isSignin ? 'Sign in' : 'Create account'}>
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92dvh] overflow-y-auto p-5 sm:p-8 relative">
+      <div ref={panelRef} onKeyDown={trapTab}
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92dvh] overflow-y-auto p-5 sm:p-8 relative">
         <button onClick={onClose} aria-label="Close"
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none">
           ×

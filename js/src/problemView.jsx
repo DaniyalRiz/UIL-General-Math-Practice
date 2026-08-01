@@ -211,6 +211,10 @@ function ShareMenu({ q, open, setOpen }) {
   );
 }
 
+const Kbd = ({ children }) => (
+  <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] font-semibold text-slate-600 dark:text-slate-300">{children}</kbd>
+);
+
 export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, onNext, hasPrev, hasNext, isBookmarked, onToggleBookmark, allQuestions }) {
   const { authUser } = useApp();
   const [pending, setPending]   = useState(null);
@@ -227,6 +231,10 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
   const [submitting, setSubmitting] = useState(false);
   const [showReportIssue, setShowReportIssue] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  // { median_ms, sample_size } once answered, null while loading or when too few
+  // students have tried this question for a median to mean anything.
+  const [timeStats, setTimeStats] = useState(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const timer = useTimer();
   const startRef = useRef(Date.now());
   // Updated synchronously on every render so async RPC callbacks can detect stale results.
@@ -241,6 +249,21 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
     dialogRef.current?.focus();
   }, []);
 
+  // Fetch the field's median only once this question has been answered: before
+  // that it is not shown, and fetching for every question opened would be a
+  // request per browse. Guarded against a late reply for a question the user
+  // has already moved on from.
+  useEffect(() => {
+    if (!answered) { setTimeStats(null); return; }
+    let cancelled = false;
+    const forId = q.id;
+    _supabase.rpc('get_question_time_stats', { p_question_id: q.id }).then(({ data, error }) => {
+      if (cancelled || error || forId !== activeQuestionIdRef.current) return;
+      setTimeStats(Array.isArray(data) ? data[0] : data);
+    });
+    return () => { cancelled = true; };
+  }, [answered, q.id]);
+
   // Escape closes the innermost thing first: report modal, then share menu,
   // then the problem itself. Ignored while a submission is in flight, matching
   // the disabled Close button.
@@ -254,6 +277,58 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [showReportIssue, showShare, submitting, onClose]);
+
+  // Keyboard-first answering. Speed is the skill being trained, so the whole
+  // loop (pick, eliminate, submit, next) is reachable without a mouse:
+  //   A-E     select that choice
+  //   X       cross out the selected choice, then move on to the next one
+  //   Enter   submit, or advance to the next question once answered
+  //   Space   toggle Review Later
+  // Deliberately inert while typing in a field, while a nested dialog is open,
+  // or with a modifier held, so it never eats a real shortcut or a note.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (showReportIssue || showShare) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+      if (typing) return;
+
+      const key = e.key.toLowerCase();
+
+      if (key === 'enter') {
+        e.preventDefault();
+        if (!answered) handleSubmit();
+        else if (hasNext) onNext();
+        return;
+      }
+      if (key === ' ' || e.code === 'Space') {
+        e.preventDefault();          // Space would otherwise scroll the panel
+        onToggleBookmark();
+        return;
+      }
+      if (answered) return;          // letters only matter before submitting
+
+      const idx = 'abcdef'.indexOf(key);
+      if (idx !== -1 && idx < q.choices.length) {
+        e.preventDefault();
+        const choice = q.choices[idx];
+        if (crossed[choice]) return; // an eliminated choice is not selectable
+        setPending(p => (p === choice ? null : choice));
+        return;
+      }
+      if (key === 'x') {
+        e.preventDefault();
+        // Cross out what is selected, then clear the selection so the next
+        // letter press is unambiguous.
+        if (pending == null) return;
+        toggleCross(pending);
+        setPending(null);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [answered, hasNext, onNext, onToggleBookmark, pending, crossed, q.choices, showReportIssue, showShare, submitting]);
 
   // Keep Tab cycling inside the dialog -- without this, keyboard focus walks
   // out into the page hidden behind the full-screen problem view.
@@ -370,6 +445,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
       const result = Array.isArray(data) ? data[0] : data;
       if (!result || result.error) { setSubmitError(result?.error || "No result returned."); return; }
       setSelected(pending);
+      setElapsedMs(timeMs);
       setAnswered(true);
       timer.stop();
       setServerResult({ is_correct: result.is_correct, correct_answer: result.correct_answer, explanation: result.explanation || null });
@@ -421,6 +497,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
     }
 
     setSelected(pending);
+    setElapsedMs(timeMs);
     setAnswered(true);
     timer.stop();
     setServerResult(result);
@@ -599,7 +676,8 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
             {/* ── hint ── */}
             {!answered && (
               <p className="px-4 sm:px-6 pb-2 text-xs text-slate-500 dark:text-slate-400">
-                Click to select · Cross out with right-click or the ✕ at the right edge · Press <kbd className="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-xs">Submit</kbd> to check
+                <Kbd>A</Kbd>–<Kbd>E</Kbd> select · <Kbd>X</Kbd> cross out the selected choice · <Kbd>Enter</Kbd> submit, then next · <Kbd>Space</Kbd> Review Later
+                <span className="hidden sm:inline"> · or click, and right-click to cross out</span>
               </p>
             )}
 
@@ -679,6 +757,24 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 <div className={`font-bold text-base mb-3 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
                   {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{" · Time: "}<TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
                 </div>
+                {timeStats?.median_ms > 0 && elapsedMs > 0 && (
+                  <p className="-mt-1 mb-3 text-sm font-medium text-slate-600 dark:text-slate-300">
+                    You: <span className="font-bold tabular-nums">{fmtTime(elapsedMs)}</span>
+                    {" · median: "}
+                    <span className="font-bold tabular-nums">{fmtTime(timeStats.median_ms)}</span>
+                    <span className="text-slate-400 dark:text-slate-500">
+                      {" "}across {timeStats.sample_size} student{timeStats.sample_size !== 1 ? 's' : ''}
+                    </span>
+                    {elapsedMs <= timeStats.median_ms && (
+                      <>
+                        {" · "}
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                          {Math.max(1, Math.round(100 * (1 - elapsedMs / timeStats.median_ms)))}% faster
+                        </span>
+                      </>
+                    )}
+                  </p>
+                )}
                 <div className="mt-1 text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed whitespace-normal break-words">
                   <div className="overflow-x-auto max-w-full">
                     <MathText text={explanationText || ""} />

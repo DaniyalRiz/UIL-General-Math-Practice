@@ -13,12 +13,22 @@ window.copyDiscordTag = function() {
 
 document.addEventListener('DOMContentLoaded', function () {
   // ─── UI HELPERS ──────────────────────────────────────────────────────────
+  // Native <dialog>: showModal() gives Escape, the ::backdrop, focus moved into
+  // the dialog, focus trapped inside it, and focus returned to whichever button
+  // opened it. All of that used to be missing entirely.
+  const authDialog = () => document.getElementById('auth-modal');
+
   window.openAuth = function(tab) {
-    document.getElementById('auth-modal').classList.add('open');
+    const d = authDialog();
     switchTab(tab || 'signin');
+    if (!d.open) d.showModal();
+    // Land on the first field rather than the close button, which is what the
+    // browser would otherwise focus as the first tabbable element.
+    d.querySelector(tab === 'signup' ? '#signup-name' : '#signin-email')?.focus();
   };
   function closeAuth() {
-    document.getElementById('auth-modal').classList.remove('open');
+    const d = authDialog();
+    if (d.open) d.close();
     clearErrors();
   }
   window.closeAuth = closeAuth;
@@ -168,8 +178,12 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('stat-users').textContent = data;
   });
 
-  // Close modal on backdrop click
+  // Light dismiss. A native <dialog> does not close on backdrop click by itself,
+  // but a click on the backdrop targets the dialog element, so this still works.
   document.getElementById('auth-modal').addEventListener('click', function(e) {
     if (e.target === this) window.closeAuth();
   });
+  // Escape closes the dialog without going through closeAuth(), so clear any
+  // stale error there too rather than showing it again on the next open.
+  document.getElementById('auth-modal').addEventListener('close', clearErrors);
 });
