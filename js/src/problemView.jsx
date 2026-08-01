@@ -211,6 +211,13 @@ function ShareMenu({ q, open, setOpen }) {
   );
 }
 
+// "41s" reads faster than "00:41" for the sub-minute times this comparison
+// almost always involves. fmtTime's mm:ss stays everywhere else.
+const fmtSeconds = (ms) => {
+  const s = Math.round((ms || 0) / 1000);
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
+};
+
 const Kbd = ({ children }) => (
   <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] font-semibold text-slate-600 dark:text-slate-300">{children}</kbd>
 );
@@ -783,24 +790,34 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 <div className={`font-bold text-base mb-3 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
                   {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{" · Time: "}<TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
                 </div>
-                {timeStats?.median_ms > 0 && elapsedMs > 0 && (
-                  <p className="-mt-1 mb-3 text-[15px] font-medium text-slate-600 dark:text-slate-300">
-                    You: <span className="font-bold tabular-nums">{fmtTime(elapsedMs)}</span>
-                    {" · median: "}
-                    <span className="font-bold tabular-nums">{fmtTime(timeStats.median_ms)}</span>
-                    <span className="text-slate-500 dark:text-slate-400">
-                      {" "}across {timeStats.sample_size} student{timeStats.sample_size !== 1 ? 's' : ''}
-                    </span>
-                    {elapsedMs <= timeStats.median_ms && (
-                      <>
-                        {" · "}
-                        <span className="text-emerald-700 dark:text-emerald-400 font-bold">
-                          {Math.max(1, Math.round(100 * (1 - elapsedMs / timeStats.median_ms)))}% faster
-                        </span>
-                      </>
-                    )}
-                  </p>
-                )}
+                {timeStats?.median_ms > 0 && elapsedMs > 0 && (() => {
+                  // scope is 'question' when enough people have tried this exact
+                  // problem, otherwise 'difficulty:Easy' and friends. Label which
+                  // one it is rather than passing a difficulty median off as a
+                  // per-problem one.
+                  const byQuestion = timeStats.scope === 'question';
+                  const diff = byQuestion ? null : (timeStats.scope || '').split(':')[1];
+                  return (
+                    <p className="-mt-1 mb-3 text-[15px] font-medium text-slate-600 dark:text-slate-300">
+                      You: <span className="font-bold tabular-nums">{fmtSeconds(elapsedMs)}</span>
+                      {" · median: "}
+                      <span className="font-bold tabular-nums">{fmtSeconds(timeStats.median_ms)}</span>
+                      <span className="text-slate-500 dark:text-slate-400">
+                        {byQuestion
+                          ? ` across ${timeStats.sample_size} student${timeStats.sample_size !== 1 ? 's' : ''} on this problem`
+                          : ` for ${diff ? diff.toLowerCase() + ' ' : ''}problems`}
+                      </span>
+                      {elapsedMs <= timeStats.median_ms && (
+                        <>
+                          {" · "}
+                          <span className="text-emerald-700 dark:text-emerald-400 font-bold">
+                            {Math.max(1, Math.round(100 * (1 - elapsedMs / timeStats.median_ms)))}% faster
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  );
+                })()}
                 <div className="mt-1 text-slate-800 dark:text-slate-200 text-base sm:text-lg leading-relaxed whitespace-normal break-words">
                   <div className="overflow-x-auto max-w-full">
                     <MathText text={explanationText || ""} />
