@@ -1,9 +1,16 @@
 // ── Leaderboard ───────────────────────────────────────────────────────────────
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { sortSources, AVATAR_COLORS } from '../constants.js';
-import { Dropdown, useSupabaseQuery } from './hooks.jsx';
+import { Dropdown, useSupabaseQuery, SearchWithHistory, PastSortsButton, usePastSorts, readSavedFilters, saveFilters } from './hooks.jsx';
 import { useApp } from './appContext.jsx';
+
+const LB_FILTERS_KEY = 'leaderboard_filters';
+const LB_SORTS_KEY   = 'leaderboard_past_sorts';
+const LB_DEFAULTS = {
+  day: 'All Time', topic: 'All Topics', diff: 'All Difficulties',
+  type: 'All Types', source: 'All Sources',
+};
 
 const LB_DAY_OPTIONS   = ['All Time', 'Last 30 Days', 'Last 7 Days'];
 const LB_TOPIC_OPTIONS = ['All Topics', 'Algebra 1 & 2', 'Geometry', 'Precalculus', 'AP Calculus', 'AP Statistics'];
@@ -52,11 +59,19 @@ function LBRankBadge({ rank }) {
 
 export function LeaderboardPage({ authUser, questions }) {
   const { openAuth } = useApp();
-  const [dayFilter, setDayFilter]           = useState('All Time');
-  const [topicFilter, setTopicFilter]       = useState('All Topics');
-  const [diffFilter, setDiffFilter]         = useState('All Difficulties');
-  const [typeFilter, setTypeFilter]         = useState('All Types');
-  const [sourceFilter, setSourceFilter]     = useState('All Sources');
+  const savedLb = useRef(readSavedFilters(LB_FILTERS_KEY)).current;
+  const [search, setSearch]                 = useState('');
+  const [dayFilter, setDayFilter]           = useState(savedLb.day    ?? 'All Time');
+  const [topicFilter, setTopicFilter]       = useState(savedLb.topic  ?? 'All Topics');
+  const [diffFilter, setDiffFilter]         = useState(savedLb.diff   ?? 'All Difficulties');
+  const [typeFilter, setTypeFilter]         = useState(savedLb.type   ?? 'All Types');
+  const [sourceFilter, setSourceFilter]     = useState(savedLb.source ?? 'All Sources');
+
+  useEffect(() => {
+    saveFilters(LB_FILTERS_KEY, {
+      day: dayFilter, topic: topicFilter, diff: diffFilter, type: typeFilter, source: sourceFilter,
+    });
+  }, [dayFilter, topicFilter, diffFilter, typeFilter, sourceFilter]);
 
   // Derived from the question list App already loaded -- no extra fetch needed.
   const availableSources = useMemo(() => {
@@ -77,9 +92,26 @@ export function LeaderboardPage({ authUser, questions }) {
 
     return _supabase.rpc('get_leaderboard', params);
   }, [dayFilter, topicFilter, diffFilter, typeFilter, sourceFilter]);
-  const entries = entriesData || [];
+  // Name search is applied client-side: the ranking RPC returns the full board
+  // already, and filtering server-side would renumber the ranks so a searched
+  // student would show as #1 instead of their real position.
+  const allEntries = entriesData || [];
+  const entries = search.trim()
+    ? allEntries.filter(e => (e.display_name || '').toLowerCase().includes(search.trim().toLowerCase()))
+    : allEntries;
 
-  const myEntry = entries.find(e => e.is_current_user);
+  const myEntry = allEntries.find(e => e.is_current_user);
+
+  const pastSorts = usePastSorts(LB_SORTS_KEY,
+    { day: dayFilter, topic: topicFilter, diff: diffFilter, type: typeFilter, source: sourceFilter },
+    LB_DEFAULTS);
+  const applyLbSort = (v) => {
+    setDayFilter(v.day ?? 'All Time');
+    setTopicFilter(v.topic ?? 'All Topics');
+    setDiffFilter(v.diff ?? 'All Difficulties');
+    setTypeFilter(v.type ?? 'All Types');
+    setSourceFilter(v.source ?? 'All Sources');
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -112,11 +144,16 @@ export function LeaderboardPage({ authUser, questions }) {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <Dropdown value={dayFilter}    options={LB_DAY_OPTIONS}   onChange={setDayFilter}    />
-        <Dropdown value={topicFilter}  options={LB_TOPIC_OPTIONS} onChange={setTopicFilter}  />
-        <Dropdown value={diffFilter}   options={LB_DIFF_OPTIONS}  onChange={setDiffFilter}   />
-        <Dropdown value={typeFilter}   options={LB_TYPE_OPTIONS}  onChange={setTypeFilter}   />
-        <Dropdown value={sourceFilter} options={availableSources} onChange={setSourceFilter} />
+        <SearchWithHistory value={search} onChange={setSearch}
+          placeholder="Search students…" wrapperClassName="flex-1 min-w-[200px]" />
+        <Dropdown label="Period"     value={dayFilter}    options={LB_DAY_OPTIONS}   onChange={setDayFilter}    />
+        <Dropdown label="Topic"      value={topicFilter}  options={LB_TOPIC_OPTIONS} onChange={setTopicFilter}  />
+        <Dropdown label="Difficulty" value={diffFilter}   options={LB_DIFF_OPTIONS}  onChange={setDiffFilter}   />
+        <Dropdown label="Type"       value={typeFilter}   options={LB_TYPE_OPTIONS}  onChange={setTypeFilter}   />
+        <Dropdown label="Source"     value={sourceFilter} options={availableSources} onChange={setSourceFilter} />
+        <PastSortsButton entries={pastSorts.entries} currentLabel={pastSorts.currentLabel}
+          onOpen={pastSorts.refresh} onApply={applyLbSort}
+          onRemove={pastSorts.remove} onClear={pastSorts.clear} />
       </div>
 
       {/* States */}
@@ -134,9 +171,15 @@ export function LeaderboardPage({ authUser, questions }) {
           <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500">
             <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
           </div>
-          <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No entries yet</p>
+          {/* A search that matches nobody is a different situation from an empty
+              board, and telling someone to answer 5 questions would be nonsense. */}
+          <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            {search.trim() && allEntries.length > 0 ? 'No students match that search' : 'No entries yet'}
+          </p>
           <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
-            Answer at least 5 questions correctly to appear on the leaderboard.
+            {search.trim() && allEntries.length > 0
+              ? `${allEntries.length} student${allEntries.length !== 1 ? 's' : ''} on the leaderboard for these filters.`
+              : 'Answer at least 5 questions correctly to appear on the leaderboard.'}
           </p>
         </div>
       ) : (

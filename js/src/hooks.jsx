@@ -174,6 +174,149 @@ export function useRecentSearches() {
   return { recents, record, remove, clear, refresh };
 }
 
+// ── Past sorts ──────────────────────────────────────────────────────────────
+// Remembers filter/sort combinations the user settled on, so a view they built
+// once can be reapplied in a click.
+//
+// One list per set of dropdowns, not per screen: Problems, Recommended Practice,
+// Redo Misses and Review Later share a single filter state, so they physically
+// cannot hold different values at the same time and separate lists would show
+// identical entries. History and Leaderboard own their dropdowns, so they get
+// their own lists.
+const MAX_PAST_SORTS = 8;
+const SORT_SETTLE_MS = 1000;
+
+// A combination is stored as { values, label }. `values` is what gets reapplied;
+// `label` is precomputed so a stored entry still reads correctly if the option
+// lists change later.
+function readPastSorts(key) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(key));
+    return Array.isArray(raw) ? raw.filter(e => e && e.values && e.label) : [];
+  } catch (e) { return []; }
+}
+
+// Only the parts the user actually changed, so entries read "Geometry · Easy"
+// rather than repeating every default back at them.
+export function describeSort(values, defaults) {
+  const parts = Object.entries(values)
+    .filter(([k, v]) => v != null && v !== '' && v !== defaults[k])
+    .map(([, v]) => String(v));
+  return parts.join(' · ');
+}
+
+export function usePastSorts(key, values, defaults) {
+  const [entries, setEntries] = useState(() => readPastSorts(key));
+  const label = describeSort(values, defaults);
+
+  // Auto-record the settled combination. The delay is what turns "changed three
+  // dropdowns" into one entry instead of three partial ones; an all-default
+  // combination is not a view worth remembering.
+  useEffect(() => {
+    if (!label) return;
+    const t = setTimeout(() => {
+      const next = [{ values, label }, ...readPastSorts(key).filter(e => e.label !== label)]
+        .slice(0, MAX_PAST_SORTS);
+      setEntries(next);
+      try { localStorage.setItem(key, JSON.stringify(next)); } catch (e) {}
+    }, SORT_SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [key, label]);
+
+  const refresh = () => setEntries(readPastSorts(key));
+  const remove = (l) => {
+    const next = readPastSorts(key).filter(e => e.label !== l);
+    setEntries(next);
+    try { localStorage.setItem(key, JSON.stringify(next)); } catch (e) {}
+  };
+  const clear = () => {
+    setEntries([]);
+    try { localStorage.removeItem(key); } catch (e) {}
+  };
+
+  return { entries, remove, clear, refresh, currentLabel: label };
+}
+
+// Button plus panel, mirroring SearchWithHistory so the two read as one feature.
+export function PastSortsButton({ entries, onApply, onRemove, onClear, onOpen, currentLabel }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={wrapRef}>
+      <button type="button" onClick={() => { onOpen?.(); setOpen(o => !o); }}
+        title="Past sorts" aria-label="Past sorts" aria-haspopup="menu" aria-expanded={open}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors whitespace-nowrap
+          ${open ? 'bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-500/15 dark:border-blue-500/40 dark:text-blue-300'
+                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'}`}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M3 3v5h5"/>
+          <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+          <path d="M12 7v5l3 2"/>
+        </svg>
+        Past sorts
+      </button>
+
+      {open && (
+        /* Left-anchored on narrow screens, where the wrapping filter bar puts
+           this button at the start of its row and a right-anchored panel would
+           run off the left edge. Right-anchored from sm up, where it is normally
+           the last control in a wide row. */
+        <div role="menu"
+          className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1 z-40 w-72 max-w-[calc(100vw-2rem)] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Past sorts</span>
+            {entries.length > 0 && (
+              <button type="button" onClick={onClear}
+                className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400">
+                Clear all
+              </button>
+            )}
+          </div>
+
+          {entries.length === 0 ? (
+            <p className="px-3 py-3 text-sm text-slate-400 dark:text-slate-500">
+              No past sorts yet. Change any filter above and the combination is saved here.
+            </p>
+          ) : (
+            <div className="max-h-72 overflow-y-auto">
+              {entries.map(e => (
+                <div key={e.label} className="flex items-center">
+                  <button type="button" role="menuitem"
+                    onClick={() => { onApply(e.values); setOpen(false); }}
+                    className={`flex-1 text-left px-3 py-2 text-sm truncate hover:bg-slate-100 dark:hover:bg-slate-800
+                      ${e.label === currentLabel
+                        ? 'text-blue-700 dark:text-blue-300 font-semibold'
+                        : 'text-slate-700 dark:text-slate-200'}`}>
+                    {e.label}
+                  </button>
+                  <button type="button" aria-label={`Remove ${e.label} from past sorts`}
+                    onClick={() => onRemove(e.label)}
+                    className="px-2.5 py-2 text-slate-300 hover:text-rose-600 dark:text-slate-600 dark:hover:text-rose-400">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Every search box in the app uses this styling; keeping it here stops the five
 // call sites drifting apart. pr-10 leaves room for the history button.
 const SEARCH_INPUT_CLS = "w-full pl-3 pr-10 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500";

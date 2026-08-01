@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { _supabase } from '../supabaseClient.js';
 import { getColumnCategory, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText } from '../constants.js';
-import { MathText, DiffPill, Dropdown, useLocalStorage, SearchWithHistory, readSavedFilters, saveFilters } from './hooks.jsx';
+import { MathText, DiffPill, Dropdown, useLocalStorage, SearchWithHistory, readSavedFilters, saveFilters, PastSortsButton, usePastSorts } from './hooks.jsx';
 
 import { useApp } from './appContext.jsx';
 import { computeDayStreak } from '../utils.js';
 
 const HISTORY_FILTERS_KEY = 'history_filters';
+const HISTORY_SORTS_KEY   = 'history_past_sorts';
+const HISTORY_DEFAULTS = {
+  correct: 'All', topic: 'All Topics', diff: 'All Difficulties',
+  date: 'Most Recent', source: 'All Sources', type: 'All Types',
+};
 
 // ── Weekly trend: accuracy line over attempt-volume bars, last 8 weeks ───────
 // Two stacked panels sharing the week axis instead of a dual-axis chart
@@ -491,12 +496,23 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
   const [filterSource,  setFilterSource]  = useState(savedHistory.source  ?? 'All Sources');
   const [filterType,    setFilterType]    = useState(savedHistory.type    ?? 'All Types');
 
+  const historyFilterValues = {
+    correct: filterCorrect, topic: filterTopic, diff: filterDiff,
+    date: filterDate, source: filterSource, type: filterType,
+  };
   useEffect(() => {
-    saveFilters(HISTORY_FILTERS_KEY, {
-      correct: filterCorrect, topic: filterTopic, diff: filterDiff,
-      date: filterDate, source: filterSource, type: filterType,
-    });
+    saveFilters(HISTORY_FILTERS_KEY, historyFilterValues);
   }, [filterCorrect, filterTopic, filterDiff, filterDate, filterSource, filterType]);
+
+  const historySorts = usePastSorts(HISTORY_SORTS_KEY, historyFilterValues, HISTORY_DEFAULTS);
+  const applyHistorySort = (v) => {
+    setFilterCorrect(v.correct ?? 'All');
+    setFilterTopic(v.topic     ?? 'All Topics');
+    setFilterDiff(v.diff       ?? 'All Difficulties');
+    setFilterDate(v.date       ?? 'Most Recent');
+    setFilterSource(v.source   ?? 'All Sources');
+    setFilterType(v.type       ?? 'All Types');
+  };
   const [search, setSearch]               = useState('');
 
   const questionSourceMap = useMemo(() => {
@@ -735,6 +751,9 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
           options={historyUniqueSources} />
         <Dropdown label="Date" value={filterDate} onChange={setFilterDate}
           options={['Most Recent','Oldest First','Today','Last 7 Days','Last 30 Days']} />
+        <PastSortsButton entries={historySorts.entries} currentLabel={historySorts.currentLabel}
+          onOpen={historySorts.refresh} onApply={applyHistorySort}
+          onRemove={historySorts.remove} onClear={historySorts.clear} />
       </div>
 
       {/* ── Table ── */}

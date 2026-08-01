@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { _supabase } from '../supabaseClient.js';
 import { TOPICS, getColumnCategory, DIFFICULTIES, PAGE_SIZE, SOURCE_TYPES, getSourceType, sortSources, fmtTime, initialsFor, avatarColorFor, getMasteryLevel, ADMIN_EMAILS, ALLOWED_AVATAR_TYPES, MAX_AVATAR_BYTES, REC_WEIGHTS, REC_DEFAULT_ACCURACY, REC_LIST_SIZE, REC_STARTER_SIZE } from '../constants.js';
 import { updateUserStatsOnly, cropAndResizeAvatar, computeDayStreak } from '../utils.js';
-import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown, SearchWithHistory, readSavedFilters, saveFilters } from './hooks.jsx';
+import { useLocalStorage, useTheme, SunIcon, MoonIcon, Dropdown, SearchWithHistory, readSavedFilters, saveFilters, PastSortsButton, usePastSorts } from "./hooks.jsx";
 import { AppContext, useApp } from './appContext.jsx';
 import { AuthModal } from './authModal.jsx';
 import { readAppUrl, buildAppQuery } from './urlState.js';
@@ -741,6 +741,11 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
 // coming back to a text-filtered list looks like missing data, and recent
 // searches already makes a previous term one click away.
 const PROBLEM_FILTERS_KEY = 'problem_filters';
+const PROBLEM_SORTS_KEY = 'problem_past_sorts';
+const PROBLEM_FILTER_DEFAULTS = {
+  status: 'All Status', topic: 'All Topics', diff: 'All Difficulties',
+  type: 'All Types', source: 'All Sources',
+};
 
 // `initial` comes from the URL, so a shared link renders its filtered list on
 // the first paint instead of flashing the unfiltered one and correcting itself.
@@ -809,6 +814,26 @@ function useProblemFilters(initial = {}) {
 
   const onFilter = (setter, val) => { setter(val); setPage(1); };
 
+  // One past-sorts list for all four problem screens, because they share these
+  // dropdowns; see usePastSorts. Review Later's own Sort is included so a saved
+  // view restores it too, and is simply absent from the other three.
+  const pastSorts = usePastSorts(PROBLEM_SORTS_KEY,
+    { status: statusFilter, topic, diff, type: typeFilter, source: sourceFilter },
+    PROBLEM_FILTER_DEFAULTS);
+  const applyPastSort = (v) => {
+    // Same suppression as a URL restore: setting type would otherwise wipe the
+    // source being restored alongside it.
+    setTypeFilter(prev => {
+      if (prev !== (v.type ?? "All Types")) suppressTypeReset.current = true;
+      return v.type ?? "All Types";
+    });
+    setTopic(v.topic ?? "All Topics");
+    setDiff(v.diff ?? "All Difficulties");
+    setSourceFilter(v.source ?? "All Sources");
+    setStatusFilter(v.status ?? "All Status");
+    setPage(1);
+  };
+
   const resetFilters = () => {
     setTopic("All Topics"); setDiff("All Difficulties");
     setTypeFilter("All Types"); setSourceFilter("All Sources"); setStatusFilter("All Status");
@@ -818,7 +843,7 @@ function useProblemFilters(initial = {}) {
   return {
     topic, setTopic, diff, setDiff, search, setSearch,
     typeFilter, setTypeFilter, sourceFilter, setSourceFilter, statusFilter, setStatusFilter,
-    page, setPage, matchesBaseFilters, onFilter, resetFilters, applyFiltersFromUrl,
+    page, setPage, matchesBaseFilters, onFilter, resetFilters, applyFiltersFromUrl, pastSorts, applyPastSort,
   };
 }
 
@@ -875,7 +900,7 @@ function App() {
   const {
     topic, setTopic, diff, setDiff, search, setSearch,
     typeFilter, setTypeFilter, sourceFilter, setSourceFilter, statusFilter, setStatusFilter,
-    page, setPage, matchesBaseFilters, onFilter, resetFilters, applyFiltersFromUrl,
+    page, setPage, matchesBaseFilters, onFilter, resetFilters, applyFiltersFromUrl, pastSorts, applyPastSort,
   } = useProblemFilters(urlInit);
   const [openIdx, setOpenIdx] = useState(null);
   const [openQuestionId, setOpenQuestionId] = useState(null);
@@ -905,8 +930,9 @@ function App() {
   const [reviewSort, setReviewSort] = useLocalStorage('review_sort', 'Recently Saved');
   const [masteryStats, setMasteryStats] = useState(null);
   const [recommendedMode, setRecommendedMode] = useState(false);
-  const [recStatus, setRecStatus] = useState("All");
-  const [recSort, setRecSort] = useState("Most Recent");
+  // Persisted like every other sort selection, and like Review Later's own Sort.
+  const [recStatus, setRecStatus] = useLocalStorage('recommended_status', "All");
+  const [recSort, setRecSort] = useLocalStorage('recommended_sort', "Most Recent");
 
   // One fetch of the full attempt history on login. It rebuilds the per-question
   // stats (status dots stay correct on a new device/browser) AND feeds the
@@ -1626,6 +1652,9 @@ function App() {
             <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
             <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
             <Dropdown label="Sort" value={recSort} options={["Most Recent","Oldest","Title","Hardest"]} onChange={v=>{setRecSort(v); setPage(1);}} />
+            <PastSortsButton entries={pastSorts.entries} currentLabel={pastSorts.currentLabel}
+              onOpen={pastSorts.refresh} onApply={applyPastSort}
+              onRemove={pastSorts.remove} onClear={pastSorts.clear} />
           </div>
 
           {recommendedVisible.length === 0 ? (
@@ -1679,6 +1708,9 @@ function App() {
             <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
             <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
             <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
+            <PastSortsButton entries={pastSorts.entries} currentLabel={pastSorts.currentLabel}
+              onOpen={pastSorts.refresh} onApply={applyPastSort}
+              onRemove={pastSorts.remove} onClear={pastSorts.clear} />
           </div>
 
           {authUser && allAttempts === null ? (
@@ -1765,6 +1797,9 @@ function App() {
                 <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
                 <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
                 <Dropdown label="Sort" value={reviewSort} options={["Recently Saved","First Saved","Newest Added","Oldest Added"]} onChange={setReviewSort} />
+                <PastSortsButton entries={pastSorts.entries} currentLabel={pastSorts.currentLabel}
+                  onOpen={pastSorts.refresh} onApply={applyPastSort}
+                  onRemove={pastSorts.remove} onClear={pastSorts.clear} />
               </div>
 
               {reviewVisible.length === 0 ? (
@@ -1806,6 +1841,9 @@ function App() {
           <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
           <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
           <Dropdown label="Source" value={sourceFilter} options={uniqueSources} onChange={v=>onFilter(setSourceFilter,v)} />
+          <PastSortsButton entries={pastSorts.entries} currentLabel={pastSorts.currentLabel}
+            onOpen={pastSorts.refresh} onApply={applyPastSort}
+            onRemove={pastSorts.remove} onClear={pastSorts.clear} />
         </div>
 
         {/* TABLE */}
