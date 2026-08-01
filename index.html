@@ -161,23 +161,15 @@
       <div class="hidden sm:flex items-center gap-0.5 overflow-x-auto" style="-ms-overflow-style:none;scrollbar-width:none;">
         <a href="./index.html"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">
-          Home
+          About
         </a>
-        <a href="./app.html?tab=problems"
+        <a href="./app.html?tab=problems" data-nav="practice"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          Problems
+          Practice
         </a>
-        <a href="./app.html?tab=analytics"
-          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          Analytics
-        </a>
-        <a href="./app.html?tab=history"
-          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          History
-        </a>
-        <a href="./app.html?tab=mastery"
-          class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          Mastery
+        <a id="nav-progress-tab" href="./app.html?tab=analytics"
+          class="hidden px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Progress
         </a>
         <a href="./app.html?tab=leaderboard"
           class="px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -227,11 +219,11 @@
   <!-- Mobile menu -->
   <div id="nav-mobile-menu" class="hidden sm:hidden border-t border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-950 max-h-[calc(100dvh-3.5rem)] overflow-y-auto">
     <div class="px-3 py-2 flex flex-col">
-      <a href="./index.html" class="px-3 py-3 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20">Home</a>
-      <a href="./app.html?tab=problems" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Problems</a>
-      <a href="./app.html?tab=analytics" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Analytics</a>
-      <a href="./app.html?tab=history" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">History</a>
-      <a href="./app.html?tab=mastery" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Mastery</a>
+      <a href="./index.html" class="px-3 py-3 rounded-lg text-sm font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20">About</a>
+      <a href="./app.html?tab=problems" data-nav="practice" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+          Practice
+        </a>
+      <a id="nav-progress-tab-mobile" href="./app.html?tab=analytics" class="hidden px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Progress</a>
       <a href="./app.html?tab=leaderboard" class="px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Leaderboard</a>
       <a id="nav-admin-tab-mobile" href="./app.html?tab=admin" class="hidden px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Admin</a>
 

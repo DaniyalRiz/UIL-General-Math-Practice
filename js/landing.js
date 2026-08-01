@@ -90,6 +90,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('cta-create-btn').classList.toggle('hidden', loggedIn);
     document.getElementById('cta-browse-btn').textContent = loggedIn ? 'Browse Problems' : 'Browse Problems First';
     document.getElementById('nav-admin-tab').classList.toggle('hidden', !isAdmin);
+    // Progress covers Analytics/History/Mastery, all of which are empty for a
+    // signed-out visitor, so it only appears once there is data behind it.
+    document.getElementById('nav-progress-tab').classList.toggle('hidden', !loggedIn);
+    document.getElementById('nav-progress-tab-mobile').classList.toggle('hidden', !loggedIn);
     // Mobile menu mirrors the same three auth-dependent entries.
     document.getElementById('nav-admin-tab-mobile').classList.toggle('hidden', !isAdmin);
     document.getElementById('nav-menu-signup').classList.toggle('hidden', loggedIn);
