@@ -212,7 +212,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const heroChoicesEl = document.getElementById('hero-choices');
   if (heroChoicesEl) {
-    const timerEl = document.getElementById('hero-timer');
+    const timerEl  = document.getElementById('hero-timer');
+    const submitEl = document.getElementById('hero-submit');
+    let pending = null;
+
     const tick = () => {
       if (heroAnswered) return;
       const s = Math.floor((Date.now() - heroStart) / 1000);
@@ -220,31 +223,67 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     const timerId = setInterval(tick, 250);
 
-    const answer = (idx) => {
+    // Same shape as a choice in the app: circular letter badge, then the text.
+    const BASE = 'w-full text-left px-3 py-3 rounded-xl border-2 text-[15px] font-medium transition-all duration-150 flex items-center gap-3 select-none';
+    const BADGE = 'w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-black border-2 transition-all';
+
+    const paint = () => {
+      [...heroChoicesEl.children].forEach((btn, i) => {
+        const badge = btn.querySelector('span');
+        if (!heroAnswered) {
+          const on = pending === i;
+          btn.className = `${BASE} ${on ? 'border-blue-500 bg-blue-50 text-slate-900' : 'border-slate-200 text-slate-800 hover:border-blue-300 hover:bg-blue-50/50'}`;
+          badge.className = `${BADGE} ${on ? 'bg-blue-500 text-white border-blue-500' : 'border-slate-300 text-slate-500'}`;
+          return;
+        }
+        const isAnswer = i === HERO_ANSWER_INDEX;
+        const isPick = i === pending;
+        btn.disabled = true;
+        btn.className = `${BASE} ${isAnswer ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
+                                 : isPick   ? 'border-rose-500 bg-rose-50 text-rose-900'
+                                            : 'border-slate-200 text-slate-500 opacity-70'}`;
+        badge.className = `${BADGE} ${isAnswer ? 'bg-emerald-500 text-white border-emerald-500'
+                                    : isPick   ? 'bg-rose-500 text-white border-rose-500'
+                                               : 'border-slate-300 text-slate-400'}`;
+      });
+    };
+
+    const setSubmitState = () => {
+      const ready = pending !== null;
+      submitEl.disabled = !ready;
+      submitEl.textContent = ready ? 'Submit Answer' : 'Select an answer first';
+      submitEl.className = ready
+        ? 'w-full mt-4 py-3 rounded-lg text-sm font-bold transition-all bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+        : 'w-full mt-4 py-3 rounded-lg text-sm font-bold transition-all bg-slate-100 text-slate-500 cursor-not-allowed';
+    };
+
+    // Selecting never reveals anything. The verdict waits for Submit, exactly as
+    // it does on a real question, so the demo teaches the actual flow.
+    const select = (i) => {
       if (heroAnswered) return;
+      pending = pending === i ? null : i;
+      paint();
+      setSubmitState();
+    };
+
+    const submit = () => {
+      if (heroAnswered || pending === null) return;
       heroAnswered = true;
       clearInterval(timerId);
       const elapsedMs = Date.now() - heroStart;
-      const correct = idx === HERO_ANSWER_INDEX;
-
-      [...heroChoicesEl.children].forEach((btn, i) => {
-        btn.disabled = true;
-        btn.className = btn.className.replace(/border-slate-200|hover:[^\s]+/g, '').trim();
-        if (i === HERO_ANSWER_INDEX) btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
-        else if (i === idx) btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
-        else btn.classList.add('border-slate-200', 'opacity-60');
-      });
+      const correct = pending === HERO_ANSWER_INDEX;
+      paint();
 
       const verdict = document.getElementById('hero-verdict');
-      verdict.textContent = correct ? '✓ Correct — 143' : '✗ Not quite — the answer is 143';
+      verdict.textContent = correct ? 'Correct: 143' : 'Incorrect. The answer is 143.';
       verdict.className = `font-bold text-[15px] mb-2 ${correct ? 'text-emerald-700' : 'text-rose-700'}`;
 
       const secs = Math.max(1, Math.round(elapsedMs / 1000));
-      const medianEl = document.getElementById('hero-median');
-      medianEl.textContent = heroMedianMs
-        ? `You: ${secs}s · median: ${Math.round(heroMedianMs / 1000)}s`
+      document.getElementById('hero-median').textContent = heroMedianMs
+        ? `You: ${secs}s \u00b7 median: ${Math.round(heroMedianMs / 1000)}s`
         : `You: ${secs}s`;
 
+      submitEl.classList.add('hidden');
       document.getElementById('hero-hint').classList.add('hidden');
       document.getElementById('hero-result').classList.remove('hidden');
     };
@@ -252,11 +291,16 @@ document.addEventListener('DOMContentLoaded', function () {
     HERO_CHOICES.forEach((text, i) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'w-full text-left px-4 py-2.5 rounded-lg border-2 border-slate-200 text-slate-800 text-[15px] font-medium transition-colors hover:border-blue-400 hover:bg-blue-50';
-      btn.textContent = `${String.fromCharCode(65 + i)}. ${text}`;
-      btn.addEventListener('click', () => answer(i));
+      const badge = document.createElement('span');
+      badge.textContent = String.fromCharCode(65 + i);
+      btn.appendChild(badge);
+      btn.appendChild(document.createTextNode(text));
+      btn.addEventListener('click', () => select(i));
       heroChoicesEl.appendChild(btn);
     });
+    paint();
+    setSubmitState();
+    submitEl.addEventListener('click', submit);
 
     // Real median from the same RPC the app uses, so the number is never stale.
     supabase.rpc('get_question_time_stats', { p_question_id: HERO_QUESTION_ID })
@@ -270,10 +314,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // ─── LIVE STATS (Users / Problems / Topics / Real Tests) ──────────────────
   supabase.from('public_questions').select('topic, source').limit(5000).then(({ data, error }) => {
     if (error || !data) return;
-    const topics = new Set(data.map(q => q.topic).filter(Boolean));
     const tests = new Set(data.map(q => q.source).filter(Boolean));
     document.getElementById('stat-problems').textContent = data.length;
-    document.getElementById('stat-topics').textContent = topics.size;
     document.getElementById('stat-tests').textContent = tests.size;
   });
   supabase.rpc('get_user_count').then(({ data, error }) => {

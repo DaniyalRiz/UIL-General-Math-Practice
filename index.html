@@ -264,7 +264,7 @@
       </h1>
       <p class="text-blue-100 text-[17px] leading-relaxed mb-8 max-w-lg">
         Every question here was on an actual UIL or TMSCA contest, with a full worked
-        solution. Start now &mdash; an account only matters once you want your progress saved.
+        solution. Start now. An account only matters once you want your progress saved.
       </p>
 
       <div class="fade-up-2 flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -279,19 +279,15 @@
       <!-- Stats row -->
       <div class="mt-10 flex items-center divide-x divide-white/15 max-w-lg">
         <div class="flex-1 pr-4">
-          <p id="stat-users" class="text-2xl font-black text-white">&mdash;</p>
+          <p id="stat-users" class="text-2xl font-black text-white">&hellip;</p>
           <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Users</p>
         </div>
         <div class="flex-1 px-4">
-          <p id="stat-problems" class="text-2xl font-black text-white">&mdash;</p>
+          <p id="stat-problems" class="text-2xl font-black text-white">&hellip;</p>
           <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Problems</p>
         </div>
-        <div class="flex-1 px-4">
-          <p id="stat-topics" class="text-2xl font-black text-white">&mdash;</p>
-          <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Topics</p>
-        </div>
         <div class="flex-1 pl-4">
-          <p id="stat-tests" class="text-2xl font-black text-white">&mdash;</p>
+          <p id="stat-tests" class="text-2xl font-black text-white">&hellip;</p>
           <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Real Tests</p>
         </div>
       </div>
@@ -325,8 +321,12 @@
         </a>
       </div>
 
-      <p id="hero-hint" class="text-slate-500 text-xs mt-4">
-        Pick an answer &mdash; the worked solution appears here straight away.
+      <button id="hero-submit" type="button" disabled
+        class="w-full mt-4 py-3 rounded-lg text-sm font-bold transition-all bg-slate-100 text-slate-500 cursor-not-allowed">
+        Select an answer first
+      </button>
+      <p id="hero-hint" class="text-slate-500 text-xs mt-3">
+        Answer it the way you would in a contest. The worked solution appears once you submit.
       </p>
     </div>
   </div>
