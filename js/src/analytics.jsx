@@ -3,9 +3,10 @@ import { _supabase } from '../supabaseClient.js';
 import { getColumnCategory, TOPIC_DOT, fmtTime, SOURCE_TYPES, getSourceType, sortSources, plainText } from '../constants.js';
 import { MathText, DiffPill, Dropdown, useLocalStorage, SearchWithHistory, readSavedFilters, saveFilters } from './hooks.jsx';
 
-const HISTORY_FILTERS_KEY = 'history_filters';
 import { useApp } from './appContext.jsx';
 import { computeDayStreak } from '../utils.js';
+
+const HISTORY_FILTERS_KEY = 'history_filters';
 
 // ── Weekly trend: accuracy line over attempt-volume bars, last 8 weeks ───────
 // Two stacked panels sharing the week axis instead of a dual-axis chart
@@ -721,8 +722,7 @@ export function HistoryPage({ authUser, allQuestions, attempts, attemptsError, o
       <div className="flex flex-wrap gap-2 mb-5">
         <SearchWithHistory value={search} onChange={setSearch}
           placeholder="Search title, text, topic, tags…"
-          wrapperClassName="flex-1 min-w-[200px]"
-          inputClassName="w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          wrapperClassName="flex-1 min-w-[200px]" />
         <Dropdown label="Result" value={filterCorrect} onChange={setFilterCorrect}
           options={['All','Correct Only','Incorrect Only']} />
         <Dropdown label="Topic" value={filterTopic} onChange={setFilterTopic}

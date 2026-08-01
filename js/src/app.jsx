@@ -48,9 +48,6 @@ const NAV_TABS = [
   { key: 'admin', label: 'Admin' },
 ];
 
-// Shared by the four search boxes so they stay visually identical.
-const SEARCH_INPUT_CLS = "w-full pl-3 pr-3 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500";
-
 const SITE_TITLE = 'UIL Math Practice';
 // Mirrored by the inline pre-mount script in app.html, which paints the correct
 // title before this bundle loads. Change both together.
@@ -1622,8 +1619,7 @@ function App() {
           <div className="flex flex-wrap items-center gap-3 mb-5">
             <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
               placeholder="Search title, text, topic, tags..."
-              wrapperClassName="flex-1 min-w-[220px]"
-              inputClassName={SEARCH_INPUT_CLS} />
+              wrapperClassName="flex-1 min-w-[220px]" />
             <Dropdown label="Status" value={recStatus} options={["All","Unattempted","Correct","Missed"]} onChange={v=>{setRecStatus(v); setPage(1);}} />
             <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
             <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
@@ -1678,8 +1674,7 @@ function App() {
           <div className="flex flex-wrap items-center gap-3 mb-5">
             <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
               placeholder="Search problems…"
-              wrapperClassName="flex-1 min-w-[200px]"
-              inputClassName={SEARCH_INPUT_CLS} />
+              wrapperClassName="flex-1 min-w-[200px]" />
             <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
             <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
             <Dropdown label="Type" value={typeFilter} options={SOURCE_TYPES} onChange={v=>onFilter(setTypeFilter,v)} />
@@ -1763,8 +1758,7 @@ function App() {
               <div className="flex flex-wrap items-center gap-3 mb-5">
                 <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
                   placeholder="Search problems…"
-                  wrapperClassName="flex-1 min-w-[200px]"
-                  inputClassName={SEARCH_INPUT_CLS} />
+                  wrapperClassName="flex-1 min-w-[200px]" />
                 <Dropdown label="Status" value={statusFilter} options={["All Status","Unattempted","Correct","Incorrect"]} onChange={v=>onFilter(setStatusFilter,v)} />
                 <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
                 <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />
@@ -1806,8 +1800,7 @@ function App() {
         <div className="flex flex-wrap items-center gap-3 mb-5">
           <SearchWithHistory value={search} onChange={v=>{setSearch(v); setPage(1);}}
             placeholder="Search problems…"
-            wrapperClassName="flex-1 min-w-[200px]"
-            inputClassName={SEARCH_INPUT_CLS} />
+            wrapperClassName="flex-1 min-w-[200px]" />
           <Dropdown label="Status" value={statusFilter} options={["All Status","Unattempted","Correct","Incorrect"]} onChange={v=>onFilter(setStatusFilter,v)} />
           <Dropdown label="Topic" value={topic} options={TOPICS} onChange={v=>onFilter(setTopic,v)} />
           <Dropdown label="Difficulty" value={diff} options={DIFFICULTIES} onChange={v=>onFilter(setDiff,v)} />

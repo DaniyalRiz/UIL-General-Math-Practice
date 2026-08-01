@@ -174,71 +174,93 @@ export function useRecentSearches() {
   return { recents, record, remove, clear, refresh };
 }
 
-// Search input with a recent-searches dropdown. Terms are recorded on Enter or
-// on leaving the field, never per keystroke, so typing "geometry" stores one
-// entry instead of eight prefixes of it.
-export function SearchWithHistory({ value, onChange, placeholder, wrapperClassName = '', inputClassName = '' }) {
+// Every search box in the app uses this styling; keeping it here stops the five
+// call sites drifting apart. pr-10 leaves room for the history button.
+const SEARCH_INPUT_CLS = "w-full pl-3 pr-10 py-2 text-sm rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+// Search input with a past-searches button. Terms are recorded on Enter or on
+// leaving the field, never per keystroke, so typing "geometry" stores one entry
+// rather than eight prefixes of it.
+//
+// The list is behind an explicit, always-visible button. An earlier version only
+// revealed it on focus and only once entries existed, which meant there was
+// nothing to discover and the feature may as well not have been there.
+export function SearchWithHistory({ value, onChange, placeholder, wrapperClassName = '' }) {
   const { recents, record, remove, clear, refresh } = useRecentSearches();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
-    const onDown = (e) => {
-      if (wrapRef.current?.contains(e.target)) return;
-      record(value);           // clicking away is finishing the search
-      setOpen(false);
-    };
+    const onDown = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, [open, value]);
-
-  // Once the user is typing, narrow the list to terms that actually relate to
-  // what is in the box; an empty box offers everything.
-  const shown = value.trim()
-    ? recents.filter(s => s.toLowerCase().includes(value.trim().toLowerCase()) && s.toLowerCase() !== value.trim().toLowerCase())
-    : recents;
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   const pick = (term) => { onChange(term); record(term); setOpen(false); };
 
   return (
     <div className={`relative ${wrapperClassName}`} ref={wrapRef}>
-      <input type="text" placeholder={placeholder} value={value} className={inputClassName}
+      <input type="text" placeholder={placeholder} value={value} className={SEARCH_INPUT_CLS}
         onChange={e => onChange(e.target.value)}
-        onFocus={() => { refresh(); setOpen(true); }}
-        // Also on click: pressing Enter closes the list, and clicking a field
-        // that already has focus fires no focus event, so without this the list
-        // could not be reopened without clicking away and back.
-        onClick={() => { refresh(); setOpen(true); }}
-        onKeyDown={e => {
-          if (e.key === 'Enter') { record(value); setOpen(false); }
-          if (e.key === 'Escape') { setOpen(false); }
-        }} />
+        onBlur={() => record(value)}
+        onKeyDown={e => { if (e.key === 'Enter') { record(value); setOpen(false); } }} />
 
-      {open && shown.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-100 dark:border-slate-800">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Recent</span>
-            <button type="button" onMouseDown={e => e.preventDefault()} onClick={clear}
-              className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400">
-              Clear
-            </button>
+      {/* Past searches */}
+      <button type="button" onClick={() => { refresh(); setOpen(o => !o); }}
+        title="Past searches" aria-label="Past searches"
+        aria-haspopup="menu" aria-expanded={open}
+        className={`absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-md transition-colors
+          ${open ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/15'
+                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800'}`}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M3 3v5h5"/>
+          <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+          <path d="M12 7v5l3 2"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div role="menu"
+          className="absolute left-0 right-0 top-full mt-1 z-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Past searches</span>
+            {recents.length > 0 && (
+              <button type="button" onClick={clear}
+                className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400">
+                Clear all
+              </button>
+            )}
           </div>
-          {shown.map(term => (
-            <div key={term} className="flex items-center group">
-              {/* onMouseDown, not onClick: the input's blur would otherwise close
-                  the menu and the click would land on nothing. */}
-              <button type="button" onMouseDown={e => { e.preventDefault(); pick(term); }}
-                className="flex-1 text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 truncate">
-                {term}
-              </button>
-              <button type="button" aria-label={`Remove ${term} from recent searches`}
-                onMouseDown={e => { e.preventDefault(); remove(term); }}
-                className="px-2 py-2 text-slate-300 hover:text-rose-600 dark:text-slate-600 dark:hover:text-rose-400">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
+
+          {recents.length === 0 ? (
+            // Never show an empty popup: the button is always visible, so it has
+            // to explain itself before anything has been searched.
+            <p className="px-3 py-3 text-sm text-slate-400 dark:text-slate-500">
+              No past searches yet. Search for something and press Enter to save it here.
+            </p>
+          ) : (
+            <div className="max-h-64 overflow-y-auto">
+              {recents.map(term => (
+                <div key={term} className="flex items-center">
+                  <button type="button" role="menuitem" onClick={() => pick(term)}
+                    className="flex-1 text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 truncate">
+                    {term}
+                  </button>
+                  <button type="button" aria-label={`Remove ${term} from past searches`}
+                    onClick={() => remove(term)}
+                    className="px-2.5 py-2 text-slate-300 hover:text-rose-600 dark:text-slate-600 dark:hover:text-rose-400">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
