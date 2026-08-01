@@ -51,7 +51,35 @@ document.addEventListener('DOMContentLoaded', function () {
       if (el) { el.textContent = ''; el.classList.add('hidden'); }
     });
   }
-  const ADMIN_EMAILS = ['daniyalrizvi10@gmail.com'];
+  // ─── ADMIN LINK ───────────────────────────────────────────────────────────
+  // The Admin link is built in the DOM only for a verified admin, never shipped
+  // in the page source. It used to sit in the static HTML behind a `hidden`
+  // class, which advertised the route to everyone who opened view-source.
+  //
+  // Admin status comes from the server, not a hard-coded email list: is_admin()
+  // is the same SECURITY DEFINER function the RLS policies use, so the link and
+  // the real gate cannot drift apart. The link is cosmetic either way -- the
+  // policies are what actually protect the data.
+  const ADMIN_LINK_CLS = 'px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors';
+  const ADMIN_LINK_CLS_MOBILE = 'px-3 py-3 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800';
+
+  function renderAdminLinks(isAdmin) {
+    document.querySelectorAll('[data-admin-link]').forEach(el => el.remove());
+    if (!isAdmin) return;
+
+    const make = (cls) => {
+      const a = document.createElement('a');
+      a.href = './app.html?tab=admin';
+      a.className = cls;
+      a.textContent = 'Admin';
+      a.setAttribute('data-admin-link', '');
+      return a;
+    };
+    document.getElementById('nav-tabs')?.appendChild(make(ADMIN_LINK_CLS));
+    const sheet = document.querySelector('#nav-mobile-menu .flex.flex-col');
+    const divider = sheet?.querySelector('.border-t');
+    if (sheet) sheet.insertBefore(make(ADMIN_LINK_CLS_MOBILE), divider || null);
+  }
 
   // ─── MOBILE MENU ──────────────────────────────────────────────────────────
   // Below sm the tab strip is hidden, so this is the only way to reach
@@ -81,17 +109,22 @@ document.addEventListener('DOMContentLoaded', function () {
   // menu open would stack two navigations on top of each other.
   window.addEventListener('resize', () => { if (window.innerWidth >= 640) setNavMenu(false); });
 
-  function setNavState(user) {
+  async function setNavState(user) {
     const loggedIn = !!user;
-    const isAdmin = loggedIn && ADMIN_EMAILS.includes(user.email || '');
+    // Ask the server. A signed-out visitor never calls it.
+    let isAdmin = false;
+    if (loggedIn) {
+      const { data, error } = await supabase.rpc('is_admin');
+      isAdmin = !error && data === true;
+    }
+    renderAdminLinks(isAdmin);
     document.getElementById('nav-loggedout').classList.toggle('hidden', loggedIn);
     document.getElementById('nav-loggedin').classList.toggle('hidden', !loggedIn);
     document.getElementById('hero-create-btn').classList.toggle('hidden', loggedIn);
     document.getElementById('cta-create-btn').classList.toggle('hidden', loggedIn);
     document.getElementById('cta-browse-btn').textContent = loggedIn ? 'Browse Problems' : 'Browse Problems First';
-    document.getElementById('nav-admin-tab').classList.toggle('hidden', !isAdmin);
-    // Mobile menu mirrors the same three auth-dependent entries.
-    document.getElementById('nav-admin-tab-mobile').classList.toggle('hidden', !isAdmin);
+    // Admin links are built by renderAdminLinks above, not toggled here: they
+    // do not exist in the markup at all unless the server says you are an admin.
     document.getElementById('nav-menu-signup').classList.toggle('hidden', loggedIn);
     document.getElementById('nav-menu-signout').classList.toggle('hidden', !loggedIn);
     if (loggedIn) {
