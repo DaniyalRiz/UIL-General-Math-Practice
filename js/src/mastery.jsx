@@ -166,11 +166,11 @@ function AchievementCard({ a, state }) {
           </div>
           <p className={`text-xs leading-snug ${
             earned ? 'text-emerald-700/80 dark:text-emerald-300/80' :
-            'text-slate-500 dark:text-slate-500'
+            'text-slate-600 dark:text-slate-400'
           }`}>{a.description}</p>
           {inProgress && a.numeric && (
             <div className="mt-2">
-              <div className="flex justify-between text-[10px] tabular-nums text-amber-600 dark:text-amber-400 mb-1 font-medium">
+              <div className="flex justify-between text-[10px] tabular-nums text-amber-700 dark:text-amber-400 mb-1 font-medium">
                 <span>{a.current}</span><span>{a.max}</span>
               </div>
               <div className="h-1.5 bg-amber-100 dark:bg-amber-900/40 rounded-full overflow-hidden">
@@ -193,7 +193,7 @@ export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTa
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-          <p className="text-slate-500 text-[15px]">Loading mastery data…</p>
+          <p className="text-slate-500 text-[15px] dark:text-slate-400">Loading mastery data…</p>
         </div>
       </div>
     );
@@ -234,7 +234,7 @@ export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTa
       <div className="mb-6 flex items-start justify-between gap-4">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">My Mastery</h1>
         <button onClick={() => navigateTab('problems')} title="Close"
-          className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+          className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 dark:text-slate-400">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -269,7 +269,7 @@ export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTa
               <span className="text-sm text-slate-600 dark:text-slate-400">
                 <span className="font-black text-2xl text-blue-600 dark:text-blue-400 tabular-nums">{s.total_mastered}</span>
                 <span className="font-semibold text-base text-slate-600 dark:text-slate-400 tabular-nums"> / {totalQuestions}</span>
-                <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-500">questions mastered</span>
+                <span className="ml-1.5 text-xs text-slate-600 dark:text-slate-400">questions mastered</span>
               </span>
               <span className="text-3xl font-black tabular-nums text-slate-900 dark:text-white leading-none">{masteryPct}%</span>
             </div>
@@ -280,11 +280,11 @@ export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTa
             </div>
 
             {nextLevel ? (
-              <p className="text-xs text-slate-500 dark:text-slate-500">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 <span className="tabular-nums font-semibold text-slate-600 dark:text-slate-400">{toNextLevel}</span> more question{toNextLevel !== 1 ? 's' : ''} to reach <span className="font-semibold">{nextLevel.name}</span>
               </p>
             ) : (
-              <p className="text-xs font-semibold text-emerald-500">You have mastered the complete question bank.</p>
+              <p className="text-xs font-semibold text-emerald-700">You have mastered the complete question bank.</p>
             )}
           </div>
 
@@ -304,7 +304,7 @@ export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTa
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{topic}</span>
                       </div>
                       <span className="text-sm tabular-nums">
-                        <span className="font-bold text-slate-700 dark:text-slate-200">{mastered}</span><span className="text-slate-500 dark:text-slate-600">/{total}</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-200">{mastered}</span><span className="text-slate-500 dark:text-slate-400">/{total}</span>
                         <span className="ml-1.5 font-semibold text-slate-600 dark:text-slate-400">{pct}%</span>
                       </span>
                     </div>
@@ -335,22 +335,22 @@ export function MasteryPage({ authUser, masteryStats, bookmarksCount, navigateTa
                         : 'border-slate-100 dark:border-slate-800'
                   }`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
-                      status === 'completed' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                      status === 'current' ? `${lvl.bar} text-white` :
-                      'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500'
+                      status === 'completed' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' :
+                      status === 'current' ? `${lvl.badge} text-white` :
+                      'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                     }`}>
                       {status === 'completed' ? '✓' : idx + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2 mb-0.5">
-                        <span className={`text-sm font-bold ${status === 'current' ? lvl.color : status === 'locked' ? 'text-slate-500 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                        <span className={`text-sm font-bold ${status === 'current' ? lvl.color : status === 'locked' ? 'text-slate-600 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200'}`}>
                           {lvl.name}
                         </span>
-                        <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-500 flex-shrink-0">
+                        <span className="text-xs font-semibold tabular-nums text-slate-600 dark:text-slate-400 flex-shrink-0">
                           {lvl.minQuestions} questions · {livePct}%
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-500 leading-snug">{lvl.description}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 leading-snug">{lvl.description}</p>
                       {status === 'next' && (
                         <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mt-1">{remaining} more question{remaining !== 1 ? 's' : ''} needed</p>
                       )}

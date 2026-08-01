@@ -129,7 +129,7 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
       <div ref={panelRef} onKeyDown={trapTab}
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[92dvh] overflow-y-auto p-5 sm:p-8 relative">
         <button onClick={onClose} aria-label="Close"
-          className="absolute top-4 right-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none">
+          className="absolute top-4 right-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none dark:text-slate-400">
           ×
         </button>
 
@@ -160,8 +160,8 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
                   </button>
                 </div>
               </div>
-              {error && <div className="text-rose-600 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2">{error}</div>}
-              {success && <div className="text-emerald-600 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2">{success}</div>}
+              {error && <div className="text-rose-700 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2">{error}</div>}
+              {success && <div className="text-emerald-700 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2">{success}</div>}
               <button type="submit" disabled={busy}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl transition-colors text-sm">
                 {busy ? 'Signing in…' : 'Sign In'}
@@ -192,8 +192,8 @@ export function AuthModal({ initialTab = 'signin', onClose }) {
                 <input id="auth-signup-password" type="password" autoComplete="new-password" placeholder="At least 8 characters"
                   value={password} onChange={e => setPassword(e.target.value)} className={FIELD_CLS} />
               </div>
-              {error && <div className="text-rose-600 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2">{error}</div>}
-              {success && <div className="text-emerald-600 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2">{success}</div>}
+              {error && <div className="text-rose-700 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2">{error}</div>}
+              {success && <div className="text-emerald-700 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2">{success}</div>}
               <button type="submit" disabled={busy}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl transition-colors text-sm">
                 {busy ? 'Creating…' : 'Create Account'}

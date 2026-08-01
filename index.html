@@ -53,7 +53,7 @@
   class="bg-transparent p-0 max-w-md w-full backdrop:bg-black/60 backdrop:backdrop-blur-sm">
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-h-[92dvh] overflow-y-auto p-5 sm:p-8 relative">
     <button type="button" onclick="closeAuth()" aria-label="Close"
-      class="absolute top-4 right-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none">×</button>
+      class="absolute top-4 right-4 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none dark:text-slate-400">×</button>
 
     <!-- Tabs -->
     <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-6">
@@ -88,8 +88,8 @@
             </button>
           </div>
         </div>
-        <div id="signin-error" class="hidden text-rose-600 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2"></div>
-        <div id="signin-success" class="hidden text-emerald-600 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2"></div>
+        <div id="signin-error" class="hidden text-rose-700 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2"></div>
+        <div id="signin-success" class="hidden text-emerald-700 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2"></div>
         <button type="submit"
           class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm">
           Sign In
@@ -123,8 +123,8 @@
           <input id="signup-password" type="password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters"
             class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
         </div>
-        <div id="signup-error" class="hidden text-rose-600 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2"></div>
-        <div id="signup-success" class="hidden text-emerald-600 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2"></div>
+        <div id="signup-error" class="hidden text-rose-700 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2"></div>
+        <div id="signup-success" class="hidden text-emerald-700 dark:text-emerald-400 text-sm bg-emerald-50 dark:bg-emerald-500/10 rounded-lg px-3 py-2"></div>
         <button type="submit"
           class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm">
           Create Account
@@ -311,7 +311,7 @@
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Filter by Algebra 1 & 2, Geometry, Precalculus, AP Calculus, and AP Statistics with targeted difficulty levels.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-700 dark:text-amber-400">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 3"/><path d="M9.5 2.5h5M12 2.5V5"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Timed UIL-Style Sessions</h3>
@@ -325,14 +325,14 @@
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Complete explanations rendered inline with KaTeX-typeset math: integrals, fractions, trig functions, and more.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-600 dark:text-emerald-400">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-700 dark:text-emerald-400">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Personal Analytics Dashboard</h3>
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Track accuracy, average solve time, streaks, and performance trends across every practice session.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-700 dark:text-amber-400">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Review & Saved Problems</h3>
@@ -346,7 +346,7 @@
         <p class="text-slate-600 dark:text-slate-400 text-[15px] leading-relaxed">Track topic-level progress, surface weak areas, and see exactly which concepts need more practice.</p>
       </div>
       <div class="card-hover bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 text-amber-700 dark:text-amber-400">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4"/><path d="M5 3h14l-1.5 8A5.5 5.5 0 0 1 12 16a5.5 5.5 0 0 1-5.5-5L5 3z"/><path d="M4 3H2l1.5 5A4 4 0 0 0 7 11M20 3h2l-1.5 5A4 4 0 0 1 17 11"/></svg>
         </div>
         <h3 class="font-bold text-slate-900 dark:text-white mb-2">Competitive Leaderboard</h3>
@@ -470,7 +470,7 @@
            bg-slate-950, where 500 drops to 4.24:1 and 400 gives 7.87:1. -->
       <p class="mt-3 text-[15px] text-slate-400">
         <a href="./privacy.html" class="hover:text-slate-200 transition-colors">Privacy</a>
-        <span class="mx-2 text-slate-700">&bull;</span>
+        <span aria-hidden="true" class="mx-2 text-slate-700">&bull;</span>
         <a href="./terms.html" class="hover:text-slate-200 transition-colors">Terms</a>
       </p>
     </div>

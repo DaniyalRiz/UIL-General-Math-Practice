@@ -197,7 +197,7 @@ function AdminUserActivity({ authUser }) {
   const Card = ({label,value,sub}) => (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
       <p className="text-2xl font-black text-slate-900 dark:text-white">{value}</p>
-      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mt-1">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">{label}</p>
       {sub && <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{sub}</p>}
     </div>
   );
@@ -222,7 +222,7 @@ function AdminUserActivity({ authUser }) {
         <h3 className="font-bold text-slate-800 dark:text-slate-100">{title}</h3>
       </div>
       <div className="divide-y divide-slate-100 dark:divide-slate-800">
-        {rows.length === 0 ? <p className="p-4 text-[15px] text-slate-500">No data yet.</p> : rows.map((row, i) => (
+        {rows.length === 0 ? <p className="p-4 text-[15px] text-slate-500 dark:text-slate-400">No data yet.</p> : rows.map((row, i) => (
           <div key={row.id || row.user_id || i} className="px-4 py-3">
             <p className="text-[15px] truncate">
               {type === 'user' ? <UserLink u={row} /> : <QuestionLink q={row} />}
@@ -325,7 +325,7 @@ function AdminUserActivity({ authUser }) {
               <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">{displayUser(u)}</h2>
               <p className="text-xs text-slate-600 dark:text-slate-400">{u.user_email || u.user_id}</p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
+            <button onClick={onClose} className="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl dark:text-slate-400">×</button>
           </div>
           <div className="p-5 space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -413,7 +413,7 @@ function AdminUserActivity({ authUser }) {
               <QuestionMeta q={full} className="mb-2" />
               <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">{full.title || 'Question #' + full.id}</h2>
             </div>
-            <button onClick={onClose} className="w-8 h-8 shrink-0 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl">×</button>
+            <button onClick={onClose} className="w-8 h-8 shrink-0 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl dark:text-slate-400">×</button>
           </div>
           <div className="p-5 space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -426,7 +426,7 @@ function AdminUserActivity({ authUser }) {
               <h3 className="font-bold p-4 border-b border-slate-200 dark:border-slate-800">Recent Attempts</h3>
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {rows.length === 0 ? (
-                  <p className="p-4 text-[15px] text-slate-500">No attempts on this question yet.</p>
+                  <p className="p-4 text-[15px] text-slate-500 dark:text-slate-400">No attempts on this question yet.</p>
                 ) : rows.slice(0,30).map(r => (
                   <div key={r.id} className="px-4 py-3">
                     <UserLink u={users[r.user_id] || {user_id:r.user_id, user_email:r.user_email, display_name:r.display_name}} />
@@ -458,7 +458,7 @@ function AdminUserActivity({ authUser }) {
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Recent Attempts</h3>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {recentAttempts.length === 0 ? <p className="p-4 text-[15px] text-slate-500">No attempts yet.</p> : recentAttempts.map(a => {
+            {recentAttempts.length === 0 ? <p className="p-4 text-[15px] text-slate-500 dark:text-slate-400">No attempts yet.</p> : recentAttempts.map(a => {
               const q = qMap[a.question_id] || {id:a.question_id, title:a.question_title, topic:a.topic, difficulty:a.difficulty};
               return (
                 <div key={a.id} className="px-4 py-3">
@@ -484,12 +484,12 @@ function AdminUserActivity({ authUser }) {
         <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <div>
             <h3 className="font-bold text-slate-800 dark:text-slate-100">Question Issue Reports</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-500">{reports.length} total · {reports.filter(r=>r.status==='open').length} open</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{reports.length} total · {reports.filter(r=>r.status==='open').length} open</p>
           </div>
           <ClosedReportsToggle count={closedReportCount} show={showClosedReports} onToggle={()=>setShowClosedReports(v=>!v)} />
         </div>
         {visibleReports.length === 0 ? (
-          <p className="p-6 text-[15px] text-slate-500">
+          <p className="p-6 text-[15px] text-slate-500 dark:text-slate-400">
             {reports.length === 0 ? 'No issue reports yet.' : 'Nothing open — all reports are resolved or dismissed.'}
           </p>
         ) : (
@@ -519,7 +519,7 @@ function AdminUserActivity({ authUser }) {
                         <option value="dismissed">dismissed</option>
                       </select>
                       <button onClick={()=>deleteReport(r.id)}
-                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
+                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
                         Delete
                       </button>
                     </div>
@@ -597,7 +597,7 @@ function AdminBugReports({ authUser }) {
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <div>
             <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Bug Reports</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-500">{reports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{openCount} open</span></p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{reports.length} total · <span className="text-rose-700 dark:text-rose-400 font-semibold">{openCount} open</span></p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {openCount > 0 && (
@@ -609,7 +609,7 @@ function AdminBugReports({ authUser }) {
         {visibleBugs.length === 0 ? (
           <div className="py-16 text-center">
             <p className="font-semibold text-slate-700 dark:text-slate-300">{reports.length === 0 ? 'No bug reports' : 'All caught up'}</p>
-            <p className="text-[15px] text-slate-500 mt-1">
+            <p className="text-[15px] text-slate-500 mt-1 dark:text-slate-400">
               {reports.length === 0
                 ? 'Reports submitted from the profile menu will appear here.'
                 : `${closedBugCount} resolved or dismissed report${closedBugCount !== 1 ? 's' : ''} hidden.`}
@@ -618,14 +618,14 @@ function AdminBugReports({ authUser }) {
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {visibleBugs.map(r => {
-              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400';
+              const statusColor = r.status === 'open' ? 'text-rose-700 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400';
               return (
                 <div key={r.id} className={`px-5 py-4 ${isClosedReport(r) ? 'opacity-60' : ''}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>{r.status || 'open'}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{new Date(r.created_at).toLocaleString()}</span>
                       </div>
                       <p className="text-[15px] font-bold text-slate-800 dark:text-slate-100 mb-1">{r.subject}</p>
                       <div className="mt-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
@@ -635,7 +635,7 @@ function AdminBugReports({ authUser }) {
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusSelect value={r.status} onChange={e=>updateBugStatus(r.id, e.target.value)} />
                       <button onClick={()=>deleteBugReport(r.id)}
-                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
+                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
                         Delete
                       </button>
                     </div>
@@ -651,7 +651,7 @@ function AdminBugReports({ authUser }) {
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
           <div>
             <h2 className="font-bold text-lg text-slate-800 dark:text-slate-100">Question Issue Reports</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-500">{questionReports.length} total · <span className="text-rose-600 dark:text-rose-400 font-semibold">{qrOpenCount} open</span></p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{questionReports.length} total · <span className="text-rose-700 dark:text-rose-400 font-semibold">{qrOpenCount} open</span></p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {qrOpenCount > 0 && (
@@ -663,7 +663,7 @@ function AdminBugReports({ authUser }) {
         {visibleQuestionReports.length === 0 ? (
           <div className="py-16 text-center">
             <p className="font-semibold text-slate-700 dark:text-slate-300">{questionReports.length === 0 ? 'No issue reports' : 'All caught up'}</p>
-            <p className="text-[15px] text-slate-500 mt-1">
+            <p className="text-[15px] text-slate-500 mt-1 dark:text-slate-400">
               {questionReports.length === 0
                 ? 'Reports submitted by users will appear here.'
                 : `${closedQrCount} resolved or dismissed report${closedQrCount !== 1 ? 's' : ''} hidden.`}
@@ -673,7 +673,7 @@ function AdminBugReports({ authUser }) {
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {visibleQuestionReports.map(r => {
               const q = qMap[r.question_id] || { id: r.question_id, title: 'Question #' + r.question_id };
-              const statusColor = r.status === 'open' ? 'text-rose-600 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400';
+              const statusColor = r.status === 'open' ? 'text-rose-700 dark:text-rose-400' : r.status === 'resolved' ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400';
               return (
                 <div key={r.id} className={`px-5 py-4 ${isClosedReport(r) ? 'opacity-60' : ''}`}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -681,7 +681,7 @@ function AdminBugReports({ authUser }) {
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>{r.status || 'open'}</span>
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{r.issue_type}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-500">{new Date(r.created_at).toLocaleString()}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{new Date(r.created_at).toLocaleString()}</span>
                       </div>
                       {q.topic && <QuestionMeta q={q} className="mb-1.5" />}
                       <p className="text-[15px] font-bold text-slate-800 dark:text-slate-100 mb-1">{q.title || 'Question #' + r.question_id}</p>
@@ -694,7 +694,7 @@ function AdminBugReports({ authUser }) {
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusSelect value={r.status} onChange={e=>updateQuestionReportStatus(r.id, e.target.value)} />
                       <button onClick={()=>deleteQuestionReport(r.id)}
-                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
+                        className="px-2 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-500/10">
                         Delete
                       </button>
                     </div>
@@ -1741,7 +1741,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                 <div key={b.id} className={`flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border px-3 py-2 ${b.id === selectedReviewBatchId ? 'border-blue-500 ring-2 ring-blue-400/50' : 'border-slate-200 dark:border-slate-700'}`}>
                   <div className="min-w-0">
                     <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {b.status === 'needs_attention' ? '⚠ needs attention' : '✓ completed'} · {b.questions_extracted ?? '?'} question(s)
                       {b.started_at ? ` · ${new Date(b.started_at).toLocaleDateString()}` : ''}
                     </p>
@@ -1777,7 +1777,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                   <div key={b.id} className={`flex items-center justify-between gap-3 bg-white dark:bg-slate-900 rounded-lg border px-3 py-2 ${b.id === selectedReviewBatchId ? 'border-blue-500 ring-2 ring-blue-400/50' : 'border-slate-200 dark:border-slate-700'}`}>
                     <div className="min-w-0">
                       <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 truncate">{b.source_label || b.original_test || b.id}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {b.source_pdf_path == null ? 'manual extraction' : (b.status === 'needs_attention' ? '⚠ needs attention' : '✓ completed')} · {b.questions_extracted ?? '?'} question(s)
                         {b.started_at ? ` · ${new Date(b.started_at).toLocaleDateString()}` : ''}
                       </p>
@@ -1837,10 +1837,10 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
               </button>
             )}
             {pdfImportMessage && (
-              <p className={`text-[15px] ${/failed/i.test(pdfImportMessage) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{pdfImportMessage}</p>
+              <p className={`text-[15px] ${/failed/i.test(pdfImportMessage) ? 'text-rose-700 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{pdfImportMessage}</p>
             )}
           </div>
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             Diagrams aren't auto-cropped yet — questions that need one are flagged below for manual follow-up before publishing.
           </p>
         </div>
@@ -1857,7 +1857,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
               className="text-sm text-slate-600 dark:text-slate-300" />
           </label>
         </div>
-        {parseError && <p className="mt-3 text-[15px] text-rose-600 dark:text-rose-400">{parseError}</p>}
+        {parseError && <p className="mt-3 text-[15px] text-rose-700 dark:text-rose-400">{parseError}</p>}
         {draftRows.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{draftRows.length} loaded</span>
@@ -1882,8 +1882,8 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
             </button>
           </div>
         )}
-        {verifyMessage && <p className={`mt-3 text-[15px] ${/failed/i.test(verifyMessage) ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{verifyMessage}</p>}
-        {publishMessage && <p className={`mt-3 text-[15px] ${publishMessage.startsWith('Published') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{publishMessage}</p>}
+        {verifyMessage && <p className={`mt-3 text-[15px] ${/failed/i.test(verifyMessage) ? 'text-rose-700 dark:text-rose-400' : 'text-slate-600 dark:text-slate-300'}`}>{verifyMessage}</p>}
+        {publishMessage && <p className={`mt-3 text-[15px] ${publishMessage.startsWith('Published') ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>{publishMessage}</p>}
       </div>
 
       {draftRows.map(r => {
@@ -1937,7 +1937,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
               )}
             </div>
             {r._redoMsg && (
-              <p className={`text-xs mt-1 ${/failed/i.test(r._redoMsg) ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>{r._redoMsg}</p>
+              <p className={`text-xs mt-1 ${/failed/i.test(r._redoMsg) ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>{r._redoMsg}</p>
             )}
 
             <div className="grid lg:grid-cols-2 gap-4">
@@ -1981,7 +1981,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                     {matchedImage ? (
                       <img src={matchedImage.url} alt="Attached diagram preview" loading="lazy" decoding="async" className="max-w-full max-h-40 rounded-lg border border-slate-200 dark:border-slate-700" />
                     ) : (
-                      <p className="text-xs text-rose-600 dark:text-rose-400">Not attached yet — pick this file in the image picker above.</p>
+                      <p className="text-xs text-rose-700 dark:text-rose-400">Not attached yet — pick this file in the image picker above.</p>
                     )}
                   </div>
                 )}
@@ -1996,7 +1996,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
                           <input type="file" accept="image/*" className="hidden" onChange={e=>uploadDraftDiagram(r._key, e.target.files?.[0])} />
                         </label>
                         <button onClick={()=>removeDraftDiagram(r._key)}
-                          className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline">
+                          className="text-xs font-semibold text-rose-700 dark:text-rose-400 hover:underline">
                           Remove image
                         </button>
                       </div>
@@ -2026,7 +2026,7 @@ function ReviewImportsPanel({ authUser, onBatchReviewed }) {
 
               {/* Live preview */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-4 overflow-x-auto">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-2">Live Preview</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Live Preview</p>
                 <p className="font-display text-base font-black text-slate-900 dark:text-white mb-2 break-words">{r.title || 'Untitled Question'}</p>
                 <p className="text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed break-words"><MathText text={r.question || 'Question preview will appear here.'} /></p>
                 {matchedImage && <img src={matchedImage.url} alt="Diagram" loading="lazy" decoding="async" className="mt-3 max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />}
@@ -2393,16 +2393,16 @@ function AdminQuestionManager({ authUser }) {
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="text-xs font-mono text-slate-500">#{q.id}</span>
+                          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">#{q.id}</span>
                           <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[q.topic] || 'bg-slate-400'}`}></span>
                           <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{q.topic}</span>
                           <DiffPill d={q.difficulty} />
-                          {q.source && <span className="text-xs text-slate-500 dark:text-slate-500">{q.source}</span>}
+                          {q.source && <span className="text-xs text-slate-500 dark:text-slate-400">{q.source}</span>}
                         </div>
                         <p className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
                           {q.title || plainText(q.question) || 'Untitled Question'}
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1 line-clamp-2">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                           {plainText(q.question)}
                         </p>
                       </div>
@@ -2413,7 +2413,7 @@ function AdminQuestionManager({ authUser }) {
                   </button>
                 ))}
               {questionList.length === 0 && (
-                <div className="py-20 text-center text-sm text-slate-500">No questions found.</div>
+                <div className="py-20 text-center text-sm text-slate-500 dark:text-slate-400">No questions found.</div>
               )}
             </div>
           )}
@@ -2425,9 +2425,9 @@ function AdminQuestionManager({ authUser }) {
           {/* Auto-generated ID + date row */}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500">Question ID</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Question ID</span>
               <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200">
-                {idLoading ? <span className="text-slate-500">…</span> : form.id || '—'}
+                {idLoading ? <span className="text-slate-500 dark:text-slate-400">…</span> : form.id || '—'}
               </span>
               {editingExisting && <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">Editing</span>}
             </div>
@@ -2438,7 +2438,7 @@ function AdminQuestionManager({ authUser }) {
               </button>
             )}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 dark:text-slate-500">Date added: <span className="font-semibold text-slate-600 dark:text-slate-300">{form.date_added || 'today'}</span></span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Date added: <span className="font-semibold text-slate-600 dark:text-slate-300">{form.date_added || 'today'}</span></span>
               <button type="button" onClick={()=>setShowDateOverride(v=>!v)}
                 className="text-xs px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
                 {showDateOverride ? 'Use today' : 'Change date'}
@@ -2482,7 +2482,7 @@ function AdminQuestionManager({ authUser }) {
                 ['Display', ['\\[ y = mx+b \\]','\\[ ax^2+bx+c=0 \\]','\\[ \\frac{-b\\pm\\sqrt{b^2-4ac}}{2a} \\]']]
               ].map(([group, items]) => (
                 <div key={group}>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-1">{group}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{group}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {items.map(s => (
                       <button key={s} onClick={()=>insertLatex(s)}
@@ -2524,23 +2524,23 @@ function AdminQuestionManager({ authUser }) {
               onDrop={e=>{e.preventDefault(); e.currentTarget.classList.remove('ring-2','ring-blue-500'); uploadImage(e.dataTransfer.files?.[0]);}}
               className="flex flex-col items-center justify-center gap-2 min-h-[140px] rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer transition-colors text-center px-4">
               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Drag image here</span>
-              <span className="text-xs text-slate-500 dark:text-slate-500">or click to upload a screenshot/graph</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">or click to upload a screenshot/graph</span>
               <input type="file" accept="image/*" onChange={e=>uploadImage(e.target.files?.[0])} className="hidden" />
             </label>
-            <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
               Screenshots work best as PNG/JPG. The question ID is auto-assigned.
             </p>
             {imageUploading && <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">Uploading image…</p>}
             {form.image && (
               <div className="mt-3">
                 <img src={form.image} alt={form.image_alt || 'Question image preview'} loading="lazy" decoding="async" className="max-w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white" />
-                <p className="text-[11px] text-slate-500 dark:text-slate-500 mt-1 break-all">{form.image}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 break-all">{form.image}</p>
               </div>
             )}
             <div className="mt-3">
               <input value={form.image_alt} onChange={e=>set('image_alt', e.target.value)} placeholder="Image description for accessibility, e.g. graph of hyperbola with asymptotes"
                 className="w-full px-3 py-2 rounded-lg border bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700"/>
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Image description helps screen readers and gives fallback text if the image fails to load.
               </p>
             </div>
@@ -2551,22 +2551,22 @@ function AdminQuestionManager({ authUser }) {
               className="px-5 py-2.5 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white">
               {saving ? 'Saving…' : editingExisting ? 'Save Changes' : 'Save Question'}
             </button>
-            {message && <p className={`text-[15px] ${message.includes('saved') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{message}</p>}
+            {message && <p className={`text-[15px] ${message.includes('saved') ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>{message}</p>}
           </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-3">{editingExisting ? 'Editing Preview' : 'Live Preview'}</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{editingExisting ? 'Editing Preview' : 'Live Preview'}</p>
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 font-mono">#{form.id || '…'}</span>
+                <span className="text-xs text-slate-500 font-mono dark:text-slate-400">#{form.id || '…'}</span>
                 <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[form.topic]||'bg-slate-400'}`}></span>
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{form.topic}</span>
                 <DiffPill d={form.difficulty} />
               </div>
               <p className="mt-2 font-display text-lg font-black text-slate-900 dark:text-white">{form.title || 'Untitled Question'}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{form.source || 'Source'} {form.original_question_number ? `· Problem ${form.original_question_number}` : ''}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{form.source || 'Source'} {form.original_question_number ? `· Problem ${form.original_question_number}` : ''}</p>
             </div>
             <div className="p-4">
               <p className="text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed"><MathText text={form.question || 'Question preview will appear here.'} /></p>

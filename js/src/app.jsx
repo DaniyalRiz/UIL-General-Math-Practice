@@ -378,7 +378,7 @@ function SettingsPage({ authUser, navigateTab }) {
       <div className="mb-6 flex items-start justify-between gap-4">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">Settings</h1>
         <button onClick={() => navigateTab('problems')} title="Close"
-          className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+          className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 dark:text-slate-400">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -399,13 +399,13 @@ function SettingsPage({ authUser, navigateTab }) {
               </label>
               {avatarUrl && (
                 <button onClick={removeAvatar} disabled={avatarUploading}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10">
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10">
                   Remove photo
                 </button>
               )}
             </div>
           </div>
-          {avatarMsg && <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{avatarMsg}</p>}
+          {avatarMsg && <p className="mt-2 text-xs text-rose-700 dark:text-rose-400">{avatarMsg}</p>}
         </div>
 
         <div className="border-t border-slate-100 dark:border-slate-800 pt-5">
@@ -422,7 +422,7 @@ function SettingsPage({ authUser, navigateTab }) {
                 className="w-full px-3 py-2 rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-60" />
               <input type="password" value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} placeholder="Confirm new password" disabled={pwConfirming}
                 className="w-full px-3 py-2 rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-60" />
-              {pwMsg && <p className="text-xs text-rose-600 dark:text-rose-400">{pwMsg}</p>}
+              {pwMsg && <p className="text-xs text-rose-700 dark:text-rose-400">{pwMsg}</p>}
 
               {pwConfirming ? (
                 <div className="rounded-lg border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3">
@@ -459,13 +459,13 @@ function SettingsPage({ authUser, navigateTab }) {
             className="w-full py-2 rounded-lg text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-60 transition-colors">
             {exporting ? 'Preparing your PDF…' : 'Download my data (PDF)'}
           </button>
-          {exportMsg && <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{exportMsg}</p>}
+          {exportMsg && <p className="mt-2 text-xs text-rose-700 dark:text-rose-400">{exportMsg}</p>}
         </div>
       </div>
 
       {/* Danger zone */}
       <div className="mt-6 bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-500/30 p-5">
-        <label className="block text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-2">Delete account</label>
+        <label className="block text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 mb-2">Delete account</label>
         {deleteStage !== 'confirm' ? (
           <>
             <p className="text-[15px] text-slate-600 dark:text-slate-400 mb-3">
@@ -473,7 +473,7 @@ function SettingsPage({ authUser, navigateTab }) {
               download your data first if you want to keep a copy.
             </p>
             <button onClick={openDeleteConfirm}
-              className="w-full py-2 rounded-lg text-sm font-semibold border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
+              className="w-full py-2 rounded-lg text-sm font-semibold border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors">
               Delete my account
             </button>
           </>
@@ -567,7 +567,7 @@ function ReportBugPage({ authUser, navigateTab }) {
       <div className="mb-6 flex items-start justify-between gap-4">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white">Report a Bug</h1>
         <button onClick={() => navigateTab('problems')} title="Close"
-          className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+          className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 dark:text-slate-400">
           <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -582,11 +582,11 @@ function ReportBugPage({ authUser, navigateTab }) {
           placeholder="What happened? What did you expect instead?"
           className="w-full px-3 py-2 rounded-lg border bg-white border-slate-200 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
 
-        {message && <p className={`mt-3 text-[15px] ${message.startsWith('Thanks') ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{message}</p>}
+        {message && <p className={`mt-3 text-[15px] ${message.startsWith('Thanks') ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>{message}</p>}
 
         <div className="mt-5 flex justify-end">
           <button onClick={submitReport} disabled={saving}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${!saving ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed'}`}>
+            className={`px-4 py-2 rounded-lg text-sm font-semibold ${!saving ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed'} dark:text-slate-400`}>
             {saving ? 'Submitting…' : 'Submit'}
           </button>
         </div>
@@ -627,7 +627,7 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
               <div className="flex items-center gap-1.5">
                 {dayStreak >= 1 && (
                   <span title={`You've practiced ${dayStreak} day${dayStreak !== 1 ? 's' : ''} in a row`}
-                    className="flex items-center gap-1 mr-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                    className="flex items-center gap-1 mr-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap">
                     <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                     {dayStreak} day{dayStreak !== 1 ? 's' : ''}
                   </span>
@@ -654,7 +654,7 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
             <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 truncate">
               {authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || 'Account'}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-500 truncate">{authUser?.email}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{authUser?.email}</p>
           </div>
 
           <button onClick={() => { setOpen(false); navigateTab('mastery'); }}
@@ -682,7 +682,7 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
               setPage(1);
               setOpen(false);
             }}
-            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="misses" ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="misses" ? "text-rose-700 dark:text-rose-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
             <span className="flex-1">Redo Misses</span>
             {missesCount > 0 && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400">{missesCount}</span>}
@@ -694,7 +694,7 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
               setPage(1);
               setOpen(false);
             }}
-            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="review" ? "text-amber-600 dark:text-amber-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+            className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${view==="review" ? "text-amber-700 dark:text-amber-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
             <span className="flex-1">Review Later</span>
             {bookmarksCount > 0 && <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">{bookmarksCount}</span>}
@@ -711,7 +711,7 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
             className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300">
             <span className="shrink-0 opacity-60">{dark ? <SunIcon/> : <MoonIcon/>}</span>
             <span className="flex-1">Appearance</span>
-            <span className="text-xs text-slate-500 dark:text-slate-500">{dark ? 'Dark' : 'Light'}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{dark ? 'Dark' : 'Light'}</span>
           </button>
           <button onClick={() => { setOpen(false); navigateTab('settings'); }}
             className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${tab==="settings" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
@@ -722,7 +722,7 @@ function ProfileMenu({ dark, toggleTheme, signOut, view, setView, tab, setTab, r
           <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
 
           <button onClick={() => { setOpen(false); signOut(); }}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-600 dark:text-rose-400">
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-700 dark:text-rose-400">
             <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
             Sign Out
           </button>
@@ -1424,7 +1424,7 @@ function App() {
         <div className="text-center px-6">
           <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-slate-700 dark:text-slate-200 font-semibold text-lg">Loading practice questions…</p>
-          <p className="text-slate-500 text-[15px] mt-1">Fetching questions from Supabase</p>
+          <p className="text-slate-500 text-[15px] mt-1 dark:text-slate-400">Fetching questions from Supabase</p>
         </div>
       </div>
     );
@@ -1435,7 +1435,7 @@ function App() {
         <div className="text-center px-6 max-w-md">
           <p className="text-slate-800 dark:text-slate-100 font-bold text-lg mb-2">Could not load questions</p>
           <p className="text-slate-600 dark:text-slate-400 text-[15px] mb-4">The secure question database could not be reached. Check your Supabase connection and public_questions view.</p>
-          <p className="text-slate-500 text-xs font-mono">{loadError}</p>
+          <p className="text-slate-500 text-xs font-mono dark:text-slate-400">{loadError}</p>
           <button onClick={()=>window.location.reload()} className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold">Retry</button>
         </div>
       </div>
@@ -1527,7 +1527,7 @@ function App() {
                 the sm-to-md gap where the mastery block is hidden by viewport. */}
             {dayStreak >= 1 && (
               <span title={`You've practiced ${dayStreak} day${dayStreak !== 1 ? 's' : ''} in a row`}
-                className={`items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap ${
+                className={`items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap ${
                   (authUser && masteryStats && totalQuestions > 0) ? 'hidden sm:flex md:hidden' : 'hidden sm:flex'}`}>
                 <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 {dayStreak} day{dayStreak !== 1 ? 's' : ''}
@@ -1602,7 +1602,7 @@ function App() {
       ) : tab === 'history' ? (
         <HistoryPage authUser={authUser} allQuestions={questions} attempts={allAttempts} attemptsError={attemptsError} navigateTab={navigateTab} onOpenQuestion={requestOpenById} />
       ) : tab === 'admin' ? (
-        <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-16 text-center text-sm text-slate-600">Loading admin panel…</div>}>
+        <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-16 text-center text-sm text-slate-600 dark:text-slate-400">Loading admin panel…</div>}>
           <AdminQuestionManager authUser={authUser} />
         </Suspense>
       ) : tab === 'settings' ? (
@@ -1618,7 +1618,7 @@ function App() {
                 <p className="text-slate-600 dark:text-slate-400 text-[15px]">{recommendedVisible.length} recommended problem{recommendedVisible.length!==1?"s":""}</p>
               </div>
               <button onClick={() => { setRecommendedMode(false); setView('list'); }} title="Close"
-                className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+                className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 dark:text-slate-400">
                 <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
@@ -1659,15 +1659,15 @@ function App() {
 
           {recommendedVisible.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-500">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No recommendations yet</p>
-              <p className="text-[15px] text-slate-500 dark:text-slate-500 max-w-xs mx-auto">Answer a few problems first so the site can learn your weak areas.</p>
+              <p className="text-[15px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">Answer a few problems first so the site can learn your weak areas.</p>
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-              <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">
+              <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
               </div>
               {recommendedVisible.map((q,i) => {
@@ -1687,7 +1687,7 @@ function App() {
               <p className="text-slate-600 dark:text-slate-400 text-[15px]">{missedQueue.length} problem{missedQueue.length!==1?"s":""} to clear</p>
             </div>
             <button onClick={() => setView('list')} title="Close"
-              className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+              className="mt-1 p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 dark:text-slate-400">
               <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
           </div>
@@ -1719,11 +1719,11 @@ function App() {
             </div>
           ) : missedQueue.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Nothing to redo</p>
-              <p className="text-[15px] text-slate-500 dark:text-slate-500 max-w-xs mx-auto mb-5">Miss a question and it will appear here until you answer it correctly.</p>
+              <p className="text-[15px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto mb-5">Miss a question and it will appear here until you answer it correctly.</p>
               <button onClick={() => setView('list')}
                 className="inline-block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
                 Browse Problems
@@ -1731,15 +1731,15 @@ function App() {
             </div>
           ) : missesVisible.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-500">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No missed problems match</p>
-              <p className="text-[15px] text-slate-500 dark:text-slate-500">Try adjusting your filters or search term.</p>
+              <p className="text-[15px] text-slate-500 dark:text-slate-400">Try adjusting your filters or search term.</p>
             </div>
           ) : (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-              <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">
+              <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
               </div>
               {missesVisible.map((q,i) => {
@@ -1764,21 +1764,21 @@ function App() {
             </div>
             <div className="flex items-center gap-2 mt-1 shrink-0">
               {bookmarks.length>0 && (
-                <button onClick={()=>setBookmarks([])} className="text-xs text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Clear all</button>
+                <button onClick={()=>setBookmarks([])} className="text-xs text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors dark:text-slate-400">Clear all</button>
               )}
               <button onClick={() => setView('list')} title="Close"
-                className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors dark:text-slate-400">
                 <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
               </button>
             </div>
           </div>
           {bookmarks.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-500 dark:text-amber-400">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-400">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">Nothing in Review Later yet</p>
-              <p className="text-[15px] text-slate-500 dark:text-slate-500 max-w-xs mx-auto mb-5">Open any problem and tap Review Later to save it here.</p>
+              <p className="text-[15px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto mb-5">Open any problem and tap Review Later to save it here.</p>
               <button onClick={() => setView('list')}
                 className="inline-block px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
                 Browse Problems
@@ -1805,11 +1805,11 @@ function App() {
               {reviewVisible.length === 0 ? (
                 <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                   <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No saved problems match these filters</p>
-                  <p className="text-[15px] text-slate-500 dark:text-slate-500">{bookmarks.length} problem{bookmarks.length!==1?"s":""} saved in total.</p>
+                  <p className="text-[15px] text-slate-500 dark:text-slate-400">{bookmarks.length} problem{bookmarks.length!==1?"s":""} saved in total.</p>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-                  <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">
+                  <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
                   </div>
                   {reviewVisible.map((q,i) => {
@@ -1849,16 +1849,16 @@ function App() {
         {/* TABLE */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
           {/* column header */}
-          <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">
+          <div className="hidden sm:grid grid-cols-[3rem_1fr_9rem_7rem_11rem_7rem] gap-3 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             <span>#</span><span>Problem</span><span>Topic</span><span>Difficulty</span><span>Source</span><span>Date Added</span>
           </div>
           {pageItems.length === 0 ? (
             <div className="py-20 text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-500">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
                 <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               </div>
               <p className="font-semibold text-slate-700 dark:text-slate-300 mb-1">No problems found</p>
-              <p className="text-[15px] text-slate-500 dark:text-slate-500">Try adjusting your filters or search term.</p>
+              <p className="text-[15px] text-slate-500 dark:text-slate-400">Try adjusting your filters or search term.</p>
             </div>
           ) : pageItems.map((q, i) => {
             const globalIdx = (pageClamped-1)*PAGE_SIZE + i;
@@ -1901,7 +1901,7 @@ function App() {
                       className="w-12 h-9 text-center rounded-lg border border-blue-500 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                   : <button key={`e${i}`} onClick={() => { setJumpActive(i); setJumpValue(''); }}
                       title="Jump to page"
-                      className="px-1.5 h-9 text-slate-500 dark:text-slate-600 hover:text-blue-500 dark:hover:text-blue-400 text-sm font-bold select-none transition-colors">…</button>
+                      className="px-1.5 h-9 text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 text-sm font-bold select-none transition-colors">…</button>
                 : <button key={p} onClick={()=>setPage(p)}
                     className={`w-9 h-9 rounded-lg text-sm font-medium ${p===pageClamped?"bg-blue-600 text-white":"text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p}</button>
               )}

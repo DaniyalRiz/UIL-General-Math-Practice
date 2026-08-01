@@ -20,7 +20,7 @@ export function ProblemRow({ q, n, onOpen, status }) {
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotCls}`}
           title={status === "correct" ? "Answered correctly" : status === "incorrect" ? "Answered incorrectly" : undefined}
           aria-label={status === "correct" ? "Answered correctly" : status === "incorrect" ? "Answered incorrectly" : undefined}></span>
-        <span className="text-xs font-mono text-slate-500 dark:text-slate-600 text-right">{n}</span>
+        <span className="text-xs font-mono text-slate-500 dark:text-slate-400 text-right">{n}</span>
       </div>
       <div className="min-w-0">
         <p className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">
@@ -33,8 +33,8 @@ export function ProblemRow({ q, n, onOpen, status }) {
         <span className={`w-2 h-2 rounded-full ${TOPIC_DOT[q.topic]||"bg-slate-400"}`}></span>{q.topic}
       </div>
       <div className="hidden sm:block"><DiffPill d={q.difficulty} /></div>
-      <div className="hidden sm:block text-xs text-slate-500 dark:text-slate-500 whitespace-nowrap">{sourceDisplay(q)}</div>
-      <div className="hidden sm:block text-xs text-slate-500 dark:text-slate-500 whitespace-nowrap">
+      <div className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">{sourceDisplay(q)}</div>
+      <div className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
         {q.date_added ? new Date(q.date_added).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : "—"}
       </div>
     </button>
@@ -51,19 +51,19 @@ function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, 
       {/* History */}
       {stat && stat.attempts > 0 && (
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 px-4 py-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-500 mb-2">Your history on this problem</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Your history on this problem</p>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
               <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{Math.round(100*stat.correct/stat.attempts)}%</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-500">{stat.correct}/{stat.attempts} correct</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">{stat.correct}/{stat.attempts} correct</p>
             </div>
             <div>
               <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{fmtTime(stat.bestMs)}</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-500">best time</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">best time</p>
             </div>
             <div>
               <p className="text-lg font-bold text-slate-800 dark:text-slate-100">{fmtTime(stat.lastMs)}</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-500">last time</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">last time</p>
             </div>
           </div>
         </div>
@@ -73,7 +73,7 @@ function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, 
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
         <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
           <p className="text-[15px] font-bold text-slate-700 dark:text-slate-200">My Notes</p>
-          {!authUser && <span className="ml-auto text-xs text-slate-500 dark:text-slate-500">Sign in to save notes</span>}
+          {!authUser && <span className="ml-auto text-xs text-slate-500 dark:text-slate-400">Sign in to save notes</span>}
         </div>
         {notes.length > 0 && (
           <div className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -81,9 +81,9 @@ function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, 
               <div key={n.id} className="px-4 py-3 flex items-start gap-3 group">
                 <div className="flex-1">
                   <p className="text-[15px] text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{n.note_text}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-600 mt-1">{new Date(n.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{new Date(n.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</p>
                 </div>
-                <button onClick={()=>deleteNote(n.id)} className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-all text-lg leading-none shrink-0 mt-0.5">×</button>
+                <button onClick={()=>deleteNote(n.id)} className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-all text-lg leading-none shrink-0 mt-0.5 dark:text-slate-400">×</button>
               </div>
             ))}
           </div>
@@ -95,13 +95,13 @@ function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, 
               placeholder="Add a note for this problem… (Cmd+Enter to save)" rows={3}
               className="w-full text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"/>
             <button onClick={saveNote} disabled={!noteText.trim() || notesSaving}
-              className={`mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${noteText.trim() ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed"}`}>
+              className={`mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${noteText.trim() ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed"} dark:text-slate-400`}>
               {notesSaving ? "Saving…" : "Save Note"}
             </button>
           </div>
         ) : (
           <div className="px-4 py-3">
-            <p className="text-xs text-slate-500 dark:text-slate-500"><button onClick={()=>openAuth('signin')} className="text-blue-500 hover:underline">Sign in</button> to add and save notes.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400"><button onClick={()=>openAuth('signin')} className="text-blue-600 hover:underline">Sign in</button> to add and save notes.</p>
           </div>
         )}
       </div>
@@ -111,7 +111,7 @@ function ProblemSidebarSections({ stat, notes, noteText, setNoteText, saveNote, 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800">
           <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 rounded-t-2xl">
             <p className="text-[15px] font-bold text-slate-700 dark:text-slate-200">Practice Similar Problems</p>
-            <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">Build speed by drilling the same question pattern.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Build speed by drilling the same question pattern.</p>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {similarQuestions.map(sq => (
@@ -191,7 +191,7 @@ function ShareMenu({ q, open, setOpen }) {
         <div role="menu"
           className="absolute right-0 top-full mt-1.5 w-56 z-50 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
           {copied ? (
-            <p className="px-3 py-2.5 text-[15px] font-semibold text-emerald-600 dark:text-emerald-400">{copied}</p>
+            <p className="px-3 py-2.5 text-[15px] font-semibold text-emerald-700 dark:text-emerald-400">{copied}</p>
           ) : (
             <>
               <button role="menuitem" className={itemCls} onClick={()=>copy(url, 'Link copied')}>Copy link</button>
@@ -202,7 +202,7 @@ function ShareMenu({ q, open, setOpen }) {
               {canNativeShare && (
                 <button role="menuitem" className={itemCls} onClick={nativeShare}>Share...</button>
               )}
-              <p className="px-3 py-2 text-[11px] text-slate-500 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800 break-all">{url}</p>
+              <p className="px-3 py-2 text-[11px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 break-all">{url}</p>
             </>
           )}
         </div>
@@ -589,7 +589,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
     }
     if (hasServerResult && isCorrectChoice) return "border-emerald-400 bg-emerald-50 text-emerald-800 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-300";
     if (isSelectedChoice && !isCorrect) return "border-rose-400 bg-rose-50 text-rose-800 dark:border-rose-500/50 dark:bg-rose-500/10 dark:text-rose-300";
-    return "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-600";
+    return "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400";
   };
 
   // compute similar questions once
@@ -643,7 +643,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
               {/* Timer */}
               <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-sm font-bold tabular-nums transition-colors
                 ${answered
-                  ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-500"
+                  ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
                   : "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"}`}>
                 <svg aria-hidden="true" className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10" strokeWidth="2"/>
@@ -665,7 +665,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill={isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                 <span>Review Later</span>
               </button>
-              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl leading-none transition-colors">×</button>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl leading-none transition-colors dark:text-slate-400">×</button>
             </div>
           </div>
 
@@ -722,7 +722,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                           ? "bg-rose-500 text-white border-2 border-rose-500"
                           : pending === choice && !answered
                             ? "bg-blue-500 text-white border-2 border-blue-500"
-                            : "border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-500"}
+                            : "border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400"}
                       ${crossed[choice] && !answered ? "opacity-30" : ""}`}>
                       {String.fromCharCode(65+i)}
                       {crossed[choice] && !answered && (
@@ -734,8 +734,8 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                     <span className={crossed[choice] && !answered ? "line-through opacity-50" : ""}>
                       <MathText text={choice.replace(/^\([A-E]\)\s*/, '')} />
                     </span>
-                    {answered && (((isCorrect && selectedMatchesChoice(choice, i)) || answerMatches(choice, correctAnswer, i))) && <span className="ml-auto text-emerald-600 dark:text-emerald-400 font-bold text-base">✓</span>}
-                    {answered && selectedMatchesChoice(choice, i) && !isCorrect && <span className="ml-auto text-rose-500 font-bold text-base">✗</span>}
+                    {answered && (((isCorrect && selectedMatchesChoice(choice, i)) || answerMatches(choice, correctAnswer, i))) && <span className="ml-auto text-emerald-700 dark:text-emerald-400 font-bold text-base">✓</span>}
+                    {answered && selectedMatchesChoice(choice, i) && !isCorrect && <span className="ml-auto text-rose-700 font-bold text-base">✗</span>}
                   </button>
                   {!answered && (
                     <button type="button"
@@ -745,8 +745,11 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                       title={crossed[choice] ? "Undo cross out" : "Cross out this choice"}
                       className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-lg text-sm font-bold transition-colors
                         ${crossed[choice]
-                          ? "text-rose-500 bg-rose-50 dark:bg-rose-500/10"
-                          : "text-slate-300 dark:text-slate-600 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10"}`}>
+                          ? "text-rose-700 bg-rose-50 dark:bg-rose-500/10"
+                          // slate-500, not slate-300: this is a labelled control,
+                          // and at slate-300 the ✕ sat at 1.48:1, invisible to
+                          // anyone who does not hover it.
+                          : "text-slate-500 dark:text-slate-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-500/10"}`}>
                       ✕
                     </button>
                   )}
@@ -758,7 +761,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
             {!answered && (
               <div className="sticky bottom-0 z-20 px-4 sm:px-6 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-white/95 dark:bg-slate-950/95 backdrop-blur border-t border-slate-100 dark:border-slate-800">
                 {submitError && (
-                  <p className="mb-2 text-[15px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-lg px-3 py-2">
+                  <p className="mb-2 text-[15px] text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded-lg px-3 py-2">
                     {submitError}
                   </p>
                 )}
@@ -766,7 +769,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                   className={`w-full py-3 rounded-lg text-sm font-bold transition-all
                     ${pending && !submitting
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-600 cursor-not-allowed"}`}>
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed"}`}>
                   {submitting ? "Submitting…" : pending ? "Submit Answer" : "Select an answer first"}
                 </button>
               </div>
@@ -785,13 +788,13 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                     You: <span className="font-bold tabular-nums">{fmtTime(elapsedMs)}</span>
                     {" · median: "}
                     <span className="font-bold tabular-nums">{fmtTime(timeStats.median_ms)}</span>
-                    <span className="text-slate-500 dark:text-slate-500">
+                    <span className="text-slate-500 dark:text-slate-400">
                       {" "}across {timeStats.sample_size} student{timeStats.sample_size !== 1 ? 's' : ''}
                     </span>
                     {elapsedMs <= timeStats.median_ms && (
                       <>
                         {" · "}
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        <span className="text-emerald-700 dark:text-emerald-400 font-bold">
                           {Math.max(1, Math.round(100 * (1 - elapsedMs / timeStats.median_ms)))}% faster
                         </span>
                       </>
@@ -845,7 +848,7 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
             className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasPrev && !submitting
               ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               : "bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 cursor-not-allowed"}`}>← Prev</button>
-          <button onClick={onClose} disabled={submitting} className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${submitting ? 'text-slate-500 dark:text-slate-600 bg-slate-50 dark:bg-slate-900 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>Close</button>
+          <button onClick={onClose} disabled={submitting} className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${submitting ? 'text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 cursor-not-allowed' : 'text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>Close</button>
           <button onClick={onNext} disabled={!hasNext || submitting}
             className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap ${hasNext && !submitting
               ? "bg-blue-600 hover:bg-blue-700 text-white"

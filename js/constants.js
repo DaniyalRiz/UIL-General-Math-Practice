@@ -110,14 +110,14 @@ export const avatarColorFor = (user) => {
 // the UI it's recomputed live as minQuestions / totalQuestions so it stays
 // accurate if the bank size changes.
 export const MASTERY_LEVELS = [
-  { name: 'Beginner',       minQuestions: 0,    percentage: 0,   color: 'text-teal-500 dark:text-teal-400',     bar: 'bg-teal-500',   description: 'Just getting started on your mastery journey.' },
-  { name: 'Learner',        minQuestions: 20,   percentage: 2,   color: 'text-cyan-500 dark:text-cyan-400',     bar: 'bg-cyan-500',   description: 'Building foundational skills across topics.' },
-  { name: 'Competitor',     minQuestions: 50,   percentage: 5,   color: 'text-orange-500 dark:text-orange-400', bar: 'bg-orange-500', description: 'Sharpening skills for competition-level problems.' },
-  { name: 'District Ready', minQuestions: 150,  percentage: 15,  color: 'text-sky-500 dark:text-sky-400',       bar: 'bg-sky-500',    description: 'Prepared to compete at the district level.' },
-  { name: 'Region Ready',   minQuestions: 250,  percentage: 25,  color: 'text-green-500 dark:text-green-400',   bar: 'bg-green-500',  description: 'Prepared to compete at the region level.' },
-  { name: 'State Ready',    minQuestions: 500,  percentage: 50,  color: 'text-blue-500 dark:text-blue-400',     bar: 'bg-blue-500',   description: 'Prepared to compete at the state level.' },
-  { name: 'Medalist',       minQuestions: 750,  percentage: 75,  color: 'text-indigo-500 dark:text-indigo-400', bar: 'bg-indigo-500', description: 'Performing at a medal-worthy level.' },
-  { name: 'State Champion', minQuestions: 900,  percentage: 90,  color: 'text-violet-500 dark:text-violet-400', bar: 'bg-violet-500', description: 'Elite mastery — championship-caliber performance.' },
+  { name: 'Beginner',       minQuestions: 0,    percentage: 0,   color: 'text-teal-700 dark:text-teal-400',     bar: 'bg-teal-500', badge: 'bg-teal-700',   description: 'Just getting started on your mastery journey.' },
+  { name: 'Learner',        minQuestions: 20,   percentage: 2,   color: 'text-cyan-700 dark:text-cyan-400',     bar: 'bg-cyan-500', badge: 'bg-cyan-700',   description: 'Building foundational skills across topics.' },
+  { name: 'Competitor',     minQuestions: 50,   percentage: 5,   color: 'text-orange-700 dark:text-orange-400', bar: 'bg-orange-500', badge: 'bg-orange-700', description: 'Sharpening skills for competition-level problems.' },
+  { name: 'District Ready', minQuestions: 150,  percentage: 15,  color: 'text-sky-700 dark:text-sky-400',       bar: 'bg-sky-500', badge: 'bg-sky-700',    description: 'Prepared to compete at the district level.' },
+  { name: 'Region Ready',   minQuestions: 250,  percentage: 25,  color: 'text-green-700 dark:text-green-400',   bar: 'bg-green-500', badge: 'bg-green-700',  description: 'Prepared to compete at the region level.' },
+  { name: 'State Ready',    minQuestions: 500,  percentage: 50,  color: 'text-blue-600 dark:text-blue-400',     bar: 'bg-blue-500', badge: 'bg-blue-700',   description: 'Prepared to compete at the state level.' },
+  { name: 'Medalist',       minQuestions: 750,  percentage: 75,  color: 'text-indigo-600 dark:text-indigo-400', bar: 'bg-indigo-500', badge: 'bg-indigo-700', description: 'Performing at a medal-worthy level.' },
+  { name: 'State Champion', minQuestions: 900,  percentage: 90,  color: 'text-violet-600 dark:text-violet-400', bar: 'bg-violet-500', badge: 'bg-violet-700', description: 'Elite mastery — championship-caliber performance.' },
   { name: 'Full Mastery',   minQuestions: 1000, percentage: 100, color: 'text-amber-500 dark:text-amber-400',   bar: 'bg-amber-400',  description: 'Complete mastery of the entire question bank.' },
 ];
 
