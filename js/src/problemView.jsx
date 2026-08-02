@@ -788,7 +788,10 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
                 ${isCorrect ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30"
                             : "bg-rose-50 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30"}`}>
                 <div className={`font-bold text-base mb-3 ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300"}`}>
-                  {isCorrect ? "✓ Correct!" : `✗ Incorrect — Correct: ${correctAnswer}`}{" · Time: "}<TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
+                  {/* MathText, not a template string: answers such as
+                      "(E) 374 \(\text{cm}^2\)" would otherwise print their
+                      LaTeX source here while the choices above render fine. */}
+                  {isCorrect ? "✓ Correct!" : <>✗ Incorrect. Correct: <MathText text={correctAnswer || ""} /></>}{" · Time: "}<TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
                 </div>
                 {timeStats?.median_ms > 0 && elapsedMs > 0 && (() => {
                   // scope is 'question' when enough people have tried this exact

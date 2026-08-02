@@ -239,6 +239,16 @@ document.addEventListener('DOMContentLoaded', function () {
     return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   };
   const stripLetter = (c) => String(c ?? '').replace(/^\([A-E]\)\s*/, '');
+
+  // The stored answer is not always character-identical to the choice it names:
+  // 23 of the 1000 carry a trailing unit the choice omits, as with the choice
+  // "(E) 374" against the answer "(E) 374 \(\text{cm}^2\)". Comparing the A-E
+  // label instead of the whole string is what the app does, and without it those
+  // 23 never highlight a correct choice at all. Same regexes as problemView.
+  const answerLetter = (s) => {
+    const m = String(s ?? '').trim().match(/^\(?([A-E])\)?(?:\s|\.|\)|-|$)/i);
+    return m ? m[1].toUpperCase() : null;
+  };
   const DIFF_PILL = {
     Easy:   'bg-emerald-100 text-emerald-800',
     Medium: 'bg-amber-100 text-amber-800',
@@ -384,7 +394,10 @@ document.addEventListener('DOMContentLoaded', function () {
       answered = true;
       clearInterval(timerId);
       timerEl.textContent = fmtClock(elapsed);
-      correctIndex = (q.choices || []).findIndex(c => c === res.correct_answer);
+      const wantLetter = answerLetter(res.correct_answer);
+      correctIndex = (q.choices || []).findIndex(
+        (c, i) => c === res.correct_answer ||
+                  (wantLetter && (answerLetter(c) || String.fromCharCode(65 + i)) === wantLetter));
       paint();
       submitEl.classList.add('hidden');
       document.getElementById('hero-hint').classList.add('hidden');
@@ -395,9 +408,15 @@ document.addEventListener('DOMContentLoaded', function () {
         : `You: ${secs}s`;
 
       const result = document.getElementById('hero-result');
+      // renderMath, not esc: 46 of the 1000 answers carry inline LaTeX, so
+      // escaping printed the source instead of the maths, as in
+      // "The answer is 374 \(\text{cm}^2\)". renderMath still escapes every
+      // non-maths part, so this is no more permissive than esc was.
       result.innerHTML = `
         <p class="font-bold text-[15px] mb-2 ${res.is_correct ? 'text-emerald-700' : 'text-rose-700'}">
-          ${res.is_correct ? 'Correct: ' + esc(stripLetter(res.correct_answer)) : 'Incorrect. The answer is ' + esc(stripLetter(res.correct_answer)) + '.'}
+          ${res.is_correct
+            ? 'Correct: ' + renderMath(stripLetter(res.correct_answer))
+            : 'Incorrect. The answer is ' + renderMath(stripLetter(res.correct_answer)) + '.'}
         </p>
         <p class="text-slate-600 text-sm mb-3 font-medium">${medianLine}</p>
         <div class="text-slate-800 text-[15px] leading-relaxed overflow-x-auto">${renderMath(res.explanation || '')}</div>

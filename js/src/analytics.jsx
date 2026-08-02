@@ -912,11 +912,15 @@ function HistoryDetailModal({ row, q, onClose }) {
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-center">
                 <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide dark:text-slate-400">Your Answer</p>
-                <p className={`font-bold text-lg ${row.is_correct ? 'text-emerald-700' : 'text-rose-700'}`}>{row.selected_answer || '—'}</p>
+                <p className={`font-bold text-lg ${row.is_correct ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {row.selected_answer ? <MathText text={row.selected_answer} /> : 'Not recorded'}
+                </p>
               </div>
               <div className="rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-500/10 p-3 text-center">
                 <p className="text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide dark:text-slate-400">Correct Answer</p>
-                <p className="font-bold text-lg text-emerald-700 dark:text-emerald-400">{row.correct_answer || '—'}</p>
+                <p className="font-bold text-lg text-emerald-700 dark:text-emerald-400">
+                  {row.correct_answer ? <MathText text={row.correct_answer} /> : 'Not recorded'}
+                </p>
               </div>
             </div>
           )}
