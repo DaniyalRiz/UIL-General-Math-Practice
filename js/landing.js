@@ -486,12 +486,15 @@ document.addEventListener('DOMContentLoaded', function () {
       // A different question every visit, but not any question. A random draw
       // from all 1000 surfaces hard, multi-paragraph problems that dwarf the
       // hero and that a visitor cannot solve in the few seconds the card is
-      // asking for -- which loses the hook instead of proving it. Easy, short,
-      // and image-free still leaves 183 questions across all five topics.
+      // asking for -- which loses the hook instead of proving it. Easy and
+      // Medium, short, and image-free leaves 251 questions across all five
+      // topics; the length cap is what actually keeps the card in shape, not
+      // the difficulty.
+      const HERO_DIFFICULTIES = ['Easy', 'Medium'];
       const fits = (q) =>
         Array.isArray(q.choices) && q.choices.length >= 2 &&
         q.question && q.question.length <= 160 &&
-        q.difficulty === 'Easy' && !q.image;
+        HERO_DIFFICULTIES.includes(q.difficulty) && !q.image;
       const usable = data.filter(fits);
       // Fall back to anything answerable rather than showing nothing.
       const pool = usable.length ? usable : data.filter(q => Array.isArray(q.choices) && q.choices.length >= 2 && q.question);
