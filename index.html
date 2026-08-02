@@ -293,41 +293,22 @@
       </div>
     </div>
 
-    <!-- Live problem card. Real question: 24-25 UIL State, problem 6.
-         Answerable in place; the solution and the field comparison appear the
-         moment a choice is picked. That is the product, demonstrated. -->
-    <div class="fade-up-3 bg-white rounded-2xl shadow-2xl p-5 sm:p-6 w-full max-w-lg lg:justify-self-end">
-      <div class="flex items-center justify-between mb-4 text-[11px] font-bold uppercase tracking-wider">
-        <span class="text-slate-500">Algebra 1 &amp; 2 &middot; 24-25 UIL State</span>
-        <span id="hero-timer" class="font-mono text-blue-700 tabular-nums normal-case tracking-normal text-sm">0:00</span>
+    <!-- Live problem card. A different real question on every visit, rendered
+         to match the app's problem view: same header chips, same choice styling,
+         same select-then-submit flow, and the same history / notes / similar
+         panels once answered. Built by js/landing.js. -->
+    <div id="hero-card"
+      class="fade-up-3 bg-white rounded-2xl shadow-2xl w-full max-w-lg lg:justify-self-end overflow-hidden">
+      <div class="p-5 sm:p-6">
+        <div class="animate-pulse space-y-3" id="hero-skeleton">
+          <div class="h-3 w-40 bg-slate-200 rounded"></div>
+          <div class="h-5 w-full bg-slate-200 rounded"></div>
+          <div class="h-5 w-2/3 bg-slate-200 rounded"></div>
+          <div class="h-11 w-full bg-slate-100 rounded-xl mt-4"></div>
+          <div class="h-11 w-full bg-slate-100 rounded-xl"></div>
+          <div class="h-11 w-full bg-slate-100 rounded-xl"></div>
+        </div>
       </div>
-
-      <p class="text-slate-900 text-[17px] font-medium leading-relaxed mb-4">
-        Consider the sequence 5, 12, 19, 26, 33, 40, &hellip; Find the sum of the 8th term and the 13th term.
-      </p>
-
-      <div id="hero-choices" class="grid gap-2"></div>
-
-      <div id="hero-result" class="hidden mt-4 pt-4 border-t border-slate-200">
-        <p id="hero-verdict" class="font-bold text-[15px] mb-2"></p>
-        <p class="text-slate-700 text-[15px] leading-relaxed">
-          a<sub>1</sub> = 5, d = 7. &nbsp;a<sub>8</sub> = 5 + 7(7) = 54, &nbsp;a<sub>13</sub> = 5 + 7(12) = 89.
-          <br/>54 + 89 = <strong>143</strong>.
-        </p>
-        <p id="hero-median" class="text-slate-600 text-sm mt-3 font-medium"></p>
-        <a href="./app.html?tab=problems"
-          class="mt-4 inline-block px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm rounded-lg transition-colors">
-          Next problem &rarr;
-        </a>
-      </div>
-
-      <button id="hero-submit" type="button" disabled
-        class="w-full mt-4 py-3 rounded-lg text-sm font-bold transition-all bg-slate-100 text-slate-500 cursor-not-allowed">
-        Select an answer first
-      </button>
-      <p id="hero-hint" class="text-slate-500 text-xs mt-3">
-        Answer it the way you would in a contest. The worked solution appears once you submit.
-      </p>
     </div>
   </div>
 </section>

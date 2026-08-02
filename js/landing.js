@@ -199,45 +199,134 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // ─── HERO PROBLEM CARD ────────────────────────────────────────────────────
-  // A real question (24-25 UIL State, problem 6, id 887) answerable without an
-  // account. Answering it is the pitch: instant verdict, worked solution, and
-  // how the reader's time compares. Hard-coded rather than fetched so the hero
-  // renders instantly and cannot be broken by a slow or failing query.
-  const HERO_QUESTION_ID = 887;
-  const HERO_CHOICES = ['139', '141', '143', '145', '147'];
-  const HERO_ANSWER_INDEX = 2; // (C) 143
-  let heroStart = Date.now();
-  let heroAnswered = false;
-  let heroMedianMs = null;
+  // A different real question every visit, rendered to match the app's problem
+  // view. Grading goes through guest_check_answer, the same RPC the app uses for
+  // signed-out visitors, so the answer key never reaches the client -- which is
+  // also the only way a *random* question could work at all, since
+  // public_questions deliberately omits `answer`.
+  const heroCard = document.getElementById('hero-card');
 
-  const heroChoicesEl = document.getElementById('hero-choices');
-  if (heroChoicesEl) {
-    const timerEl  = document.getElementById('hero-timer');
-    const submitEl = document.getElementById('hero-submit');
-    let pending = null;
+  const esc = (t) => String(t ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    const tick = () => {
-      if (heroAnswered) return;
-      const s = Math.floor((Date.now() - heroStart) / 1000);
-      timerEl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-    };
-    const timerId = setInterval(tick, 250);
+  // KaTeX is loaded on demand: 999 of 1000 solutions contain LaTeX, so the card
+  // needs it, but blocking first paint of the hero on a maths library would be
+  // the wrong trade. Text renders first and upgrades when the chunk lands.
+  let katexLib = null;
+  const katexReady = import('katex')
+    .then(async (m) => { await import('katex/dist/katex.min.css'); katexLib = m.default || m; })
+    .catch(() => {});
 
-    // Same shape as a choice in the app: circular letter badge, then the text.
-    const BASE = 'w-full text-left px-3 py-3 rounded-xl border-2 text-[15px] font-medium transition-all duration-150 flex items-center gap-3 select-none';
+  // Same splitting rule as MathText in the app.
+  function renderMath(text) {
+    const parts = String(text ?? '').split(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/g);
+    return parts.map(part => {
+      if (!part) return '';
+      const display = part.startsWith('\\[') && part.endsWith('\\]');
+      const inline = part.startsWith('\\(') && part.endsWith('\\)');
+      if (display || inline) {
+        const tex = part.slice(2, part.length - 2);
+        if (!katexLib) return esc(tex);
+        try { return katexLib.renderToString(tex, { displayMode: display, throwOnError: false }); }
+        catch (e) { return esc(tex); }
+      }
+      return esc(part);
+    }).join('');
+  }
+
+  const fmtClock = (ms) => {
+    const s = Math.max(0, Math.round(ms / 1000));
+    return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  };
+  const stripLetter = (c) => String(c ?? '').replace(/^\([A-E]\)\s*/, '');
+  const DIFF_PILL = {
+    Easy:   'bg-emerald-100 text-emerald-800',
+    Medium: 'bg-amber-100 text-amber-800',
+    Hard:   'bg-rose-100 text-rose-800',
+  };
+  const TOPIC_DOT = {
+    'Algebra 1 & 2': 'bg-violet-500', 'Geometry': 'bg-sky-500',
+    'Precalculus': 'bg-emerald-500', 'AP Calculus': 'bg-orange-500',
+    'AP Statistics': 'bg-blue-500',
+  };
+  const sourceLabel = (q) => {
+    const src = q.source || q.original_test || '';
+    const n = q.original_question_number;
+    return src && n ? `${src} · Problem ${n}` : src;
+  };
+
+  // Same scoring the app's "Practice Similar Problems" uses.
+  function similarTo(q, pool) {
+    return pool.filter(x => x.id !== q.id)
+      .map(x => {
+        const shared = (q.tags || []).filter(t => (x.tags || []).includes(t));
+        let score = shared.length * 10;
+        if (x.topic === q.topic) score += 4;
+        if (x.difficulty === q.difficulty) score += 2;
+        return { x, score, shared };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(s => ({ ...s.x, sharedTags: s.shared }));
+  }
+
+  function mountHeroCard(q, pool) {
+    const similar = similarTo(q, pool);
+    const nextId = similar[0]?.id ?? q.id;
+    const started = Date.now();
+    let pending = null, answered = false, medianMs = null;
+
+    heroCard.innerHTML = `
+      <div class="p-5 sm:p-6">
+        <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+              <span class="w-2.5 h-2.5 rounded-full ${TOPIC_DOT[q.topic] || 'bg-slate-400'}"></span>${esc(q.topic || '')}
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${DIFF_PILL[q.difficulty] || 'bg-slate-100 text-slate-700'}">${esc(q.difficulty || '')}</span>
+            ${sourceLabel(q) ? `<span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">${esc(sourceLabel(q))}</span>` : ''}
+          </div>
+          <span id="hero-timer" class="font-mono text-blue-700 tabular-nums text-sm">00:00</span>
+        </div>
+
+        ${q.title ? `<h2 class="font-display text-lg font-bold text-slate-900 tracking-tight mb-3">${esc(q.title)}</h2>` : ''}
+        <p id="hero-qtext" class="text-slate-900 text-[15px] leading-relaxed mb-4 overflow-x-auto">${renderMath(q.question)}</p>
+        ${q.image ? `<img src="${esc(q.image)}" alt="${esc(q.image_alt || 'Figure for this problem')}" class="max-w-full rounded-xl border border-slate-200 mb-4 mx-auto"/>` : ''}
+
+        <div id="hero-choices" class="grid gap-2"></div>
+
+        <button id="hero-submit" type="button" disabled
+          class="w-full mt-4 py-3 rounded-lg text-sm font-bold transition-all bg-slate-100 text-slate-500 cursor-not-allowed">
+          Select an answer first
+        </button>
+        <p id="hero-hint" class="text-slate-500 text-xs mt-3">Answer it the way you would in a contest.</p>
+
+        <div id="hero-result" class="hidden mt-4 pt-4 border-t border-slate-200"></div>
+      </div>
+      <div id="hero-panels" class="hidden border-t border-slate-200 bg-slate-50 p-5 sm:p-6 space-y-4"></div>
+    `;
+
+    const choicesEl = document.getElementById('hero-choices');
+    const submitEl  = document.getElementById('hero-submit');
+    const timerEl   = document.getElementById('hero-timer');
+    const timerId = setInterval(() => {
+      if (!answered) timerEl.textContent = fmtClock(Date.now() - started);
+    }, 250);
+
+    const BASE  = 'w-full text-left px-3 py-3 rounded-xl border-2 text-[15px] font-medium transition-all duration-150 flex items-center gap-3 select-none';
     const BADGE = 'w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-black border-2 transition-all';
+    let correctIndex = -1;
 
     const paint = () => {
-      [...heroChoicesEl.children].forEach((btn, i) => {
+      [...choicesEl.children].forEach((btn, i) => {
         const badge = btn.querySelector('span');
-        if (!heroAnswered) {
+        if (!answered) {
           const on = pending === i;
           btn.className = `${BASE} ${on ? 'border-blue-500 bg-blue-50 text-slate-900' : 'border-slate-200 text-slate-800 hover:border-blue-300 hover:bg-blue-50/50'}`;
           badge.className = `${BADGE} ${on ? 'bg-blue-500 text-white border-blue-500' : 'border-slate-300 text-slate-500'}`;
           return;
         }
-        const isAnswer = i === HERO_ANSWER_INDEX;
-        const isPick = i === pending;
+        const isAnswer = i === correctIndex, isPick = i === pending;
         btn.disabled = true;
         btn.className = `${BASE} ${isAnswer ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
                                  : isPick   ? 'border-rose-500 bg-rose-50 text-rose-900'
@@ -249,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const setSubmitState = () => {
-      const ready = pending !== null;
+      const ready = pending !== null && !answered;
       submitEl.disabled = !ready;
       submitEl.textContent = ready ? 'Submit Answer' : 'Select an answer first';
       submitEl.className = ready
@@ -257,67 +346,161 @@ document.addEventListener('DOMContentLoaded', function () {
         : 'w-full mt-4 py-3 rounded-lg text-sm font-bold transition-all bg-slate-100 text-slate-500 cursor-not-allowed';
     };
 
-    // Selecting never reveals anything. The verdict waits for Submit, exactly as
-    // it does on a real question, so the demo teaches the actual flow.
-    const select = (i) => {
-      if (heroAnswered) return;
-      pending = pending === i ? null : i;
-      paint();
-      setSubmitState();
-    };
-
-    const submit = () => {
-      if (heroAnswered || pending === null) return;
-      heroAnswered = true;
-      clearInterval(timerId);
-      const elapsedMs = Date.now() - heroStart;
-      const correct = pending === HERO_ANSWER_INDEX;
-      paint();
-
-      const verdict = document.getElementById('hero-verdict');
-      verdict.textContent = correct ? 'Correct: 143' : 'Incorrect. The answer is 143.';
-      verdict.className = `font-bold text-[15px] mb-2 ${correct ? 'text-emerald-700' : 'text-rose-700'}`;
-
-      const secs = Math.max(1, Math.round(elapsedMs / 1000));
-      document.getElementById('hero-median').textContent = heroMedianMs
-        ? `You: ${secs}s \u00b7 median: ${Math.round(heroMedianMs / 1000)}s`
-        : `You: ${secs}s`;
-
-      submitEl.classList.add('hidden');
-      document.getElementById('hero-hint').classList.add('hidden');
-      document.getElementById('hero-result').classList.remove('hidden');
-    };
-
-    HERO_CHOICES.forEach((text, i) => {
+    (q.choices || []).forEach((choice, i) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       const badge = document.createElement('span');
       badge.textContent = String.fromCharCode(65 + i);
       btn.appendChild(badge);
-      btn.appendChild(document.createTextNode(text));
-      btn.addEventListener('click', () => select(i));
-      heroChoicesEl.appendChild(btn);
-    });
-    paint();
-    setSubmitState();
-    submitEl.addEventListener('click', submit);
-
-    // Real median from the same RPC the app uses, so the number is never stale.
-    supabase.rpc('get_question_time_stats', { p_question_id: HERO_QUESTION_ID })
-      .then(({ data, error }) => {
-        if (error) return;
-        const row = Array.isArray(data) ? data[0] : data;
-        if (row?.median_ms > 0) heroMedianMs = row.median_ms;
+      const label = document.createElement('span');
+      label.innerHTML = renderMath(stripLetter(choice));
+      btn.appendChild(label);
+      btn.addEventListener('click', () => {
+        if (answered) return;
+        pending = pending === i ? null : i;
+        paint(); setSubmitState();
       });
+      choicesEl.appendChild(btn);
+    });
+    paint(); setSubmitState();
+
+    submitEl.addEventListener('click', async () => {
+      if (answered || pending === null) return;
+      submitEl.disabled = true;
+      submitEl.textContent = 'Checking…';
+      const elapsed = Date.now() - started;
+      const selectedRaw = (q.choices || [])[pending];
+
+      const { data, error } = await supabase.rpc('guest_check_answer', {
+        p_question_id: q.id, p_selected: selectedRaw,
+      });
+      const res = Array.isArray(data) ? data[0] : data;
+      if (error || !res || res.error) {
+        submitEl.disabled = false;
+        submitEl.textContent = 'Submit Answer';
+        document.getElementById('hero-hint').textContent = 'Could not check that answer. Try again in a moment.';
+        return;
+      }
+
+      answered = true;
+      clearInterval(timerId);
+      timerEl.textContent = fmtClock(elapsed);
+      correctIndex = (q.choices || []).findIndex(c => c === res.correct_answer);
+      paint();
+      submitEl.classList.add('hidden');
+      document.getElementById('hero-hint').classList.add('hidden');
+
+      const secs = Math.max(1, Math.round(elapsed / 1000));
+      const medianLine = medianMs
+        ? `You: ${secs}s · median: ${Math.round(medianMs / 1000)}s`
+        : `You: ${secs}s`;
+
+      const result = document.getElementById('hero-result');
+      result.innerHTML = `
+        <p class="font-bold text-[15px] mb-2 ${res.is_correct ? 'text-emerald-700' : 'text-rose-700'}">
+          ${res.is_correct ? 'Correct: ' + esc(stripLetter(res.correct_answer)) : 'Incorrect. The answer is ' + esc(stripLetter(res.correct_answer)) + '.'}
+        </p>
+        <p class="text-slate-600 text-sm mb-3 font-medium">${medianLine}</p>
+        <div class="text-slate-800 text-[15px] leading-relaxed overflow-x-auto">${renderMath(res.explanation || '')}</div>
+        <a href="./app.html?id=${nextId}"
+          class="mt-4 inline-block px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm rounded-lg transition-colors">
+          Next problem &rarr;
+        </a>`;
+      result.classList.remove('hidden');
+
+      // The same three panels the app shows beside a solved problem.
+      const panels = document.getElementById('hero-panels');
+      panels.innerHTML = `
+        <div class="rounded-xl border border-slate-200 bg-white px-4 py-3">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Your history on this problem</p>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div><p class="text-lg font-bold text-slate-800">${res.is_correct ? '100%' : '0%'}</p><p class="text-[11px] text-slate-500">${res.is_correct ? '1/1' : '0/1'} correct</p></div>
+            <div><p class="text-lg font-bold text-slate-800">${fmtClock(elapsed)}</p><p class="text-[11px] text-slate-500">best time</p></div>
+            <div><p class="text-lg font-bold text-slate-800">${fmtClock(elapsed)}</p><p class="text-[11px] text-slate-500">last time</p></div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white">
+          <div class="px-4 py-3 border-b border-slate-200 flex items-center gap-2">
+            <p class="text-sm font-bold text-slate-700">My Notes</p>
+            <span class="ml-auto text-xs text-slate-500">Sign in to save notes</span>
+          </div>
+          <div class="px-4 py-3">
+            <p class="text-xs text-slate-500">
+              <button type="button" onclick="openAuth('signin')" class="text-blue-600 hover:underline">Sign in</button> to add and save notes.
+            </p>
+          </div>
+        </div>
+
+        ${similar.length ? `
+        <div class="rounded-xl border border-slate-200 bg-white overflow-hidden">
+          <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
+            <p class="text-sm font-bold text-slate-700">Practice Similar Problems</p>
+            <p class="text-xs text-slate-500 mt-0.5">Build speed by drilling the same question pattern.</p>
+          </div>
+          <div class="divide-y divide-slate-100">
+            ${similar.map(sq => `
+              <div class="px-4 py-3 flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 truncate">${esc(sq.title || 'Problem #' + sq.id)}</p>
+                  <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span class="w-1.5 h-1.5 rounded-full ${TOPIC_DOT[sq.topic] || 'bg-slate-400'}"></span>${esc(sq.topic || '')}
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${DIFF_PILL[sq.difficulty] || 'bg-slate-100 text-slate-700'}">${esc(sq.difficulty || '')}</span>
+                  </p>
+                  ${(sq.sharedTags || []).length ? `<p class="text-[11px] text-blue-700 mt-1">${sq.sharedTags.slice(0,2).map(t => '#' + esc(t)).join(' ')}</p>` : ''}
+                </div>
+                <a href="./app.html?id=${sq.id}" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white">Open</a>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
+      `;
+      panels.classList.remove('hidden');
+    });
+
+    // Real median for this exact question, same RPC the app uses.
+    supabase.rpc('get_question_time_stats', { p_question_id: q.id }).then(({ data, error }) => {
+      if (error) return;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row?.median_ms > 0) medianMs = row.median_ms;
+    });
   }
 
-  // ─── LIVE STATS (Users / Problems / Topics / Real Tests) ──────────────────
-  supabase.from('public_questions').select('topic, source').limit(5000).then(({ data, error }) => {
-    if (error || !data) return;
-    const tests = new Set(data.map(q => q.source).filter(Boolean));
-    document.getElementById('stat-problems').textContent = data.length;
-    document.getElementById('stat-tests').textContent = tests.size;
-  });
+  // ─── QUESTION POOL (feeds both the hero card and the stats) ───────────────
+  // One fetch, two jobs: the stats row and the hero's random question. The pool
+  // is also what "Practice Similar Problems" scores against, which is why the
+  // whole set is pulled rather than a single random row.
+  supabase.from('public_questions')
+    .select('id,title,topic,difficulty,source,question,choices,tags,image,image_alt,original_test,original_question_number')
+    .limit(5000)
+    .then(({ data, error }) => {
+      if (error || !data || data.length === 0) {
+        if (heroCard) heroCard.innerHTML = '<div class="p-6 text-slate-600 text-[15px]">Could not load a practice question. <a class="text-blue-700 font-semibold hover:underline" href="./app.html?tab=problems">Open the app</a> instead.</div>';
+        return;
+      }
+
+      const tests = new Set(data.map(q => q.source).filter(Boolean));
+      document.getElementById('stat-problems').textContent = data.length;
+      document.getElementById('stat-tests').textContent = tests.size;
+
+      if (!heroCard) return;
+      // A different question every visit, but not any question. A random draw
+      // from all 1000 surfaces hard, multi-paragraph problems that dwarf the
+      // hero and that a visitor cannot solve in the few seconds the card is
+      // asking for -- which loses the hook instead of proving it. Easy, short,
+      // and image-free still leaves 183 questions across all five topics.
+      const fits = (q) =>
+        Array.isArray(q.choices) && q.choices.length >= 2 &&
+        q.question && q.question.length <= 160 &&
+        q.difficulty === 'Easy' && !q.image;
+      const usable = data.filter(fits);
+      // Fall back to anything answerable rather than showing nothing.
+      const pool = usable.length ? usable : data.filter(q => Array.isArray(q.choices) && q.choices.length >= 2 && q.question);
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      if (!pick) return;
+      // Wait for KaTeX so the question does not visibly reflow from raw TeX to
+      // typeset maths a moment after it appears.
+      katexReady.finally(() => mountHeroCard(pick, data));
+    });
   supabase.rpc('get_user_count').then(({ data, error }) => {
     if (error || data == null) return;
     document.getElementById('stat-users').textContent = data;
