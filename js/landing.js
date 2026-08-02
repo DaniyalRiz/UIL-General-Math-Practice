@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let pending = null, answered = false, medianMs = null;
 
     heroCard.innerHTML = `
-      <div class="p-5 sm:p-6">
+      <div id="hero-scroll" class="p-5 sm:p-6 overflow-y-auto flex-1">
         <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
@@ -291,7 +291,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         ${q.title ? `<h2 class="font-display text-lg font-bold text-slate-900 tracking-tight mb-3">${esc(q.title)}</h2>` : ''}
         <p id="hero-qtext" class="text-slate-900 text-[15px] leading-relaxed mb-4 overflow-x-auto">${renderMath(q.question)}</p>
-        ${q.image ? `<img src="${esc(q.image)}" alt="${esc(q.image_alt || 'Figure for this problem')}" class="max-w-full rounded-xl border border-slate-200 mb-4 mx-auto"/>` : ''}
 
         <div id="hero-choices" class="grid gap-2"></div>
 
@@ -302,8 +301,8 @@ document.addEventListener('DOMContentLoaded', function () {
         <p id="hero-hint" class="text-slate-500 text-xs mt-3">Answer it the way you would in a contest.</p>
 
         <div id="hero-result" class="hidden mt-4 pt-4 border-t border-slate-200"></div>
+        <div id="hero-panels" class="hidden mt-4 -mx-5 sm:-mx-6 -mb-5 sm:-mb-6 border-t border-slate-200 bg-slate-50 p-5 sm:p-6 space-y-4"></div>
       </div>
-      <div id="hero-panels" class="hidden border-t border-slate-200 bg-slate-50 p-5 sm:p-6 space-y-4"></div>
     `;
 
     const choicesEl = document.getElementById('hero-choices');
@@ -407,6 +406,18 @@ document.addEventListener('DOMContentLoaded', function () {
           Next problem &rarr;
         </a>`;
       result.classList.remove('hidden');
+      // The card no longer grows, so the solution and the panels are below the
+      // fold inside it. Bring the verdict into view and say there is more.
+      const scroller = document.getElementById('hero-scroll');
+      requestAnimationFrame(() => {
+        result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        if (scroller.scrollHeight > scroller.clientHeight) {
+          const more = document.createElement('p');
+          more.className = 'text-slate-500 text-xs mt-3 text-center';
+          more.textContent = 'Scroll for your history, notes and similar problems';
+          result.appendChild(more);
+        }
+      });
 
       // The same three panels the app shows beside a solved problem.
       const panels = document.getElementById('hero-panels');

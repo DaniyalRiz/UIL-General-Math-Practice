@@ -297,9 +297,12 @@
          to match the app's problem view: same header chips, same choice styling,
          same select-then-submit flow, and the same history / notes / similar
          panels once answered. Built by js/landing.js. -->
+    <!-- Fixed height on desktop so answering never resizes the card. Without it
+         the card grew to ~1600px once the panels opened and dragged the
+         headline down the page with it. Everything scrolls inside instead. -->
     <div id="hero-card"
-      class="fade-up-3 bg-white rounded-2xl shadow-2xl w-full max-w-lg lg:justify-self-end overflow-hidden">
-      <div class="p-5 sm:p-6">
+      class="fade-up-3 bg-white rounded-2xl shadow-2xl w-full max-w-lg lg:justify-self-end overflow-hidden flex flex-col lg:h-[520px]">
+      <div class="p-5 sm:p-6 overflow-y-auto flex-1">
         <div class="animate-pulse space-y-3" id="hero-skeleton">
           <div class="h-3 w-40 bg-slate-200 rounded"></div>
           <div class="h-5 w-full bg-slate-200 rounded"></div>
