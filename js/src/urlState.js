@@ -6,7 +6,7 @@
 // param, which is what makes a shared problem link possible at all.
 //
 // Defaults are omitted so URLs stay short and readable:
-//   app.html?id=482
+//   app.html?tab=problems
 //   app.html?tab=problems&topic=Geometry&diff=Hard
 //   app.html?tab=analytics
 // rather than a wall of "All Topics&All Difficulties&All Sources".
@@ -62,12 +62,20 @@ export function readAppUrl(searchString = window.location.search) {
   };
 }
 
+// tab is the exception to the rule above: it is written even when it holds the
+// default. Every other destination shows as ?tab=analytics or ?tab=history, so
+// stripping ?tab=problems left the most-used tab looking like it had no address
+// at all, and a copied problems-list URL carried no destination to override the
+// next person's remembered tab.
+const ALWAYS_WRITTEN = new Set(['tab']);
+
 export function buildAppQuery(state) {
   const p = new URLSearchParams();
   Object.entries(state).forEach(([k, v]) => {
     if (v === null || v === undefined) return;
     const s = String(v);
-    if (s === '' || s === URL_DEFAULTS[k]) return;
+    if (s === '') return;
+    if (s === URL_DEFAULTS[k] && !ALWAYS_WRITTEN.has(k)) return;
     p.set(k, s);
   });
   const qs = p.toString();
