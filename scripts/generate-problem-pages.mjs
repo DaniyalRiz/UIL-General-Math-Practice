@@ -214,7 +214,7 @@ function indexPage(questions) {
 
   const body = `
   <h1>All problems</h1>
-  <p class="note">${questions.length} UIL General Mathematics problems from invitational, district, regional, state, and TMSCA tests.</p>
+  <p class="note">${questions.length} UIL General Mathematics problems from invitational, district, regional, and state contests.</p>
   ${[...byTopic.entries()].map(([topic, list]) => `
   <h2 style="font-family:'Fraunces',Georgia,serif;font-size:1.25rem;margin-top:2rem;">${escapeHtml(topic)} <span style="color:var(--muted);font-weight:400;font-size:.9rem;">(${list.length})</span></h2>
   <ul class="list">

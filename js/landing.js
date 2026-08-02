@@ -517,14 +517,18 @@ document.addEventListener('DOMContentLoaded', function () {
       // from all 1000 surfaces hard, multi-paragraph problems that dwarf the
       // hero and that a visitor cannot solve in the few seconds the card is
       // asking for -- which loses the hook instead of proving it. Easy and
-      // Medium, short, and image-free leaves 251 questions across all five
-      // topics; the length cap is what actually keeps the card in shape, not
-      // the difficulty.
+      // Medium, short, and image-free leaves 251; the length cap is what
+      // actually keeps the card in shape, not the difficulty.
+      //
+      // UIL sources only: the card prints its real source chip, so drawing from
+      // the whole set would put "24-25 TMSCA State" on the landing page on about
+      // half of visits. 113 questions remain, still across all five topics.
       const HERO_DIFFICULTIES = ['Easy', 'Medium'];
+      const isUil = (q) => !/tmsca|hsma/i.test(q.source || q.original_test || '');
       const fits = (q) =>
         Array.isArray(q.choices) && q.choices.length >= 2 &&
         q.question && q.question.length <= 160 &&
-        HERO_DIFFICULTIES.includes(q.difficulty) && !q.image;
+        HERO_DIFFICULTIES.includes(q.difficulty) && !q.image && isUil(q);
       const usable = data.filter(fits);
       // Fall back to anything answerable rather than showing nothing.
       const pool = usable.length ? usable : data.filter(q => Array.isArray(q.choices) && q.choices.length >= 2 && q.question);
@@ -534,11 +538,6 @@ document.addEventListener('DOMContentLoaded', function () {
       // typeset maths a moment after it appears.
       katexReady.finally(() => mountHeroCard(pick, data));
     });
-  supabase.rpc('get_user_count').then(({ data, error }) => {
-    if (error || data == null) return;
-    document.getElementById('stat-users').textContent = data;
-  });
-
   // Light dismiss. A native <dialog> does not close on backdrop click by itself,
   // but a click on the backdrop targets the dialog element, so this still works.
   document.getElementById('auth-modal').addEventListener('click', function(e) {

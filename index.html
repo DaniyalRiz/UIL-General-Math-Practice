@@ -257,13 +257,13 @@
 
     <div class="fade-up">
       <p class="text-blue-300 text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] mb-5">
-        1,000 problems · District · Region · State · TMSCA
+        District · Region · State
       </p>
       <h1 class="font-display text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.05] mb-5">
         Train on the<br/>real tests.
       </h1>
       <p class="text-blue-100 text-[17px] leading-relaxed mb-8 max-w-lg">
-        Every question here was on an actual UIL or TMSCA contest, with a full worked
+        Every question here was on an actual UIL contest, with a full worked
         solution. Start now. An account only matters once you want your progress saved.
       </p>
 
@@ -276,13 +276,10 @@
         <span class="text-blue-200 text-[15px] font-medium">No account needed</span>
       </div>
 
-      <!-- Stats row -->
-      <div class="mt-10 flex items-center divide-x divide-white/15 max-w-lg">
+      <!-- Stats row. Two tiles, so the middle tile's px-4 is gone: the divider
+           needs padding on the side that faces it and nothing on the outer edge. -->
+      <div class="mt-10 flex items-center divide-x divide-white/15 max-w-sm">
         <div class="flex-1 pr-4">
-          <p id="stat-users" class="text-2xl font-black text-white">&hellip;</p>
-          <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Users</p>
-        </div>
-        <div class="flex-1 px-4">
           <p id="stat-problems" class="text-2xl font-black text-white">&hellip;</p>
           <p class="text-blue-300 text-[11px] font-semibold mt-0.5">Problems</p>
         </div>
