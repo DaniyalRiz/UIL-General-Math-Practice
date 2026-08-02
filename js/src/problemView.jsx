@@ -195,10 +195,6 @@ function ShareMenu({ q, open, setOpen }) {
           ) : (
             <>
               <button role="menuitem" className={itemCls} onClick={()=>copy(url, 'Link copied')}>Copy link</button>
-              <button role="menuitem" className={itemCls}
-                onClick={()=>copy(`${q.title || 'Problem #' + q.id}\n${url}`, 'Link and title copied')}>
-                Copy link and title
-              </button>
               {canNativeShare && (
                 <button role="menuitem" className={itemCls} onClick={nativeShare}>Share...</button>
               )}
