@@ -2,15 +2,6 @@
 // the HTML wires them through inline onclick attributes.
 import { _supabase as supabase } from './supabaseClient.js';
 
-window.copyDiscordTag = function() {
-  const btn = document.getElementById('discord-tag-btn');
-  const original = btn.textContent;
-  navigator.clipboard.writeText('daniyal7216').then(() => {
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = original; }, 1500);
-  });
-};
-
 document.addEventListener('DOMContentLoaded', function () {
   // ─── UI HELPERS ──────────────────────────────────────────────────────────
   // Native <dialog>: showModal() gives Escape, the ::backdrop, focus moved into
