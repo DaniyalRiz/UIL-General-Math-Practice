@@ -182,7 +182,7 @@ function ShareMenu({ q, open, setOpen }) {
     <div className="relative" ref={wrapRef}>
       <button onClick={()=>setOpen(o=>!o)} title="Share this problem" aria-label="Share this problem"
         aria-haspopup="menu" aria-expanded={open}
-        className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-all">
+        className="flex items-center gap-1 min-w-[36px] min-h-[36px] justify-center sm:min-w-0 sm:min-h-0 sm:justify-start px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-all">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span className="hidden sm:inline">Share</span>
       </button>
@@ -616,6 +616,23 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
     return scored.slice(0, 3).map(s => ({ ...s.x, sharedTags: s.sharedTags }));
   }, [q.id, allQuestions]);
 
+  // The clock sits in the control cluster on desktop and next to the title on a
+  // phone, so it is built once here rather than written out twice. Moving it off
+  // the top row is what buys the space: measured on an iPhone the cluster was
+  // 215px wide, leaving "Algebra 1 & 2" 56px of the 88px it needs.
+  const timerChip = (
+    <div className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border font-mono text-xs sm:text-sm font-bold tabular-nums transition-colors
+      ${answered
+        ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
+        : "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"}`}>
+      <svg aria-hidden="true" className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" strokeWidth="2"/>
+        <path strokeLinecap="round" strokeWidth="2" d="M12 6v6l4 2"/>
+      </svg>
+      <TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
+    </div>
+  );
+
   return (
     <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true"
       aria-label={q.title || 'Practice problem'} onKeyDown={trapTab}
@@ -626,13 +643,20 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
         <div className="border-b border-slate-200 dark:border-slate-700 flex-shrink-0 bg-white dark:bg-slate-950 z-10 shadow-sm dark:shadow-slate-900">
           <div className="flex items-center justify-between px-3 sm:px-5 pt-2.5 sm:pt-3 pb-2.5 sm:pb-3 gap-2 sm:gap-3">
 
-            {/* Left: topic + diff + source + date */}
-            <div className="flex items-center gap-2 flex-wrap min-w-0">
-              <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            {/* Left: topic + diff + source + date.
+                No wrapping on mobile: with the controls taking the right half,
+                flex-wrap broke "Algebra 1 & 2" across two lines and pushed the
+                difficulty pill onto a third. One line that truncates reads far
+                better than three that fit. Wrapping is still on from sm up,
+                where the source chip and Added date join the row. */}
+            <div className="flex items-center gap-2 flex-nowrap sm:flex-wrap min-w-0">
+              <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200 min-w-0">
                 <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${TOPIC_DOT[q.topic]}`}></span>
-                {q.topic}
+                <span className="truncate">{q.topic}</span>
               </span>
-              <DiffPill d={q.difficulty} />
+              {/* shrink-0: the row no longer wraps on mobile, so without this the
+                  pill is what gets squeezed instead of the topic truncating. */}
+              <span className="flex-shrink-0"><DiffPill d={q.difficulty} /></span>
               {q.source && (
                 <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700">
                   {sourceDisplay(q)}
@@ -645,43 +669,41 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
               )}
             </div>
 
-            {/* Right: timer + bookmark + close */}
+            {/* Right: actions + close. The timer joins this row only from sm up. */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {/* Timer */}
-              <div className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border font-mono text-sm font-bold tabular-nums transition-colors
-                ${answered
-                  ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
-                  : "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"}`}>
-                <svg aria-hidden="true" className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" strokeWidth="2"/>
-                  <path strokeLinecap="round" strokeWidth="2" d="M12 6v6l4 2"/>
-                </svg>
-                <TimerDisplay startedAt={timer.startedAt} stoppedAt={timer.stoppedAt} />
-              </div>
+              <div className="hidden sm:block">{timerChip}</div>
               <ShareMenu q={q} open={showShare} setOpen={setShowShare} />
               <button onClick={()=>setShowReportIssue(true)} title="Report a question issue" aria-label="Report a question issue"
-                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-rose-500 dark:hover:text-rose-400 transition-all">
+                className="flex items-center gap-1 min-w-[36px] min-h-[36px] justify-center sm:min-w-0 sm:min-h-0 sm:justify-start px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border bg-slate-50 border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-rose-500 dark:hover:text-rose-400 transition-all">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
                 <span className="hidden sm:inline">Report</span>
               </button>
               <button onClick={onToggleBookmark} title={isBookmarked ? "Remove from Review Later" : "Add to Review Later"}
-                className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all whitespace-nowrap
+                aria-label={isBookmarked ? "Remove from Review Later" : "Add to Review Later"}
+                aria-pressed={!!isBookmarked}
+                className={`flex items-center gap-1.5 min-w-[36px] min-h-[36px] justify-center sm:min-w-0 sm:min-h-0 sm:justify-start px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all whitespace-nowrap
                   ${isBookmarked
                     ? "bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-500/15 dark:border-amber-500/40 dark:text-amber-400"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-amber-300 hover:text-amber-600 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-amber-500 dark:hover:text-amber-400"}`}>
                 <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill={isBookmarked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-                <span>Review Later</span>
+                {/* Icon only on mobile, matching Share and Report. The label cost
+                    about 105px, which is what forced the topic and difficulty to
+                    wrap onto three stacked lines on a phone. */}
+                <span className="hidden sm:inline">Review Later</span>
               </button>
-              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl leading-none transition-colors dark:text-slate-400">×</button>
+              <button onClick={onClose} aria-label="Close problem" className="w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xl leading-none transition-colors dark:text-slate-400">×</button>
             </div>
           </div>
 
-          {/* Title row */}
-          {q.title && (
-            <div className="px-3 sm:px-5 pb-2.5 sm:pb-3">
-              <h2 className="font-display text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">{q.title}</h2>
-            </div>
-          )}
+          {/* Title row, which also holds the clock on a phone. sm:hidden when
+              there is no title keeps the row from adding empty padding on
+              desktop, where the clock lives in the row above. */}
+          <div className={`px-3 sm:px-5 pb-2.5 sm:pb-3 flex items-start justify-between gap-3 ${q.title ? "" : "sm:hidden"}`}>
+            {q.title && (
+              <h2 className="font-display text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight min-w-0">{q.title}</h2>
+            )}
+            <div className="sm:hidden ml-auto flex-shrink-0">{timerChip}</div>
+          </div>
         </div>
 
         {/* ── two-column body after answering, single column before ── */}
@@ -704,8 +726,12 @@ export function ProblemView({ q, onClose, onAnswered, prevAnswer, stat, onPrev, 
             </div>
 
             {/* ── hint ── */}
+            {/* Keyboard hints are hidden on phones: there is no keyboard to use
+                them with, and they wrapped to two dense lines directly under the
+                question. Nothing is lost, since every choice carries a visible
+                labelled cross-out button. */}
             {!answered && (
-              <p className="px-4 sm:px-6 pb-2 text-xs text-slate-600 dark:text-slate-400">
+              <p className="hidden sm:block px-4 sm:px-6 pb-2 text-xs text-slate-600 dark:text-slate-400">
                 <Kbd>A</Kbd>–<Kbd>E</Kbd> select · <Kbd>X</Kbd> cross out · <Kbd>U</Kbd> undo cross out · <Kbd>Enter</Kbd> submit, then next · <Kbd>Space</Kbd> Review Later
                 <span className="hidden sm:inline"> · or click, and right-click to cross out</span>
               </p>
