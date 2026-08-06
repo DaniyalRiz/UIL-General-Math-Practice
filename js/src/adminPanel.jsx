@@ -2305,35 +2305,44 @@ function AdminQuestionManager({ authUser }) {
     }
   };
 
+  // Admin tabs stack vertically on a phone. Five labels in one horizontal row
+  // left each button too narrow for its text, so every one of them wrapped onto
+  // two lines and the row still overran its container. Full width and one per
+  // line reads cleanly; sm and up keeps the original horizontal bar.
+  const adminTabBase = "w-full sm:w-auto text-left sm:text-center px-4 py-2.5 sm:py-2 rounded-lg text-sm font-semibold transition-colors";
+  const adminTabIdle = "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800";
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="font-display text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Admin</h1>
         <p className="text-slate-600 dark:text-slate-400 text-[15px]">Monitor usage and manage the question bank.</p>
-        <div className="mt-4 inline-flex rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1">
+        <div className="mt-4 flex flex-col w-full gap-1 sm:inline-flex sm:flex-row sm:w-auto sm:gap-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1">
           <button onClick={()=>setAdminPanelTab('activity')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='activity' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            className={`${adminTabBase} ${adminPanelTab==='activity' ? 'bg-blue-600 text-white' : adminTabIdle}`}>
             User Activity
           </button>
           <button onClick={startNewQuestion}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='questions' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            className={`${adminTabBase} ${adminPanelTab==='questions' ? 'bg-blue-600 text-white' : adminTabIdle}`}>
             Add Question
           </button>
           <button onClick={()=>setAdminPanelTab('editQuestions')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='editQuestions' ? 'bg-violet-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            className={`${adminTabBase} ${adminPanelTab==='editQuestions' ? 'bg-violet-600 text-white' : adminTabIdle}`}>
             Edit Questions
           </button>
           <button onClick={openReviewImports}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold inline-flex items-center gap-1.5 ${adminPanelTab==='reviewImports' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            className={`${adminTabBase} flex items-center gap-1.5 sm:justify-center ${adminPanelTab==='reviewImports' ? 'bg-emerald-600 text-white' : adminTabIdle}`}>
             Review Imports
             {pendingReviewCount > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-rose-500 text-white text-[11px] font-bold">
+              // ml-auto only while stacked, so the count sits at the right edge of
+              // a full-width row instead of floating mid-line after the label.
+              <span className="ml-auto sm:ml-0 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-rose-500 text-white text-[11px] font-bold">
                 {pendingReviewCount}
               </span>
             )}
           </button>
           <button onClick={()=>setAdminPanelTab('bugReports')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold ${adminPanelTab==='bugReports' ? 'bg-rose-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+            className={`${adminTabBase} ${adminPanelTab==='bugReports' ? 'bg-rose-600 text-white' : adminTabIdle}`}>
             Bug Reports
           </button>
         </div>
